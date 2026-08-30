@@ -9,6 +9,7 @@ import {
   useOnClickOutside,
   useOnElementRemoval,
   useOnKeyStroke,
+  useEventListener,
   type UseOnClickOutsideEventType,
   type UseOnClickOutsideHandler,
   type UseOnClickOutsideOptions,
@@ -20,6 +21,9 @@ import {
   type KeyStrokeTarget,
   type UseOnKeyStrokeHandler,
   type UseOnKeyStrokeOptions,
+  type UseEventListenerHandler,
+  type UseEventListenerOptions,
+  type UseEventListenerTarget,
 } from '@muradyanvano/react-hooks'
 ```
 
@@ -229,6 +233,77 @@ Safe to import and call during server rendering. Listeners are effect-only. No b
 - No automatic editable-target filtering
 - Imperative target-ref assignment requires a later React commit
 - `passive: true` means consumers must not rely on `preventDefault()`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useEventListener`
+
+### Call forms
+
+```ts
+// Default window target
+function useEventListener<K extends keyof WindowEventMap>(
+  eventName: K | readonly K[],
+  handler: UseEventListenerHandler<WindowEventMap[K]>,
+  options?: UseEventListenerOptions,
+): void
+
+// Explicit target (Window / Document / HTMLElement / SVGElement /
+// MediaQueryList / EventTarget / RefObject / null) with matching event maps
+function useEventListener(
+  target: UseEventListenerTarget | null,
+  eventName: string | readonly string[],
+  handler: UseEventListenerHandler,
+  options?: UseEventListenerOptions,
+): void
+```
+
+Overloads provide native event-map inference. Custom events use a typed handler annotation (or a window-form generic for non-`WindowEventMap` names).
+
+### Return type
+
+`void`
+
+### Defaults
+
+```ts
+{
+  enabled: true,
+  capture: false,
+  passive: false,
+  once: false,
+  // signal: absent
+}
+```
+
+### Behavior
+
+- Omitted target → `window` inside effects; explicit `null` → no listen
+- Ref targets sync after React commits via `useEffect`
+- Latest handler without registration churn
+- Event-name arrays dedupe by first occurrence; equivalent contents avoid churn
+- Re-registers when resolved target, names, `enabled`, `capture`, `passive`, `once`, or `signal` change
+- `enabled` is not passed to `addEventListener`
+- `once` applies independently per registered name
+- Capability-based target detection (no `instanceof EventTarget`)
+
+### Exported types
+
+- `UseEventListenerTarget`
+- `UseEventListenerHandler`
+- `UseEventListenerOptions`
+
+### SSR
+
+Omitted-window form is SSR-safe to call. Evaluating `document`/`window` as a call argument is the consumer’s responsibility and is not intrinsically SSR-safe. Prefer refs or client-only boundaries for explicit browser globals.
+
+### Limitations
+
+- Single target per call
+- No manual cleanup return value
+- Mixed native+custom names in one array are not a supported inference path — prefer separate calls
 
 ### Stability
 

@@ -20,3 +20,10 @@ export {
   type UseOnKeyStrokeHandler,
   type UseOnKeyStrokeOptions,
 } from './hooks/useOnKeyStroke/useOnKeyStroke'
+
+export {
+  useEventListener,
+  type UseEventListenerHandler,
+  type UseEventListenerOptions,
+  type UseEventListenerTarget,
+} from './hooks/useEventListener/useEventListener'

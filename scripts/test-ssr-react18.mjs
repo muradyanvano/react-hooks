@@ -163,6 +163,7 @@ import {
   useOnClickOutside,
   useOnElementRemoval,
   useOnKeyStroke,
+  useEventListener,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -211,6 +212,7 @@ function TestComponent() {
   useOnClickOutside(ref, () => {})
   useOnElementRemoval(ref, () => {})
   useOnKeyStroke('Escape', () => {})
+  useEventListener('resize', () => {})
   return createElement('div', { ref }, 'ssr-ok')
 }
 

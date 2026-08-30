@@ -19,9 +19,14 @@ describe('package entry', () => {
     expect(entry.useOnKeyStroke).toBeTypeOf('function')
   })
 
+  it('exports useEventListener and its public types', () => {
+    expect(entry.useEventListener).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
+      'useEventListener',
       'useOnClickOutside',
       'useOnElementRemoval',
       'useOnKeyStroke',

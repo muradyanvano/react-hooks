@@ -23,7 +23,7 @@ export default defineConfig([
   {
     // Type-test files assert call signatures at compile time and are not
     // executed as React components.
-    files: ['**/*.type-test.ts'],
+    files: ['**/*.type-test.ts', '**/*.type-test.tsx'],
     rules: {
       'react-hooks/rules-of-hooks': 'off',
     },

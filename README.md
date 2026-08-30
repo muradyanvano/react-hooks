@@ -224,6 +224,75 @@ export function Region() {
 
 See Storybook (`Hooks/useOnKeyStroke`) for interactive examples.
 
+### `useEventListener`
+
+Registers a DOM event listener with strong native event-map inference. Omitted target defaults to `window` (resolved inside effects). Returns `void` — use `enabled` for declarative control.
+
+```tsx
+import { useRef } from 'react'
+import { useEventListener } from '@muradyanvano/react-hooks'
+
+// Default window target (SSR-safe call form)
+useEventListener('resize', (event) => {
+  console.log(event.type)
+})
+
+// Explicit document target — evaluating `document` requires a client environment
+useEventListener(document, 'visibilitychange', () => {
+  console.log(document.visibilityState)
+})
+
+// Ref target
+const buttonRef = useRef<HTMLButtonElement>(null)
+useEventListener(buttonRef, 'click', (event) => {
+  console.log(event.clientX)
+})
+
+// Multiple events
+useEventListener(buttonRef, ['mouseenter', 'mouseleave'], (event) => {
+  console.log(event.type)
+})
+
+// Custom event (annotate the handler for typed detail)
+useEventListener(
+  buttonRef,
+  'item:selected',
+  (event: CustomEvent<{ id: string }>) => {
+    console.log(event.detail.id)
+  },
+)
+```
+
+#### Options
+
+| Option    | Type          | Default | Description                                              |
+| --------- | ------------- | ------- | -------------------------------------------------------- |
+| `enabled` | `boolean`     | `true`  | When `false`, no listeners are registered.               |
+| `capture` | `boolean`     | `false` | Capture-phase listener.                                  |
+| `passive` | `boolean`     | `false` | Passive listeners should not rely on `preventDefault()`. |
+| `once`    | `boolean`     | `false` | Native once — applies per registered event name.         |
+| `signal`  | `AbortSignal` | —       | Aborts/removes the listener natively.                    |
+
+`UseEventListenerOptions` extends `AddEventListenerOptions` with `enabled`. `enabled` is never passed to the browser.
+
+#### Behavior notes
+
+- Latest handler without listener churn.
+- Event-name arrays are deduped; equivalent contents avoid re-registration.
+- Explicit `null` target registers nothing (does not fall back to `window`).
+- Imperative target-ref updates need a later React commit to sync.
+- Accessing `window`/`document` inside handlers is client-time behavior.
+- Passing `document`/`window` as a **call argument** is not intrinsically SSR-safe — the consumer evaluates that global before the hook runs. Prefer omitted window form, a ref, or a client-only boundary.
+
+#### Current limitations
+
+- One target per call (no target arrays)
+- One handler registration set (no multi-listener sugar beyond event-name arrays)
+- No manual cleanup return value
+- Existing hooks are not yet implemented on top of `useEventListener`
+
+See Storybook (`Hooks/useEventListener`) for interactive examples.
+
 ## Development
 
 ```bash
