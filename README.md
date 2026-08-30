@@ -12,6 +12,19 @@ This package is **not published to npm yet**. Consume it from this repository on
 - Goal: SSR-safe imports with no browser globals required at module evaluation time
 - Publishing has not been authorized
 
+## Documentation
+
+Local Storybook documents public package behavior with interactive examples, Controls, Actions, accessibility checks, and interaction tests.
+
+Every example includes collapsible consumer-facing TypeScript code with Show code / Hide code and Copy code controls. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
+
+```bash
+npm run storybook
+npm run build:storybook
+```
+
+A future GitHub Pages URL may host the static Storybook build. Deployment is not configured yet.
+
 ## Available hooks
 
 ### `useOnClickOutside`
@@ -79,15 +92,19 @@ npm run verify
 
 Useful scripts:
 
-| Script                                                      | Purpose                                         |
-| ----------------------------------------------------------- | ----------------------------------------------- |
-| `npm run build` / `npm run build:lib`                       | Build the ESM library and declarations          |
-| `npm run typecheck`                                         | TypeScript project build                        |
-| `npm run lint`                                              | ESLint                                          |
-| `npm run format` / `npm run format:check`                   | Prettier                                        |
-| `npm test` / `npm run test:watch` / `npm run test:coverage` | Vitest                                          |
-| `npm run pack:dry-run`                                      | Inspect the future publish tarball              |
-| `npm run verify`                                            | Format check, typecheck, lint, tests, and build |
+| Script                                                      | Purpose                                                             |
+| ----------------------------------------------------------- | ------------------------------------------------------------------- |
+| `npm run storybook`                                         | Start local Storybook docs                                          |
+| `npm run build:storybook`                                   | Build static Storybook output                                       |
+| `npm run test:storybook`                                    | Run Storybook browser interaction/a11y checks                       |
+| `npm run build` / `npm run build:lib`                       | Build the ESM library and declarations                              |
+| `npm run typecheck`                                         | TypeScript project build                                            |
+| `npm run lint`                                              | ESLint                                                              |
+| `npm run format` / `npm run format:check`                   | Prettier                                                            |
+| `npm test` / `npm run test:watch` / `npm run test:coverage` | Unit tests (Vitest)                                                 |
+| `npm run pack:dry-run`                                      | Inspect the future publish tarball                                  |
+| `npm run verify`                                            | Format, typecheck, lint, unit tests, library build, Storybook build |
+| `npm run verify:ci`                                         | `verify` plus Storybook browser tests                               |
 
 ## License
 

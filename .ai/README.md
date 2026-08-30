@@ -10,6 +10,7 @@ Operational instructions for coding agents working in this repository.
 | `skills/typescript-conventions.md` | Editing TypeScript configs or library/source types |
 | `skills/react-conventions.md` | Adding or changing React-facing code, peers, or JSX policy |
 | `skills/hook-design.md` | Implementing or changing hooks and their public contracts |
+| `skills/storybook.md` | Adding or changing Storybook docs, stories, or Storybook tooling |
 | `skills/testing.md` | Adding tests, coverage, or Vitest configuration |
 | `skills/code-quality.md` | Touching lint, format, or verification scripts |
 | `skills/change-workflow.md` | Planning commits, releases, publishing, or deferred work |

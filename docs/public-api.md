@@ -82,3 +82,7 @@ Safe to import and call during server rendering. Listeners are effect-only.
 ### Stability
 
 Unreleased beta API. May change before `0.1.0`.
+
+## Storybook
+
+Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

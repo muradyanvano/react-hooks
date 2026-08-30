@@ -1,0 +1,90 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+import { CodeBlock } from './components/CodeBlock'
+import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
+
+<Meta title="Getting Started" />
+
+<div className="sb-unstyled mx-auto max-w-3xl space-y-8 px-2 py-6 font-sans text-slate-900">
+  <header className="space-y-3 border-b border-slate-200 pb-6">
+    <h1 className="text-3xl font-semibold tracking-tight">Getting started</h1>
+    <p className="text-base leading-7 text-slate-600">
+      Honest setup notes for this prerelease. The package is not available from
+      npm yet.
+    </p>
+  </header>
+
+  <section className="space-y-3">
+    <h2 className="text-xl font-semibold">Installation status</h2>
+    <p className="text-sm leading-7 text-slate-600">
+      Until publication is authorized, consume the package from this repository
+      only. The following command applies <strong>after</strong> a public
+      release:
+    </p>
+    <CodeBlock code="npm install @muradyanvano/react-hooks" language="bash" />
+  </section>
+
+  <section className="space-y-3">
+    <h2 className="text-xl font-semibold">TypeScript and React</h2>
+    <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
+      <li>Written in TypeScript with strict library settings.</li>
+      <li>
+        Peer range: <code>react@^18.0.0 || ^19.0.0</code>.
+      </li>
+      <li>ESM-only. No CommonJS export map.</li>
+    </ul>
+  </section>
+
+  <section className="space-y-3">
+    <h2 className="text-xl font-semibold">SSR and React Server Components</h2>
+    <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
+      <li>
+        Importing the package does not access <code>window</code> or{' '}
+        <code>document</code> at module evaluation time.
+      </li>
+      <li>
+        Hooks must be called from Client Components when using React Server
+        Components.
+      </li>
+      <li>
+        Document listeners are attached in effects, so server rendering does not
+        register them.
+      </li>
+    </ul>
+  </section>
+
+  <section className="space-y-3">
+    <h2 className="text-xl font-semibold">Minimal example</h2>
+    <CodeBlock code={gettingStartedSnippet} language="tsx" />
+    <p className="text-sm leading-7 text-slate-600">
+      Keep the trigger inside the referenced element when using the default{' '}
+      <code>pointerdown</code> listener so opening does not immediately close.
+    </p>
+    <p className="text-xs leading-5 text-slate-500">
+      Example styling in Storybook uses Tailwind for documentation only. The
+      hooks package does not require Tailwind.
+    </p>
+  </section>
+
+  <section className="space-y-3">
+    <h2 className="text-xl font-semibold">Limitations</h2>
+    <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
+      <li>Only one public hook exists today.</li>
+      <li>
+        <code>useOnClickOutside</code> supports a single ref, no ignore lists,
+        and no iframe-specific helpers.
+      </li>
+      <li>
+        Storybook here is local documentation, not a deployed docs site yet.
+      </li>
+    </ul>
+  </section>
+
+  <a
+    className="inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white no-underline"
+    href="?path=/docs/hooks-useonclickoutside--documentation"
+    target="_top"
+  >
+    Open useOnClickOutside docs
+  </a>
+</div>
