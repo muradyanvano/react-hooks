@@ -1,6 +1,6 @@
 # @muradyanvano/react-hooks
 
-Early prerelease React hooks library inspired by VueUse, designed for React.
+Early prerelease React hooks library designed for React.
 
 This package is **not published to npm yet**. Consume it from this repository only until publishing is authorized.
 
@@ -82,6 +82,71 @@ The toggle control is inside the referenced container so the default `pointerdow
 - No ignored selectors / ignored elements
 - No iframe-specific handling
 - Not a full Shadow DOM API (uses `composedPath()` when available, then `contains()`)
+
+### `useOnElementRemoval`
+
+Invokes a handler when a referenced element is removed from its owning document tree — either directly or because an ancestor is removed.
+
+```tsx
+import { useEffect, useRef, useState } from 'react'
+import { useOnElementRemoval } from '@muradyanvano/react-hooks'
+
+export function ExternalWidgetHost() {
+  const hostRef = useRef<HTMLDivElement>(null)
+  const widgetRef = useRef<HTMLDivElement>(null)
+  const [readyTick, setReadyTick] = useState(0)
+
+  useEffect(() => {
+    const host = hostRef.current
+    if (host == null) {
+      return
+    }
+
+    const widget = document.createElement('div')
+    widget.textContent = 'External widget'
+    host.append(widget)
+    widgetRef.current = widget
+    // Assignment happens in an effect; bump state so the hook re-syncs after commit.
+    setReadyTick((tick) => tick + 1)
+
+    return () => {
+      widget.remove()
+      widgetRef.current = null
+    }
+  }, [])
+
+  useOnElementRemoval(widgetRef, (element) => {
+    console.log('Widget removed:', element, readyTick)
+  })
+
+  return <div ref={hostRef} />
+}
+```
+
+#### Options
+
+| Option    | Type      | Default | Description                                             |
+| --------- | --------- | ------- | ------------------------------------------------------- |
+| `enabled` | `boolean` | `true`  | When `false`, no `MutationObserver` is created or kept. |
+
+#### Defaults and SSR
+
+- Default `enabled` is `true`.
+- Importing the package does not touch `window`, `document`, or `MutationObserver`.
+- Observers are created only in effects, so server rendering does not observe the DOM.
+
+#### Lifecycle limitation
+
+The hook is intended for removal performed outside React’s normal ownership flow, or for observing an element from a component that remains mounted. It is **not** a replacement for React effect cleanup. When the observing component unmounts, React may disconnect the observer before an asynchronous mutation callback runs.
+
+#### Current limitations
+
+- Single ref only
+- No ignore lists
+- No public `MutationObserver` abstraction
+- Requires a React commit after imperative `ref.current` assignment so observation can sync
+
+See Storybook (`Hooks/useOnElementRemoval`) for interactive examples.
 
 ## Development
 

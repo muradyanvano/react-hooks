@@ -10,6 +10,7 @@ export function ExampleShowcase({
   code,
   children,
   aside,
+  hookName = 'useOnClickOutside',
 }: {
   title: string
   description: string
@@ -18,6 +19,7 @@ export function ExampleShowcase({
   code: string
   children: ReactNode
   aside?: ReactNode | undefined
+  hookName?: string | undefined
 }) {
   return (
     <section className="mx-auto w-full max-w-5xl p-3 sm:p-5">
@@ -26,7 +28,7 @@ export function ExampleShowcase({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="space-y-1.5">
               <p className="text-[11px] font-semibold tracking-[0.16em] text-indigo-600 uppercase">
-                useOnClickOutside
+                {hookName}
               </p>
               <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
                 {title}

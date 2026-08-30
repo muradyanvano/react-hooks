@@ -10,4 +10,16 @@ describe('package entry', () => {
   it('exports useOnClickOutside and its public types', () => {
     expect(entry.useOnClickOutside).toBeTypeOf('function')
   })
+
+  it('exports useOnElementRemoval and its public types', () => {
+    expect(entry.useOnElementRemoval).toBeTypeOf('function')
+  })
+
+  it('does not expose private source subpaths on the root entry', () => {
+    expect(entry).not.toHaveProperty('default')
+    expect(Object.keys(entry).sort()).toEqual([
+      'useOnClickOutside',
+      'useOnElementRemoval',
+    ])
+  })
 })

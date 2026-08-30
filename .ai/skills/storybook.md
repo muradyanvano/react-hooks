@@ -6,6 +6,8 @@ Operational rules for the consumer-facing Storybook documentation environment.
 - Keep the Storybook Vite alias scoped to Storybook/development configuration.
 - Present examples with the shared `ExampleShowcase` system: polished preview, Show/Hide code, Copy code, and curated snippets.
 - Prefer Controls for real options (`enabled`, `eventType`, `capture`) and Actions/event logs for handler calls.
+- For observer-based hooks, demonstrate external or imperative DOM mutation accurately. Do not fake detection through ordinary conditional React rendering when that behavior is not guaranteed.
+- After imperative `ref.current` assignment in examples, include a small commit/state signal when needed so observation can sync, and keep the snippet honest about that requirement.
 - Hide Storybook autodocs source when the custom code panel already shows the consumer snippet.
 - Highlight TSX with Shiki (or an official Storybook Source block if it meets the same bar). Keep highlighters development-only.
 - Add meaningful `play` interaction tests and accessibility checks for important stories, including disclosure and clipboard behavior.
