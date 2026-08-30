@@ -159,7 +159,11 @@ try {
     `import { createRequire } from 'node:module'
 import { createElement, useRef } from 'react'
 import { renderToString } from 'react-dom/server'
-import { useOnElementRemoval } from '@muradyanvano/react-hooks'
+import {
+  useOnClickOutside,
+  useOnElementRemoval,
+  useOnKeyStroke,
+} from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
 const reactPkg = require('react/package.json')
@@ -190,9 +194,23 @@ globalThis.MutationObserver = class {
   }
 }
 
+let listenerCalls = 0
+const previousAdd =
+  typeof EventTarget !== 'undefined'
+    ? EventTarget.prototype.addEventListener
+    : null
+if (previousAdd) {
+  EventTarget.prototype.addEventListener = function (...args) {
+    listenerCalls += 1
+    return previousAdd.apply(this, args)
+  }
+}
+
 function TestComponent() {
   const ref = useRef(null)
+  useOnClickOutside(ref, () => {})
   useOnElementRemoval(ref, () => {})
+  useOnKeyStroke('Escape', () => {})
   return createElement('div', { ref }, 'ssr-ok')
 }
 
@@ -210,6 +228,9 @@ try {
   } else {
     globalThis.MutationObserver = previousMO
   }
+  if (previousAdd) {
+    EventTarget.prototype.addEventListener = previousAdd
+  }
 }
 
 console.log(
@@ -218,6 +239,7 @@ console.log(
     reactDomVersion: reactDomPkg.version,
     html,
     mutationObserverCalls,
+    listenerCalls,
     warnings,
     errors,
     renderError,
@@ -237,6 +259,7 @@ console.log(
   console.log(
     `MutationObserver constructions: ${payload.mutationObserverCalls}`,
   )
+  console.log(`addEventListener constructions: ${payload.listenerCalls}`)
 
   if (payload.renderError) {
     throw new Error(`SSR render threw:\\n${payload.renderError}`)
@@ -249,6 +272,12 @@ console.log(
   if (payload.mutationObserverCalls !== 0) {
     throw new Error(
       `Expected no MutationObserver constructions, got ${payload.mutationObserverCalls}`,
+    )
+  }
+
+  if (payload.listenerCalls !== 0) {
+    throw new Error(
+      `Expected no addEventListener calls during SSR, got ${payload.listenerCalls}`,
     )
   }
 

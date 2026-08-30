@@ -10,6 +10,7 @@ Reusable standards for hooks in this package.
 - For removal / mutation observers, capture the observed element instance when observation starts. Do not depend on `ref.current` still pointing at a removed node when the observer callback runs.
 - Mutable React refs do not trigger renders. After imperative `ref.current` assignment, sync observation from a committed render (compare element identity, then schedule observation). Do not put `ref.current` in an effect dependency array and assume React tracks it.
 - Prefer `useEffect` for observer/listener lifecycle and target synchronization. Use `useLayoutEffect` only when synchronous layout measurement or DOM mutation before paint is required. When `useLayoutEffect` is used in a React 18-compatible package, verify React 18 SSR behavior with a packed consumer (`npm run test:ssr:react18`).
+- Keyboard listeners should match exact `event.key` values, keep latest filters/handlers without listener churn, resolve default `window` only inside effects, treat explicit `null` targets as “no listen”, and document passive-listener / editable-target limitations honestly.
 - Prefer focused local implementation over speculative shared hooks (`useEventListener`, `useMutationObserver`, `useLatest`, …) until reuse is proven across multiple hooks.
 - Document honest lifecycle limits: observer hooks are not replacements for React effect cleanup when the observing component itself unmounts.
 - Provide runtime behavior tests and compile-time type tests for public hooks.

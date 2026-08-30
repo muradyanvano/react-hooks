@@ -76,13 +76,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useOnElementRemoval</code> — document-tree removal detection via{' '}
       <code>MutationObserver</code>
     </li>
+    <li>
+      <code>useOnKeyStroke</code> — keyboard stroke listeners with exact{' '}
+      <code>event.key</code> matching
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Two public hooks exist in this prerelease.</li>
+    <li>Three public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -90,6 +94,10 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
     <li>
       <code>useOnElementRemoval</code> is not a replacement for React effect
       cleanup when the observing component itself unmounts.
+    </li>
+    <li>
+      <code>useOnKeyStroke</code> does not parse combination strings; use a
+      predicate for modifiers. It does not auto-ignore editable fields.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.
@@ -107,10 +115,10 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
     </a>
     <a
       className="inline-flex rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 no-underline"
-      href="?path=/docs/hooks-useonelementremoval--documentation"
+      href="?path=/docs/hooks-useonkeystroke--documentation"
       target="_top"
     >
-      Open useOnElementRemoval docs
+      Open useOnKeyStroke docs
     </a>
   </div>
 </div>

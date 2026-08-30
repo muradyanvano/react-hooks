@@ -8,11 +8,18 @@ Status: early prerelease (`0.1.0-beta.1`, unreleased, not published to npm).
 import {
   useOnClickOutside,
   useOnElementRemoval,
+  useOnKeyStroke,
   type UseOnClickOutsideEventType,
   type UseOnClickOutsideHandler,
   type UseOnClickOutsideOptions,
   type UseOnElementRemovalHandler,
   type UseOnElementRemovalOptions,
+  type KeyStrokeEventType,
+  type KeyStrokeFilter,
+  type KeyStrokePredicate,
+  type KeyStrokeTarget,
+  type UseOnKeyStrokeHandler,
+  type UseOnKeyStrokeOptions,
 } from '@muradyanvano/react-hooks'
 ```
 
@@ -150,6 +157,78 @@ Not a replacement for React effect cleanup. When the observing component unmount
 - No ignore lists
 - No public observer abstraction
 - Imperative `ref.current` assignment after mount requires a subsequent React commit for observation sync
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useOnKeyStroke`
+
+### Signature
+
+```ts
+function useOnKeyStroke(
+  key: KeyStrokeFilter,
+  handler: UseOnKeyStrokeHandler,
+  options?: UseOnKeyStrokeOptions,
+): void
+```
+
+### Arguments
+
+1. `key` — `true`, exact `event.key` string, readonly string array, or predicate.
+2. `handler` — receives the original `KeyboardEvent`.
+3. `options` — optional configuration.
+
+### Return type
+
+`void`
+
+### Defaults
+
+```ts
+{
+  enabled: true,
+  eventType: 'keydown',
+  target: window, // resolved inside effects when omitted
+  dedupe: false,
+  capture: false,
+  passive: false,
+}
+```
+
+### Behavior
+
+- Exact, case-sensitive `event.key` matching
+- `true` matches every valid keyboard event
+- Predicates support modifiers; combination strings are not parsed
+- `dedupe: true` ignores `event.repeat` before filter evaluation
+- Omitted `target` defaults to `window`; explicit `null` registers nothing
+- Ref targets sync after React commits via `useEffect`
+- Latest handler/filter/dedupe without listener churn
+- Re-registers when `enabled`, resolved target, `eventType`, `capture`, or `passive` change
+- Validates keyboard-event shape via string `key` (no realm `KeyboardEvent` constructor)
+- Detects usable targets via `addEventListener` / `removeEventListener` capability
+
+### Exported types
+
+- `KeyStrokeEventType`
+- `KeyStrokeFilter`
+- `KeyStrokePredicate`
+- `KeyStrokeTarget`
+- `UseOnKeyStrokeHandler`
+- `UseOnKeyStrokeOptions`
+
+### SSR
+
+Safe to import and call during server rendering. Listeners are effect-only. No browser globals at module evaluation. No `useLayoutEffect`.
+
+### Limitations
+
+- No combination-string parser
+- No automatic editable-target filtering
+- Imperative target-ref assignment requires a later React commit
+- `passive: true` means consumers must not rely on `preventDefault()`
 
 ### Stability
 

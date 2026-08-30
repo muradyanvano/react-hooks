@@ -10,3 +10,13 @@ export {
   type UseOnElementRemovalHandler,
   type UseOnElementRemovalOptions,
 } from './hooks/useOnElementRemoval/useOnElementRemoval'
+
+export {
+  useOnKeyStroke,
+  type KeyStrokeEventType,
+  type KeyStrokeFilter,
+  type KeyStrokePredicate,
+  type KeyStrokeTarget,
+  type UseOnKeyStrokeHandler,
+  type UseOnKeyStrokeOptions,
+} from './hooks/useOnKeyStroke/useOnKeyStroke'

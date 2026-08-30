@@ -148,6 +148,82 @@ The hook is intended for removal performed outside React’s normal ownership fl
 
 See Storybook (`Hooks/useOnElementRemoval`) for interactive examples.
 
+### `useOnKeyStroke`
+
+Registers a keyboard listener for matching key strokes. Matching uses exact, case-sensitive `event.key` values (not `event.code`).
+
+```tsx
+import { useOnKeyStroke } from '@muradyanvano/react-hooks'
+
+useOnKeyStroke('Escape', () => {
+  closeDialog()
+})
+
+useOnKeyStroke(['ArrowUp', 'ArrowDown'], (event) => {
+  event.preventDefault()
+  moveSelection(event.key)
+})
+
+useOnKeyStroke(
+  (event) =>
+    event.key.toLowerCase() === 'k' && (event.ctrlKey || event.metaKey),
+  (event) => {
+    event.preventDefault()
+    openCommandMenu()
+  },
+)
+```
+
+Target ref example:
+
+```tsx
+import { useRef } from 'react'
+import { useOnKeyStroke } from '@muradyanvano/react-hooks'
+
+export function Region() {
+  const regionRef = useRef<HTMLDivElement>(null)
+
+  useOnKeyStroke('Enter', handleEnter, {
+    target: regionRef,
+  })
+
+  return (
+    <div ref={regionRef} tabIndex={0}>
+      Focus this region and press Enter
+    </div>
+  )
+}
+```
+
+#### Options
+
+| Option      | Type                               | Default     | Description                                              |
+| ----------- | ---------------------------------- | ----------- | -------------------------------------------------------- |
+| `enabled`   | `boolean`                          | `true`      | When `false`, no listener is registered.                 |
+| `eventType` | `'keydown' \| 'keyup'`             | `'keydown'` | Keyboard event to listen for.                            |
+| `target`    | `EventTarget \| RefObject \| null` | `window`    | Omitted → `window`. Explicit `null` → no listen.         |
+| `dedupe`    | `boolean`                          | `false`     | When `true`, ignore `event.repeat`.                      |
+| `capture`   | `boolean`                          | `false`     | Capture-phase listener.                                  |
+| `passive`   | `boolean`                          | `false`     | Passive listeners should not rely on `preventDefault()`. |
+
+#### Behavior notes
+
+- Filters: string, readonly string array, `true` (all keys), or predicate.
+- Predicates are the API for modifier combinations — no `Ctrl+K` string parser.
+- Does **not** auto-ignore inputs/textareas/contenteditable; use a predicate when needed.
+- Default `passive: false` allows `preventDefault()`.
+- SSR-safe: no `window` access at import; listeners are effect-only.
+- Imperative target-ref updates need a later React commit to sync.
+
+#### Current limitations
+
+- No combination-string parsing
+- No public editable-target helper
+- No `useOnKeyDown` / `useOnKeyUp` aliases
+- Single active listener per hook instance
+
+See Storybook (`Hooks/useOnKeyStroke`) for interactive examples.
+
 ## Development
 
 ```bash

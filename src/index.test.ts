@@ -15,11 +15,16 @@ describe('package entry', () => {
     expect(entry.useOnElementRemoval).toBeTypeOf('function')
   })
 
+  it('exports useOnKeyStroke and its public types', () => {
+    expect(entry.useOnKeyStroke).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
       'useOnClickOutside',
       'useOnElementRemoval',
+      'useOnKeyStroke',
     ])
   })
 })
