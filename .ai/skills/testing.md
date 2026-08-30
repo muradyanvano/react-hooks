@@ -5,8 +5,9 @@
 - Prefer behavior-focused tests; avoid implementation-detail assertions and brittle snapshots.
 - Colocate hook runtime tests and type tests next to the hook implementation.
 - Type-test files must be typechecked, excluded from `dist`, and omitted from the npm tarball.
-- Cover SSR/import safety for hooks that touch browser APIs in effects.
+- Cover SSR/import safety for hooks that touch browser APIs in effects, including console warning/error assertions for layout-effect SSR messages when relevant.
 - Storybook interaction and accessibility checks run through `npm run test:storybook` (`--project=storybook`).
+- React 18 packed-consumer SSR checks run through `npm run test:ssr:react18` and are part of `verify:ci` (not every unit-test run) because they install React 18 into a temporary directory.
 - Setup lives in `vitest.setup.ts` (unit) and `.storybook/vitest.setup.ts` (Storybook).
 - Coverage via `npm run test:coverage` covers library source only.
 

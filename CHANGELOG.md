@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `UseOnElementRemovalOptions`
   - `UseOnElementRemovalHandler`
 - Runtime, type, and SSR coverage for `useOnElementRemoval`
+- React 18 packed-consumer SSR check (`npm run test:ssr:react18`) integrated into `verify:ci`
 - Public API notes in `docs/public-api.md`
 - Storybook documentation environment (local only; not deployed):
   - Introduction and Getting Started pages

@@ -162,6 +162,7 @@ Useful scripts:
 | `npm run storybook`                                         | Start local Storybook docs                                          |
 | `npm run build:storybook`                                   | Build static Storybook output                                       |
 | `npm run test:storybook`                                    | Run Storybook browser interaction/a11y checks                       |
+| `npm run test:ssr:react18`                                  | Packed-consumer SSR check against React 18                          |
 | `npm run build` / `npm run build:lib`                       | Build the ESM library and declarations                              |
 | `npm run typecheck`                                         | TypeScript project build                                            |
 | `npm run lint`                                              | ESLint                                                              |
@@ -169,7 +170,7 @@ Useful scripts:
 | `npm test` / `npm run test:watch` / `npm run test:coverage` | Unit tests (Vitest)                                                 |
 | `npm run pack:dry-run`                                      | Inspect the future publish tarball                                  |
 | `npm run verify`                                            | Format, typecheck, lint, unit tests, library build, Storybook build |
-| `npm run verify:ci`                                         | `verify` plus Storybook browser tests                               |
+| `npm run verify:ci`                                         | `verify` plus Storybook browser tests and React 18 SSR consumer     |
 
 ## License
 

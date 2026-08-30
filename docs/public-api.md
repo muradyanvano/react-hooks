@@ -127,7 +127,7 @@ function useOnElementRemoval<T extends Element>(
 - Captures the observed element instance so the handler still receives it if `ref.current` is cleared
 - Invokes the latest handler once, then disconnects
 - Does not recreate the observer solely because handler identity changes
-- Re-syncs the observed element after React commits when `ref.current` identity changes across renders
+- Re-syncs the observed element after React commits when `ref.current` identity changes across renders (effect-based sync; does not use `useLayoutEffect`)
 - Disconnects on cleanup, disable, detection, and unmount
 - Skips already-disconnected targets at setup
 

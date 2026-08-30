@@ -806,6 +806,41 @@ describe('useOnElementRemoval', () => {
   // SSR / import safety
   // -----------------------------------------------------------------------------
 
+  function captureConsoleDuring(run: () => void): {
+    warnings: string[]
+    errors: string[]
+  } {
+    const warnings: string[] = []
+    const errors: string[] = []
+    const originalWarn = console.warn
+    const originalError = console.error
+
+    console.warn = (...args: unknown[]) => {
+      warnings.push(args.map(String).join(' '))
+    }
+    console.error = (...args: unknown[]) => {
+      errors.push(args.map(String).join(' '))
+    }
+
+    try {
+      run()
+      return { warnings, errors }
+    } finally {
+      console.warn = originalWarn
+      console.error = originalError
+    }
+  }
+
+  function isLayoutEffectSsrMessage(message: string): boolean {
+    const normalized = message.toLowerCase()
+    return (
+      normalized.includes('uselayouteffect') &&
+      (normalized.includes('does nothing on the server') ||
+        normalized.includes('server-rendered') ||
+        normalized.includes('server renderer'))
+    )
+  }
+
   it('imports without requiring DOM globals at module evaluation time', async () => {
     await expect(import('../../index')).resolves.toMatchObject({
       useOnElementRemoval: expect.any(Function),
@@ -821,8 +856,31 @@ describe('useOnElementRemoval', () => {
       return <div ref={ref}>host</div>
     }
 
-    expect(() => renderToString(<ServerComponent />)).not.toThrow()
-    expect(renderToString(<ServerComponent />)).toContain('host')
+    const { warnings, errors } = captureConsoleDuring(() => {
+      expect(() => renderToString(<ServerComponent />)).not.toThrow()
+      expect(renderToString(<ServerComponent />)).toContain('host')
+    })
+
+    expect(warnings.filter(isLayoutEffectSsrMessage)).toEqual([])
+    expect(errors.filter(isLayoutEffectSsrMessage)).toEqual([])
+  })
+
+  it('does not emit layout-effect SSR warnings during server rendering', () => {
+    function ServerComponent(): ReactElement {
+      const ref = useRef<HTMLDivElement>(null)
+      useOnElementRemoval(ref, () => {
+        // no-op
+      })
+      return <div ref={ref}>host</div>
+    }
+
+    const { warnings, errors } = captureConsoleDuring(() => {
+      renderToString(<ServerComponent />)
+    })
+
+    expect([...warnings, ...errors].filter(isLayoutEffectSsrMessage)).toEqual(
+      [],
+    )
   })
 
   it('does not instantiate MutationObserver during server rendering', () => {
@@ -837,9 +895,14 @@ describe('useOnElementRemoval', () => {
     }
 
     construct.mockClear()
-    renderToString(<ServerComponent />)
+    const { warnings, errors } = captureConsoleDuring(() => {
+      renderToString(<ServerComponent />)
+    })
 
     expect(construct).not.toHaveBeenCalled()
+    expect([...warnings, ...errors].filter(isLayoutEffectSsrMessage)).toEqual(
+      [],
+    )
   })
 
   it('does not access or mutate the document during server rendering', () => {

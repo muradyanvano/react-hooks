@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type RefObject,
-} from 'react'
+import { useEffect, useRef, useState, type RefObject } from 'react'
 
 export interface UseOnElementRemovalOptions {
   enabled?: boolean
@@ -76,8 +70,10 @@ export function useOnElementRemoval<T extends Element>(
 
   // Sync the captured target after every commit. Mutable ref updates do not
   // appear in React deps; identity is compared before scheduling state.
+  // useEffect (not useLayoutEffect) avoids React 18 SSR warnings; observation
+  // does not require synchronous before-paint timing.
   /* eslint-disable react-hooks/exhaustive-deps -- re-run after every commit; Object.is guards loops */
-  useLayoutEffect(() => {
+  useEffect(() => {
     const next = ref.current
     setObservedElement((previous) =>
       Object.is(previous, next) ? previous : next,
