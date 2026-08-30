@@ -22,6 +22,7 @@ export default defineConfig({
         'src/test',
       ],
       tsconfigPath: './tsconfig.lib.json',
+      bundleTypes: true,
     }),
   ],
   build: {

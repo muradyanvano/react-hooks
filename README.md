@@ -1,8 +1,8 @@
 # @muradyanvano/react-hooks
 
-Early prerelease foundation for a production-oriented React hooks library.
+Early prerelease React hooks library inspired by VueUse, designed for React.
 
-This package is **not published** and **does not expose any hooks yet**. Public APIs will be defined in later phases.
+This package is **not published to npm yet**. Consume it from this repository only until publishing is authorized.
 
 ## Status
 
@@ -11,6 +11,64 @@ This package is **not published** and **does not expose any hooks yet**. Public 
 - React peer range: `^18.0.0 || ^19.0.0`
 - Goal: SSR-safe imports with no browser globals required at module evaluation time
 - Publishing has not been authorized
+
+## Available hooks
+
+### `useOnClickOutside`
+
+Invokes a handler when a document-level pointer or click event happens outside a referenced element.
+
+```tsx
+import { useRef, useState } from 'react'
+import { useOnClickOutside } from '@muradyanvano/react-hooks'
+
+export function Menu() {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useOnClickOutside(containerRef, () => {
+    setOpen(false)
+  })
+
+  return (
+    <div ref={containerRef}>
+      <button type="button" onClick={() => setOpen((value) => !value)}>
+        Toggle menu
+      </button>
+
+      {open ? <div>Menu content</div> : null}
+    </div>
+  )
+}
+```
+
+The toggle control is inside the referenced container so the default `pointerdown` listener does not close the menu when opening it.
+
+#### Options
+
+| Option      | Type                       | Default         | Description                                       |
+| ----------- | -------------------------- | --------------- | ------------------------------------------------- |
+| `enabled`   | `boolean`                  | `true`          | When `false`, no document listener is registered. |
+| `eventType` | `'pointerdown' \| 'click'` | `'pointerdown'` | Document event to listen for.                     |
+| `capture`   | `boolean`                  | `true`          | Capture-phase listener registration.              |
+
+#### Event semantics
+
+- `pointerdown` (default): registers a `pointerdown` listener; the handler receives the original `PointerEvent`. Pointer Events cover mouse, touch, and pen.
+- `click`: registers a `click` listener; the handler receives the original `MouseEvent`.
+
+#### SSR and StrictMode
+
+- Importing the package does not touch `window` or `document`.
+- The hook registers listeners only in an effect, so server rendering does not attach document listeners.
+- Effects clean up correctly under React StrictMode, so duplicate active listeners are not left behind.
+
+#### Current limitations
+
+- Single ref only (no ref arrays)
+- No ignored selectors / ignored elements
+- No iframe-specific handling
+- Not a full Shadow DOM API (uses `composedPath()` when available, then `contains()`)
 
 ## Development
 

@@ -20,5 +20,13 @@ export default defineConfig([
       },
     },
   },
+  {
+    // Type-test files assert call signatures at compile time and are not
+    // executed as React components.
+    files: ['**/*.type-test.ts'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+    },
+  },
   eslintConfigPrettier,
 ])

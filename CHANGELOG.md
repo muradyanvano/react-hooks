@@ -12,4 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Package foundation for `@muradyanvano/react-hooks`
 - ESM-only Vite library build with TypeScript declarations
 - Strict TypeScript, ESLint, Prettier, and Vitest tooling
-- Minimal public entry (`src/index.ts`) with no hooks yet
+- `useOnClickOutside` hook with public types:
+  - `UseOnClickOutsideEventType`
+  - `UseOnClickOutsideOptions`
+  - `UseOnClickOutsideHandler`
+- Runtime, type, and SSR coverage for `useOnClickOutside`
+- Public API notes in `docs/public-api.md`

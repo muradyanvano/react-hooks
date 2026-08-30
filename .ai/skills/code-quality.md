@@ -1,6 +1,7 @@
 # Code quality
 
 - Keep ESLint and Prettier enabled; do not disable important rules globally without documenting why in the PR or skill update.
+- `*.type-test.ts` may turn off `react-hooks/rules-of-hooks` only — those files assert call signatures and are not executed as components.
 - Prefer fixing root causes over weakening `strict`, lint, tests, coverage, or package allowlists.
 - Run `npm run verify` before considering foundation or library changes complete.
 - Never introduce `any` in library or test source.
