@@ -1,75 +1,36 @@
-# React + TypeScript + Vite
+# @muradyanvano/react-hooks
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Early prerelease foundation for a production-oriented React hooks library.
 
-Currently, two official plugins are available:
+This package is **not published** and **does not expose any hooks yet**. Public APIs will be defined in later phases.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Status
 
-## React Compiler
+- Version: `0.1.0-beta.1` (unreleased)
+- Module format: ESM-only
+- React peer range: `^18.0.0 || ^19.0.0`
+- Goal: SSR-safe imports with no browser globals required at module evaluation time
+- Publishing has not been authorized
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Development
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run verify
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Useful scripts:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Script                                                      | Purpose                                         |
+| ----------------------------------------------------------- | ----------------------------------------------- |
+| `npm run build` / `npm run build:lib`                       | Build the ESM library and declarations          |
+| `npm run typecheck`                                         | TypeScript project build                        |
+| `npm run lint`                                              | ESLint                                          |
+| `npm run format` / `npm run format:check`                   | Prettier                                        |
+| `npm test` / `npm run test:watch` / `npm run test:coverage` | Vitest                                          |
+| `npm run pack:dry-run`                                      | Inspect the future publish tarball              |
+| `npm run verify`                                            | Format check, typecheck, lint, tests, and build |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## License
 
-```
+MIT © Vano Muradyan
