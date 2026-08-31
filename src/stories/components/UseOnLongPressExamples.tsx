@@ -44,6 +44,7 @@ export function OverviewExample({
   delay?: number | undefined
   onLongPress?: ((event: PointerEvent) => void) | undefined
 }) {
+  const [archived, setArchived] = useState(false)
   const [favorited, setFavorited] = useState(false)
   const [holding, setHolding] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -52,13 +53,20 @@ export function OverviewExample({
   const targetRef = useRef<HTMLButtonElement>(null)
   const progressId = useId()
 
+  const confirmArchive = (source: 'long-press' | 'click') => {
+    setArchived(true)
+    setHolding(false)
+    setProgress(100)
+    setCount((value) => value + 1)
+    if (source === 'click') {
+      setLastRelease('Activated via click alternative')
+    }
+  }
+
   useOnLongPress(
     targetRef,
     (event) => {
-      setFavorited(true)
-      setHolding(false)
-      setProgress(100)
-      setCount((value) => value + 1)
+      confirmArchive('long-press')
       onLongPress?.(event)
     },
     {
@@ -95,20 +103,28 @@ export function OverviewExample({
     }
   }, [holding, delay])
 
+  const stateLabel = archived
+    ? 'Archived'
+    : favorited
+      ? 'Favorited'
+      : holding
+        ? 'Holding'
+        : 'Idle'
+
   return (
     <ExampleShowcase
       hookName="useOnLongPress"
       title="Hold to confirm"
-      description="Press and hold to favorite a sample item. Long press is an enhancement — a normal click alternative is always available. Progress UI is example-managed, not returned by the hook."
-      instruction="Hold the primary button until the progress fills, or use Favorite with click. Release early to cancel."
-      badge={favorited ? 'Favorited' : holding ? 'Holding' : 'Idle'}
+      description="Hold to archive a sample item, or use the click alternative. Favorite is a separate standard control. Progress UI is example-managed, not returned by the hook."
+      instruction="Hold Archive until progress fills, use Archive with click, or Favorite. Release early to cancel the hold."
+      badge={stateLabel}
       code={overviewSnippet}
       aside={
         <StatusPanel
           items={[
             {
               label: 'State',
-              value: favorited ? 'Favorited' : holding ? 'Holding' : 'Idle',
+              value: stateLabel,
               testId: 'overview-state',
             },
             {
@@ -133,6 +149,16 @@ export function OverviewExample({
         </p>
 
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="mb-3 text-sm font-semibold text-slate-900">
+            Sample note{' '}
+            <span className="font-normal text-slate-500">
+              {archived
+                ? '· archived'
+                : favorited
+                  ? '· favorited'
+                  : '· active'}
+            </span>
+          </p>
           <div className="flex flex-wrap items-center gap-3">
             <button
               ref={targetRef}
@@ -152,25 +178,34 @@ export function OverviewExample({
                 setProgress(0)
               }}
             >
-              {favorited ? 'Favorited' : 'Hold to favorite'}
+              {archived ? 'Archived' : 'Hold to archive'}
             </button>
             <button
               type="button"
               data-testid="overview-click-alt"
               className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               onClick={() => {
-                setFavorited(true)
-                setCount((value) => value + 1)
-                setLastRelease('Activated via click alternative')
+                confirmArchive('click')
               }}
             >
-              Favorite with click
+              Archive with click
+            </button>
+            <button
+              type="button"
+              data-testid="overview-favorite"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              onClick={() => {
+                setFavorited(true)
+              }}
+            >
+              Favorite
             </button>
             <button
               type="button"
               data-testid="overview-reset"
               className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               onClick={() => {
+                setArchived(false)
                 setFavorited(false)
                 setCount(0)
                 setProgress(0)
@@ -247,6 +282,17 @@ function DelayCard({
         style={{ touchAction: 'none', userSelect: 'none' }}
       >
         Hold
+      </button>
+      <button
+        type="button"
+        data-testid={`${testIdPrefix}-click-alt`}
+        className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        onClick={() => {
+          setCount((value) => value + 1)
+          setPointerType('click')
+        }}
+      >
+        Activate with click
       </button>
       <dl className="mt-3 space-y-1 text-sm">
         <div className="flex justify-between gap-2">

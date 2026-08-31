@@ -165,6 +165,7 @@ import {
   useOnKeyStroke,
   useEventListener,
   useOnLongPress,
+  useOnStartTyping,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -215,6 +216,7 @@ function TestComponent() {
   useOnKeyStroke('Escape', () => {})
   useEventListener('resize', () => {})
   useOnLongPress(ref, () => {})
+  useOnStartTyping(() => {})
   return createElement('div', { ref }, 'ssr-ok')
 }
 

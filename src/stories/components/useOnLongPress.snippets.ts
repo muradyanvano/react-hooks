@@ -1,7 +1,8 @@
 export const overviewSnippet = `import { useRef, useState } from 'react'
 import { useOnLongPress } from '@muradyanvano/react-hooks'
 
-export function HoldToFavorite() {
+export function HoldToArchive() {
+  const [archived, setArchived] = useState(false)
   const [favorited, setFavorited] = useState(false)
   const [count, setCount] = useState(0)
   const [lastRelease, setLastRelease] = useState('None yet')
@@ -10,7 +11,7 @@ export function HoldToFavorite() {
   useOnLongPress(
     targetRef,
     () => {
-      setFavorited(true)
+      setArchived(true)
       setCount((value) => value + 1)
     },
     {
@@ -32,13 +33,18 @@ export function HoldToFavorite() {
         type="button"
         style={{ touchAction: 'none', userSelect: 'none' }}
       >
-        {favorited ? 'Favorited' : 'Hold to favorite'}
+        {archived ? 'Archived' : 'Hold to archive'}
+      </button>
+
+      <button type="button" onClick={() => setArchived(true)}>
+        Archive with click
       </button>
 
       <button type="button" onClick={() => setFavorited(true)}>
-        Favorite with click
+        Favorite
       </button>
 
+      <p>{favorited ? 'Favorited' : 'Not favorited'}</p>
       <p>Activations: {count}</p>
       <p>{lastRelease}</p>
     </div>
@@ -72,6 +78,9 @@ function HoldTarget({
     <div>
       <button ref={targetRef} type="button" style={{ touchAction: 'none' }}>
         {label}
+      </button>
+      <button type="button" onClick={() => setCount((value) => value + 1)}>
+        Activate with click
       </button>
       <p>Count: {count}</p>
       <p>Pointer: {pointerType}</p>

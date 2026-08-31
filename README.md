@@ -393,6 +393,87 @@ This hook does **not** suppress the click that a browser may generate after poin
 
 See Storybook (`Hooks/useOnLongPress`) for interactive examples.
 
+### `useOnStartTyping`
+
+Detects when a user begins typing while focus is outside an editable element. A common use case is focusing a search field when typing starts anywhere on the page.
+
+```tsx
+import { useRef } from 'react'
+import { useOnStartTyping } from '@muradyanvano/react-hooks'
+
+export function Search() {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useOnStartTyping(() => {
+    inputRef.current?.focus()
+  })
+
+  return (
+    <input
+      ref={inputRef}
+      type="search"
+      placeholder="Start typing to search"
+      aria-label="Search"
+    />
+  )
+}
+```
+
+The hook does **not** call `preventDefault` or `stopPropagation`, so the initial typed character may continue into a newly focused input (browser-dependent).
+
+#### Options
+
+| Option                     | Type                                | Default                    | Description                                                  |
+| -------------------------- | ----------------------------------- | -------------------------- | ------------------------------------------------------------ |
+| `enabled`                  | `boolean`                           | `true`                     | When `false`, no document listener is registered.            |
+| `isTypedCharacterValid`    | `(event: KeyboardEvent) => boolean` | ASCII alphanumeric default | Completely replaces the default character-validity decision. |
+| `isFocusedElementEditable` | `() => boolean`                     | DOM editable detector      | Completely replaces the default editable-element check.      |
+
+#### Default character validation
+
+Accepts Latin letters `A–Z` / `a–z` and digits `0–9`. Rejects whitespace, punctuation, symbols, navigation/control keys, empty `event.key`, Ctrl/Alt/Meta modifiers, `event.repeat`, and `event.isComposing`. Shift is allowed so uppercase letters remain valid.
+
+Equivalent rule:
+
+```ts
+!event.ctrlKey &&
+  !event.altKey &&
+  !event.metaKey &&
+  !event.isComposing &&
+  !event.repeat &&
+  /^[a-z0-9]$/i.test(event.key)
+```
+
+A custom `isTypedCharacterValid` is responsible for any modifier, repeat, and composition filtering it requires. Editable-element protection remains a separate check and always runs first.
+
+#### Editable-element protection
+
+By default the handler is skipped when focus is in an `<input>`, `<textarea>`, `<select>`, a contenteditable region, a descendant of one, or an editable control inside an open shadow root (where detectable). Nested `contenteditable="false"` islands are treated as non-editable.
+
+#### Execution order
+
+1. Listener is active only while `enabled` is true.
+2. If the focused element is editable, stop (validator is not called).
+3. If the character validator rejects the event, stop.
+4. Call the latest handler with the original `KeyboardEvent`.
+
+#### SSR and StrictMode
+
+- Importing the package does not touch `document` or `window`.
+- The document `keydown` listener is registered only in `useEffect`.
+- Effects clean up correctly under React StrictMode (one active listener per mounted instance).
+
+#### Current limitations
+
+- Default validator is ASCII Latin letters and digits only
+- Based on `keydown`, not `beforeinput` / text-input events
+- Does not reconstruct IME-composed text
+- Does not manage input values
+- Initial-character insertion after focus can be browser-dependent
+- Not a shortcut hook — use `useOnKeyStroke` for explicit key or shortcut handling
+
+See Storybook (`Hooks/useOnStartTyping`) for interactive examples.
+
 ## Development
 
 ```bash

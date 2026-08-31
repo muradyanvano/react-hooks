@@ -11,6 +11,7 @@ import {
   useOnKeyStroke,
   useEventListener,
   useOnLongPress,
+  useOnStartTyping,
   type UseOnClickOutsideEventType,
   type UseOnClickOutsideHandler,
   type UseOnClickOutsideOptions,
@@ -30,6 +31,10 @@ import {
   type UseOnLongPressOptions,
   type UseOnLongPressReleaseDetails,
   type UseOnLongPressReleaseHandler,
+  type UseOnStartTypingCharacterValidator,
+  type UseOnStartTypingEditableDetector,
+  type UseOnStartTypingHandler,
+  type UseOnStartTypingOptions,
 } from '@muradyanvano/react-hooks'
 ```
 
@@ -390,6 +395,82 @@ Import-safe and effect-only. No listeners or timers during server rendering. No 
 - No automatic click suppression
 - No keyboard long-press
 - No public progress / gesture-state API
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useOnStartTyping`
+
+### Signature
+
+```ts
+function useOnStartTyping(
+  handler: UseOnStartTypingHandler,
+  options?: UseOnStartTypingOptions,
+): void
+```
+
+### Arguments
+
+1. `handler` — called with the original `KeyboardEvent` when typing intent is accepted.
+2. `options` — optional configuration.
+
+### Return type
+
+`void`
+
+### Defaults
+
+```ts
+{
+  enabled: true,
+  // isTypedCharacterValid: ASCII alphanumeric default (see below)
+  // isFocusedElementEditable: DOM editable detector (see below)
+}
+```
+
+Default character validator:
+
+```ts
+!event.ctrlKey &&
+  !event.altKey &&
+  !event.metaKey &&
+  !event.isComposing &&
+  !event.repeat &&
+  /^[a-z0-9]$/i.test(event.key)
+```
+
+### Behavior
+
+- Registers a document `keydown` listener while `enabled` is true
+- Skips when focus is in an editable control or contenteditable region (open shadow roots included when detectable)
+- Nested `contenteditable="false"` islands are non-editable
+- Custom `isTypedCharacterValid` replaces character validity entirely (caller owns modifier/repeat/composition filtering)
+- Custom `isFocusedElementEditable` replaces the editable detector entirely
+- Editable check runs before the character validator
+- Does not call `preventDefault` or `stopPropagation`
+- Latest `handler` / validators are used without re-registering the listener
+- Changing `enabled` registers or removes the listener
+
+### Exported types
+
+- `UseOnStartTypingHandler`
+- `UseOnStartTypingCharacterValidator`
+- `UseOnStartTypingEditableDetector`
+- `UseOnStartTypingOptions`
+
+### SSR
+
+Import-safe and effect-only. No document listener during server rendering. No `useLayoutEffect`.
+
+### Limitations
+
+- ASCII alphanumeric default only
+- `keydown`-based; no IME reconstruction
+- Does not manage input values
+- Initial-character insertion after focus can be browser-dependent
+- Not a keyboard-shortcut API (`useOnKeyStroke` remains appropriate for shortcuts)
 
 ### Stability
 

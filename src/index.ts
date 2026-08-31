@@ -36,3 +36,11 @@ export {
   type UseEventListenerOptions,
   type UseEventListenerTarget,
 } from './hooks/useEventListener/useEventListener'
+
+export {
+  useOnStartTyping,
+  type UseOnStartTypingCharacterValidator,
+  type UseOnStartTypingEditableDetector,
+  type UseOnStartTypingHandler,
+  type UseOnStartTypingOptions,
+} from './hooks/useOnStartTyping/useOnStartTyping'
