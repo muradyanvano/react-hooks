@@ -137,6 +137,9 @@ async function expectCodeDisclosure(canvas: ReturnType<typeof within>) {
   await expect(canvas.getByTestId('code-panel')).toBeVisible()
   await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
 
+  await userEvent.keyboard('{Tab}')
+  await expect(canvas.getByTestId('copy-code')).toHaveFocus()
+
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'false')
   await expect(canvas.getByTestId('code-panel')).not.toBeVisible()
@@ -183,20 +186,15 @@ function dispatchPointer(
 async function holdUntil(
   target: Element | Document | Window,
   delayMs: number,
-  coords: { clientX?: number; clientY?: number } = {},
+  coords: { clientX?: number; clientY?: number; pointerId?: number } = {},
 ) {
   dispatchPointer(target, 'pointerdown', {
+    pointerId: coords.pointerId ?? 1,
     clientX: coords.clientX ?? 40,
     clientY: coords.clientY ?? 40,
   })
-  await waitFor(
-    () => {
-      // Delay elapsed; activation asserted by caller via visible state.
-    },
-    { timeout: delayMs + 50 },
-  )
-  await new Promise((resolve) => {
-    setTimeout(resolve, delayMs + 30)
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, delayMs + 40)
   })
 }
 

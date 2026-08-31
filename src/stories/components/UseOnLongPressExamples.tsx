@@ -378,7 +378,7 @@ export function MovementCancellationExample({
     <ExampleShowcase
       hookName="useOnLongPress"
       title="Movement cancellation"
-      description="Movement beyond the distance threshold cancels a pending long press. Release details still report the maximum distance observed."
+      description="Movement beyond the distance threshold cancels a pending long press. Release details still report the maximum distance observed. Provide a click alternative for the same action."
       instruction={`Hold still within about ${distanceThreshold}px, or drag farther to cancel.`}
       badge={status}
       code={movementSnippet}
@@ -482,7 +482,7 @@ export function ReleaseMetricsExample({
     <ExampleShowcase
       hookName="useOnLongPress"
       title="Release metrics"
-      description="Use onRelease to inspect duration, maximum distance, pointer metadata, and whether the long-press handler already fired."
+      description="Use onRelease to inspect duration, maximum distance, pointer metadata, and whether the long-press handler already fired. Pair long press with a standard click control for accessibility."
       instruction="Hold past the delay for a long press, or release early for a short press."
       code={releaseMetricsSnippet}
       aside={
@@ -616,7 +616,7 @@ export function SelfAndDescendantsExample() {
     <ExampleShowcase
       hookName="useOnLongPress"
       title="Self and descendants"
-      description="When self is false (default), presses on descendants can start a gesture. When self is true, only the exact target element is accepted."
+      description="When self is false (default), presses on descendants can start a gesture. When self is true, only the exact target element is accepted. Targets use keyboard Enter/Space as an accessible alternative."
       instruction="Hold on the outer target or the inner descendant for each card."
       code={selfSnippet}
     >
@@ -660,7 +660,7 @@ export function EnabledStateExample({
     <ExampleShowcase
       hookName="useOnLongPress"
       title="Enabled state"
-      description="When disabled, no target listener remains and an in-flight gesture is cancelled without calling onRelease."
+      description="When disabled, no target listener remains and an in-flight gesture is cancelled without calling onRelease. Keep a click alternative available even while long-press detection is paused."
       instruction="Toggle detection, then hold the target. Disable mid-hold to cancel a pending press."
       badge={enabled ? 'Enabled' : 'Paused'}
       code={enabledSnippet}
@@ -767,7 +767,7 @@ export function PointerTypesExample({
     <ExampleShowcase
       hookName="useOnLongPress"
       title="Pointer types and dynamic delay"
-      description="Pointer Events cover mouse, touch, and pen. Delay functions receive the original pointerdown event so you can adapt timing by pointer type."
+      description="Pointer Events cover mouse, touch, and pen. Delay functions receive the original pointerdown event so you can adapt timing by pointer type. Always offer a non-hold alternative for the same action."
       instruction="Hold with different pointer types when available. Browser tests may dispatch representative PointerEvents."
       code={pointerTypesSnippet}
       aside={
