@@ -16,3 +16,5 @@ Operational instructions for coding agents working in this repository.
 | `skills/change-workflow.md` | Planning commits, releases, publishing, or deferred work |
 
 Read only the skills relevant to the current task. Do not invent hooks, APIs, or product behavior before they are specified.
+
+Whenever a change affects behavior, APIs, tooling, or agent workflow, update the related documentation and affected skills in the same change. See [AGENTS.md](../AGENTS.md) for the full sync checklist.
