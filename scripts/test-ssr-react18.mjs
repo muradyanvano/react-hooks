@@ -167,6 +167,7 @@ import {
   useOnLongPress,
   useOnStartTyping,
   useDevicesList,
+  useDisplayMedia,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -219,6 +220,7 @@ function TestComponent() {
   useOnLongPress(ref, () => {})
   useOnStartTyping(() => {})
   useDevicesList()
+  useDisplayMedia()
   return createElement('div', { ref }, 'ssr-ok')
 }
 

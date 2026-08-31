@@ -96,13 +96,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useDevicesList</code> — media-device enumeration with permission
       workflow
     </li>
+    <li>
+      <code>useDisplayMedia</code> — screen capture via{' '}
+      <code>getDisplayMedia</code> with explicit start/stop
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Seven public hooks exist in this prerelease.</li>
+    <li>Eight public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -133,6 +137,11 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useDevicesList</code> lists devices only, stops temporary permission
       tracks immediately, and treats <code>permissionGranted</code> as
       hook-local state.
+    </li>
+    <li>
+      <code>useDisplayMedia</code> owns captured streams, stops tracks on stop /
+      unmount / browser-ended sharing, and recommends imperative{' '}
+      <code>start()</code> from a user gesture.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

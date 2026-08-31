@@ -35,10 +35,15 @@ describe('package entry', () => {
     expect(entry.useDevicesList).toBeTypeOf('function')
   })
 
+  it('exports useDisplayMedia and its public types', () => {
+    expect(entry.useDisplayMedia).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
       'useDevicesList',
+      'useDisplayMedia',
       'useEventListener',
       'useOnClickOutside',
       'useOnElementRemoval',

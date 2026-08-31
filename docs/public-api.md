@@ -13,6 +13,7 @@ import {
   useOnLongPress,
   useOnStartTyping,
   useDevicesList,
+  useDisplayMedia,
   type UseOnClickOutsideEventType,
   type UseOnClickOutsideHandler,
   type UseOnClickOutsideOptions,
@@ -39,6 +40,8 @@ import {
   type UseDevicesListUpdatedHandler,
   type UseDevicesListOptions,
   type UseDevicesListReturn,
+  type UseDisplayMediaOptions,
+  type UseDisplayMediaReturn,
 } from '@muradyanvano/react-hooks'
 ```
 
@@ -525,6 +528,63 @@ Unsupported empty state. No enumeration, permission, or listeners during server 
 - Audio-output support varies
 - Automatic permission may be blocked
 - Not a full Permissions API
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useDisplayMedia`
+
+### Signature
+
+```ts
+function useDisplayMedia(
+  options?: UseDisplayMediaOptions,
+): UseDisplayMediaReturn
+```
+
+### Defaults
+
+```ts
+{
+  enabled: false,
+  video: true,
+  audio: false,
+}
+```
+
+Defaults are fresh boolean values (not a shared mutable constraints object).
+
+### Behavior
+
+- Detects support via callable `navigator.mediaDevices.getDisplayMedia`
+- Prefer imperative `start()` from a user gesture; attach `stream` to `video.srcObject` in an effect
+- `start()` reads the latest `video` / `audio` options, clears stale errors, sets loading, and returns the acquired stream or `null`
+- Keeps an existing active stream when a replacement request fails; successful replacement stops the previous stream and detaches its listeners
+- Overlapping requests use generation IDs; stale streams are stopped; stale rejections do not overwrite newer state
+- `stop()` stops every owned track once, removes `ended` listeners, and clears sharing state (leaves `error` unchanged)
+- Track `ended` events synchronize idle state and stop remaining live tracks for that owned stream
+- `enabled: false → true` makes one best-effort declarative `start()`; `true → false` stops only declaratively started streams
+- Imperative streams are not stopped merely because `enabled` remains `false`
+- Constraint changes do not auto-restart or change `start` / `stop` identity
+
+### Exported types
+
+- `UseDisplayMediaOptions`
+- `UseDisplayMediaReturn`
+
+### SSR
+
+Unsupported idle state (`isSupported: false`, `stream: null`, idle flags). `start()` resolves to `null`; `stop()` is a no-op. No `useLayoutEffect`.
+
+### Limitations
+
+- Secure context and user gesture typically required
+- Browser/OS surface chooser is required; silent selection is impossible
+- System audio varies
+- Requests cannot be aborted with `AbortSignal`
+- Does not record or transmit captured content
+- Declarative `enabled` may be blocked without a gesture
 
 ### Stability
 

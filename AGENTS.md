@@ -17,6 +17,7 @@ Current hooks:
 - `useOnLongPress`
 - `useOnStartTyping`
 - `useDevicesList`
+- `useDisplayMedia`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

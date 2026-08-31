@@ -551,6 +551,110 @@ Prefer explicit `ensurePermissions()` after a user gesture. Do not rely on `requ
 
 See Storybook (`Hooks/useDevicesList`) for interactive examples. Most stories use mocks; **Live hardware** uses real devices for local testing. Pages generally cannot revoke camera/microphone — clear the site permission in browser settings, then remount (or reload) to re-test the prompt.
 
+### `useDisplayMedia`
+
+Manages browser screen capture through `navigator.mediaDevices.getDisplayMedia`. Prefer an explicit `start()` call from a button click. The hook owns streams it creates, stops tracks on `stop()` / replacement / unmount, and synchronizes when the user ends sharing in the browser UI.
+
+```tsx
+import { useEffect, useRef } from 'react'
+import { useDisplayMedia } from '@muradyanvano/react-hooks'
+
+export function ScreenShare() {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const { stream, isSharing, isLoading, error, start, stop } = useDisplayMedia()
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (video == null) {
+      return
+    }
+
+    video.srcObject = stream
+
+    return () => {
+      video.srcObject = null
+    }
+  }, [stream])
+
+  return (
+    <section>
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
+        aria-label="Screen share preview"
+      />
+
+      {isSharing ? (
+        <button type="button" onClick={stop}>
+          Stop sharing
+        </button>
+      ) : (
+        <button
+          type="button"
+          disabled={isLoading}
+          onClick={() => {
+            void start()
+          }}
+        >
+          {isLoading ? 'Starting…' : 'Start sharing my screen'}
+        </button>
+      )}
+
+      {error != null ? <p role="alert">{error.message}</p> : null}
+    </section>
+  )
+}
+```
+
+#### Options
+
+| Option    | Type                               | Default | Description                                                                |
+| --------- | ---------------------------------- | ------- | -------------------------------------------------------------------------- |
+| `enabled` | `boolean`                          | `false` | Advanced declarative auto-start. Prefer imperative `start()` from a click. |
+| `video`   | `boolean \| MediaTrackConstraints` | `true`  | Passed to `getDisplayMedia` (read at call time; not mutated).              |
+| `audio`   | `boolean \| MediaTrackConstraints` | `false` | System-audio request; availability varies by browser, OS, and surface.     |
+
+#### Return values
+
+| Field         | Description                                                           |
+| ------------- | --------------------------------------------------------------------- |
+| `isSupported` | `true` when `navigator.mediaDevices.getDisplayMedia` is callable.     |
+| `stream`      | Current owned `MediaStream`, or `null`.                               |
+| `isSharing`   | `true` while an owned stream is active.                               |
+| `isLoading`   | `true` while a `start()` request is pending (supports overlap).       |
+| `error`       | Normalized `Error` from the latest failed attempt, or `null`.         |
+| `start`       | Requests display media; returns the stream or `null` (never throws).  |
+| `stop`        | Stops owned tracks, removes listeners, clears `stream` / `isSharing`. |
+
+#### Behavior notes
+
+- Default `enabled: false` means no automatic screen-sharing request.
+- Changing `video` / `audio` alone does not restart sharing or re-prompt.
+- A failed replacement keeps the existing active stream until a later success.
+- Overlapping `start()` calls: the latest request wins; stale streams are stopped.
+- Browser “Stop sharing” ends tracks; the hook clears state and stops remaining tracks.
+- Cancellation (`NotAllowedError` / `AbortError`) is a normal recoverable `error` state.
+- Secure context and a user gesture are typically required for `start()`.
+
+#### SSR and StrictMode
+
+- Unsupported idle state during SSR; no `getDisplayMedia`, listeners, or streams.
+- Unmount and Strict Mode cleanups stop owned tracks and invalidate pending requests.
+
+#### Current limitations
+
+- Requires a secure context and browser support for `getDisplayMedia`
+- Users choose the shared surface; apps cannot silently select a screen or window
+- System-audio capture varies by browser, OS, and selected surface
+- `getDisplayMedia` cannot be aborted with `AbortSignal`
+- Constraint support varies
+- The hook does not record, encode, upload, or transmit captured content
+- Declarative `enabled` may be blocked without a user gesture
+
+See Storybook (`Hooks/useDisplayMedia`) for interactive examples. **Live screen sharing** uses the real browser chooser; other stories use deterministic mocks for automated tests.
+
 ## Development
 
 ```bash

@@ -152,11 +152,7 @@ export function OverviewExample({
           <p className="mb-3 text-sm font-semibold text-slate-900">
             Sample note{' '}
             <span className="font-normal text-slate-500">
-              {archived
-                ? '· archived'
-                : favorited
-                  ? '· favorited'
-                  : '· active'}
+              {archived ? '· archived' : favorited ? '· favorited' : '· active'}
             </span>
           </p>
           <div className="flex flex-wrap items-center gap-3">

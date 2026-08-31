@@ -51,3 +51,9 @@ export {
   type UseDevicesListReturn,
   type UseDevicesListUpdatedHandler,
 } from './hooks/useDevicesList/useDevicesList'
+
+export {
+  useDisplayMedia,
+  type UseDisplayMediaOptions,
+  type UseDisplayMediaReturn,
+} from './hooks/useDisplayMedia/useDisplayMedia'
