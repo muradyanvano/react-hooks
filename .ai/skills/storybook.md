@@ -5,9 +5,10 @@ Operational rules for the consumer-facing Storybook documentation environment.
 - Document public package behavior only. Stories import from `@muradyanvano/react-hooks`, never from internal hook paths.
 - Keep the Storybook Vite alias scoped to Storybook/development configuration.
 - Present examples with the shared `ExampleShowcase` system: polished preview, Show/Hide code, Copy code, and curated snippets.
-- Prefer Controls for real options (`enabled`, `eventType`, `capture`, `dedupe`, `passive`, `once`) and Actions/event logs for handler calls.
+- Prefer Controls for real options (`enabled`, `eventType`, `capture`, `dedupe`, `passive`, `once`, `delay`, `distanceThreshold`, `button`, `self`) and Actions/event logs for handler calls.
 - For event-listener examples, show omitted-window vs explicit-target SSR guidance honestly, and prefer accessible interactive targets over pointer-only regions.
 - For keyboard examples, document shortcuts, keep focus rings visible, avoid trapping focus, and use predicates when character shortcuts should not fire while typing in inputs.
+- For long-press examples: use Pointer Events; show accessible click/keyboard alternatives for every meaningful action; do not claim the hook returns progress state; avoid accidental click/long-press double actions; use short story-specific delays in browser tests with deterministic `waitFor`; document that click is not auto-suppressed; keep `touch-action` / focus rings intentional.
 - For observer-based hooks, demonstrate external or imperative DOM mutation accurately. Do not fake detection through ordinary conditional React rendering when that behavior is not guaranteed.
 - After imperative `ref.current` assignment in examples, include a small commit/state signal when needed so observation can sync, and keep the snippet honest about that requirement.
 - Hide Storybook autodocs source when the custom code panel already shows the consumer snippet.

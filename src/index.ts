@@ -22,6 +22,15 @@ export {
 } from './hooks/useOnKeyStroke/useOnKeyStroke'
 
 export {
+  useOnLongPress,
+  type UseOnLongPressDelay,
+  type UseOnLongPressHandler,
+  type UseOnLongPressOptions,
+  type UseOnLongPressReleaseDetails,
+  type UseOnLongPressReleaseHandler,
+} from './hooks/useOnLongPress/useOnLongPress'
+
+export {
   useEventListener,
   type UseEventListenerHandler,
   type UseEventListenerOptions,

@@ -8,6 +8,7 @@
 - Cover SSR/import safety for hooks that touch browser APIs in effects, including console warning/error assertions for layout-effect SSR messages when relevant.
 - For keyboard hooks, prefer real DOM `KeyboardEvent` dispatch; spy only for registration/cleanup assertions. Assert `event.repeat` / dedupe and filter behavior without arbitrary sleeps.
 - For `useEventListener`, cover native inference with type tests (including negative cases), listener option lifecycle (`once`, `signal`, capture/passive), event-name normalization/churn, and SSR omitted-window safety.
+- For long-press hooks, use Vitest fake timers deterministically and always restore real timers. Dispatch real `PointerEvent`s with explicit `pointerId` / coordinates. Cover delay normalization, movement cancellation, release metrics, blur/cancel/disable cleanup (no `onRelease`), StrictMode listener/timer uniqueness, and SSR import safety. Storybook browser tests may use short known delays with `waitFor` instead of unexplained arbitrary sleeps.
 - Storybook interaction and accessibility checks run through `npm run test:storybook` (`--project=storybook`).
 - React 18 packed-consumer SSR checks run through `npm run test:ssr:react18` and are part of `verify:ci` (not every unit-test run) because they install React 18 into a temporary directory.
 - Setup lives in `vitest.setup.ts` (unit) and `.storybook/vitest.setup.ts` (Storybook).

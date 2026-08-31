@@ -14,6 +14,7 @@ Current hooks:
 - `useOnElementRemoval`
 - `useOnKeyStroke`
 - `useEventListener`
+- `useOnLongPress`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 
@@ -21,17 +22,17 @@ Do not invent hooks, APIs, or product behavior before they are specified.
 
 Whenever a change affects behavior, APIs, tooling, or agent workflow, update the related documentation and `.ai` skills in the **same change** — do not leave them stale.
 
-| When you change… | Also update… |
-| --- | --- |
-| Public hook behavior or types | `README.md`, `docs/public-api.md`, related Storybook stories/snippets, `CHANGELOG.md` |
-| Architecture, build, exports, or tooling boundaries | `.ai/skills/project-architecture.md`, `AGENTS.md` if the overview is affected |
-| TypeScript or React conventions | `.ai/skills/typescript-conventions.md`, `.ai/skills/react-conventions.md` |
-| Hook design patterns or contracts | `.ai/skills/hook-design.md` |
-| Storybook docs or examples | `.ai/skills/storybook.md` |
-| Tests, coverage, or Vitest setup | `.ai/skills/testing.md` |
-| Lint, format, or verify scripts | `.ai/skills/code-quality.md` |
-| Commits, releases, or publishing policy | `.ai/skills/change-workflow.md` |
-| Agent entry points or skill index | `AGENTS.md`, `.ai/README.md` |
+| When you change…                                    | Also update…                                                                          |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Public hook behavior or types                       | `README.md`, `docs/public-api.md`, related Storybook stories/snippets, `CHANGELOG.md` |
+| Architecture, build, exports, or tooling boundaries | `.ai/skills/project-architecture.md`, `AGENTS.md` if the overview is affected         |
+| TypeScript or React conventions                     | `.ai/skills/typescript-conventions.md`, `.ai/skills/react-conventions.md`             |
+| Hook design patterns or contracts                   | `.ai/skills/hook-design.md`                                                           |
+| Storybook docs or examples                          | `.ai/skills/storybook.md`                                                             |
+| Tests, coverage, or Vitest setup                    | `.ai/skills/testing.md`                                                               |
+| Lint, format, or verify scripts                     | `.ai/skills/code-quality.md`                                                          |
+| Commits, releases, or publishing policy             | `.ai/skills/change-workflow.md`                                                       |
+| Agent entry points or skill index                   | `AGENTS.md`, `.ai/README.md`                                                          |
 
 If instructions in a skill no longer match the repo, fix the skill before finishing the task.
 
@@ -39,16 +40,16 @@ If instructions in a skill no longer match the repo, fix the skill before finish
 
 Read only the skills relevant to the current task. Detailed rules live under `.ai/skills/`:
 
-| Skill | Read when |
-| --- | --- |
-| [project-architecture.md](.ai/skills/project-architecture.md) | Package layout, build output, exports, tooling boundaries |
-| [typescript-conventions.md](.ai/skills/typescript-conventions.md) | TypeScript configs or library/source types |
-| [react-conventions.md](.ai/skills/react-conventions.md) | React-facing code, peers, JSX policy |
-| [hook-design.md](.ai/skills/hook-design.md) | Implementing or changing hooks and public contracts |
-| [storybook.md](.ai/skills/storybook.md) | Storybook docs, stories, Storybook tooling |
-| [testing.md](.ai/skills/testing.md) | Tests, coverage, Vitest configuration |
-| [code-quality.md](.ai/skills/code-quality.md) | Lint, format, verification scripts |
-| [change-workflow.md](.ai/skills/change-workflow.md) | Commits, releases, publishing, deferred work |
+| Skill                                                             | Read when                                                 |
+| ----------------------------------------------------------------- | --------------------------------------------------------- |
+| [project-architecture.md](.ai/skills/project-architecture.md)     | Package layout, build output, exports, tooling boundaries |
+| [typescript-conventions.md](.ai/skills/typescript-conventions.md) | TypeScript configs or library/source types                |
+| [react-conventions.md](.ai/skills/react-conventions.md)           | React-facing code, peers, JSX policy                      |
+| [hook-design.md](.ai/skills/hook-design.md)                       | Implementing or changing hooks and public contracts       |
+| [storybook.md](.ai/skills/storybook.md)                           | Storybook docs, stories, Storybook tooling                |
+| [testing.md](.ai/skills/testing.md)                               | Tests, coverage, Vitest configuration                     |
+| [code-quality.md](.ai/skills/code-quality.md)                     | Lint, format, verification scripts                        |
+| [change-workflow.md](.ai/skills/change-workflow.md)               | Commits, releases, publishing, deferred work              |
 
 ## Layout
 
@@ -85,14 +86,14 @@ npm run verify:ci       # verify + Storybook browser tests + React 18 SSR consum
 
 Useful focused commands:
 
-| Script | Purpose |
-| --- | --- |
-| `npm run storybook` | Local Storybook docs |
-| `npm test` | Unit tests (Vitest, jsdom) |
-| `npm run test:storybook` | Storybook interaction/a11y checks |
+| Script                     | Purpose                                    |
+| -------------------------- | ------------------------------------------ |
+| `npm run storybook`        | Local Storybook docs                       |
+| `npm test`                 | Unit tests (Vitest, jsdom)                 |
+| `npm run test:storybook`   | Storybook interaction/a11y checks          |
 | `npm run test:ssr:react18` | Packed-consumer SSR check against React 18 |
-| `npm run build:lib` | ESM library + declarations |
-| `npm run pack:dry-run` | Inspect future publish tarball |
+| `npm run build:lib`        | ESM library + declarations                 |
+| `npm run pack:dry-run`     | Inspect future publish tarball             |
 
 Run `npm run verify` before considering foundation or library changes complete.
 

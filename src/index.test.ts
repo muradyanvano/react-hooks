@@ -23,6 +23,10 @@ describe('package entry', () => {
     expect(entry.useEventListener).toBeTypeOf('function')
   })
 
+  it('exports useOnLongPress and its public types', () => {
+    expect(entry.useOnLongPress).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -30,6 +34,7 @@ describe('package entry', () => {
       'useOnClickOutside',
       'useOnElementRemoval',
       'useOnKeyStroke',
+      'useOnLongPress',
     ])
   })
 })

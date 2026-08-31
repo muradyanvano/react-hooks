@@ -10,6 +10,7 @@ import {
   useOnElementRemoval,
   useOnKeyStroke,
   useEventListener,
+  useOnLongPress,
   type UseOnClickOutsideEventType,
   type UseOnClickOutsideHandler,
   type UseOnClickOutsideOptions,
@@ -24,6 +25,11 @@ import {
   type UseEventListenerHandler,
   type UseEventListenerOptions,
   type UseEventListenerTarget,
+  type UseOnLongPressDelay,
+  type UseOnLongPressHandler,
+  type UseOnLongPressOptions,
+  type UseOnLongPressReleaseDetails,
+  type UseOnLongPressReleaseHandler,
 } from '@muradyanvano/react-hooks'
 ```
 
@@ -304,6 +310,86 @@ Omitted-window form is SSR-safe to call. Evaluating `document`/`window` as a cal
 - Single target per call
 - No manual cleanup return value
 - Mixed native+custom names in one array are not a supported inference path — prefer separate calls
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useOnLongPress`
+
+### Signature
+
+```ts
+function useOnLongPress<T extends Element>(
+  ref: RefObject<T | null>,
+  handler: UseOnLongPressHandler,
+  options?: UseOnLongPressOptions<T>,
+): void
+```
+
+### Generic parameter
+
+- `T extends Element` — element type held by the ref (`HTMLButtonElement`, `SVGSVGElement`, …).
+
+### Arguments
+
+1. `ref` — React ref to the target element. May be `null` until mount.
+2. `handler` — called once with the original `pointerdown` `PointerEvent` after the delay.
+3. `options` — optional configuration.
+
+### Return type
+
+`void`
+
+### Defaults
+
+```ts
+{
+  enabled: true,
+  delay: 500,
+  distanceThreshold: 10,
+  button: 0,
+  self: false,
+  preventDefault: false,
+  stopPropagation: false,
+  capture: false,
+  // onRelease: absent
+}
+```
+
+### Behavior
+
+- Pointer Events only (`pointerdown` / `pointermove` / `pointerup` / `pointercancel`)
+- Starts on matching `event.button`; tracks one active pointer ID
+- Attaches temporary move/up/cancel listeners to `element.ownerDocument`
+- Cancels pending activation on excessive movement, blur, disable, target change, unmount, or `pointercancel`
+- Snapshots delay and distance threshold at pointerdown; uses latest `handler` / `onRelease` when invoked
+- `onRelease` runs on matching `pointerup` only (not cancel/cleanup paths)
+- Imperative `ref.current` updates need a later React commit to sync
+
+### Delay / threshold normalization
+
+- Delay: finite ≥ 0 used; negative → `0`; non-finite → `500`
+- Threshold: finite ≥ 0 used; negative → `0`; non-finite → `10`; `false` disables cancellation
+
+### Exported types
+
+- `UseOnLongPressDelay`
+- `UseOnLongPressHandler`
+- `UseOnLongPressOptions`
+- `UseOnLongPressReleaseDetails`
+- `UseOnLongPressReleaseHandler`
+
+### SSR
+
+Import-safe and effect-only. No listeners or timers during server rendering. No `useLayoutEffect`.
+
+### Limitations
+
+- No mouse/touch fallback listeners or Pointer Events polyfill
+- No automatic click suppression
+- No keyboard long-press
+- No public progress / gesture-state API
 
 ### Stability
 

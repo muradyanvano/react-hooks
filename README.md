@@ -293,6 +293,106 @@ useEventListener(
 
 See Storybook (`Hooks/useEventListener`) for interactive examples.
 
+### `useOnLongPress`
+
+Invokes a handler after a sustained pointer press on a referenced element. Uses Pointer Events only (`pointerdown`, `pointermove`, `pointerup`, `pointercancel`). Consumers need an environment with Pointer Events support.
+
+```tsx
+import { useRef, useState } from 'react'
+import { useOnLongPress } from '@muradyanvano/react-hooks'
+
+export function HoldToFavorite() {
+  const [favorited, setFavorited] = useState(false)
+  const targetRef = useRef<HTMLButtonElement>(null)
+
+  useOnLongPress(
+    targetRef,
+    () => {
+      setFavorited(true)
+    },
+    {
+      delay: 500,
+      onRelease: (details) => {
+        console.log(details.isLongPress, details.duration, details.distance)
+      },
+    },
+  )
+
+  return (
+    <div>
+      <button ref={targetRef} type="button" style={{ touchAction: 'none' }}>
+        {favorited ? 'Favorited' : 'Hold to favorite'}
+      </button>
+      <button type="button" onClick={() => setFavorited(true)}>
+        Favorite with click
+      </button>
+    </div>
+  )
+}
+```
+
+#### Options
+
+| Option              | Type                                          | Default | Description                                                                                  |
+| ------------------- | --------------------------------------------- | ------- | -------------------------------------------------------------------------------------------- |
+| `enabled`           | `boolean`                                     | `true`  | When `false`, no target listener is registered.                                              |
+| `delay`             | `number \| ((event: PointerEvent) => number)` | `500`   | Hold duration in ms. Function delay is resolved once at pointerdown.                         |
+| `distanceThreshold` | `number \| false`                             | `10`    | Cancel pending activation after this Euclidean movement (px). `false` disables cancellation. |
+| `button`            | `number`                                      | `0`     | Required `event.button` to start a gesture.                                                  |
+| `self`              | `boolean`                                     | `false` | When `true`, only presses whose `event.target === element` are accepted.                     |
+| `preventDefault`    | `boolean`                                     | `false` | Call `preventDefault()` on accepted pointerdown.                                             |
+| `stopPropagation`   | `boolean`                                     | `false` | Call `stopPropagation()` on accepted pointerdown.                                            |
+| `capture`           | `boolean`                                     | `false` | Capture-phase registration for the stable target `pointerdown` listener.                     |
+| `onRelease`         | `(details) => void`                           | —       | Called once on matching `pointerup` with release metrics.                                    |
+
+#### Delay and movement
+
+- Fixed or function delays are supported. Negative delays clamp to `0`; non-finite values fall back to `500`.
+- Zero delay still schedules asynchronously (does not run inside the pointerdown stack).
+- Distance uses `Math.hypot` from the start coordinates; release reports the **maximum** distance observed, including pointerup.
+- Movement past the threshold cancels the pending timer but still reports `onRelease` with `isLongPress: false` on later pointerup.
+- `distanceThreshold: false` disables movement cancellation while still reporting distance.
+
+#### Release details
+
+```ts
+{
+  element: T
+  event: PointerEvent // matching pointerup
+  duration: number // pointerdown → pointerup (ms)
+  distance: number // maximum Euclidean distance
+  isLongPress: boolean
+}
+```
+
+`onRelease` is **not** called for `pointercancel`, blur, unmount, disabled cleanup, or target replacement. Movement cancellation still waits for pointerup to report metrics.
+
+#### Accessibility
+
+Long press is pointer-specific. Do not use it as the only way to perform an essential action. Provide an equivalent standard control for keyboard users and people who cannot reliably hold a timed press. Destructive actions should include confirmation and an alternative path.
+
+#### Click behavior
+
+This hook does **not** suppress the click that a browser may generate after pointerup. Long press and click are separate interactions — consumers that combine both must define their own coordination. `preventDefault` on pointerdown is not documented as guaranteed click suppression; CSS such as `touch-action` / `user-select` may still be needed.
+
+#### SSR and StrictMode
+
+- Importing the package does not touch `window`, `document`, `PointerEvent`, or timers.
+- Listeners and timers are created only in effects.
+- Effects clean up correctly under React StrictMode (no duplicate listeners/timers).
+
+#### Current limitations
+
+- Pointer Events only (no separate mouse/touch fallbacks; no polyfill)
+- No automatic click suppression
+- No keyboard long-press detection
+- No `once` option
+- No public gesture-state / progress API
+- Single active gesture per hook instance
+- Imperative `ref.current` updates need a later React commit to sync
+
+See Storybook (`Hooks/useOnLongPress`) for interactive examples.
+
 ## Development
 
 ```bash

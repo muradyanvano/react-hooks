@@ -164,6 +164,7 @@ import {
   useOnElementRemoval,
   useOnKeyStroke,
   useEventListener,
+  useOnLongPress,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -213,6 +214,7 @@ function TestComponent() {
   useOnElementRemoval(ref, () => {})
   useOnKeyStroke('Escape', () => {})
   useEventListener('resize', () => {})
+  useOnLongPress(ref, () => {})
   return createElement('div', { ref }, 'ssr-ok')
 }
 
