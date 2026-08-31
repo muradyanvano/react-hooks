@@ -16,6 +16,7 @@ Current hooks:
 - `useEventListener`
 - `useOnLongPress`
 - `useOnStartTyping`
+- `useDevicesList`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

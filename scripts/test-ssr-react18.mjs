@@ -166,6 +166,7 @@ import {
   useEventListener,
   useOnLongPress,
   useOnStartTyping,
+  useDevicesList,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -217,6 +218,7 @@ function TestComponent() {
   useEventListener('resize', () => {})
   useOnLongPress(ref, () => {})
   useOnStartTyping(() => {})
+  useDevicesList()
   return createElement('div', { ref }, 'ssr-ok')
 }
 

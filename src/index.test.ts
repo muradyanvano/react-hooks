@@ -31,9 +31,14 @@ describe('package entry', () => {
     expect(entry.useOnStartTyping).toBeTypeOf('function')
   })
 
+  it('exports useDevicesList and its public types', () => {
+    expect(entry.useDevicesList).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
+      'useDevicesList',
       'useEventListener',
       'useOnClickOutside',
       'useOnElementRemoval',

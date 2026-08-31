@@ -12,6 +12,7 @@ import {
   useEventListener,
   useOnLongPress,
   useOnStartTyping,
+  useDevicesList,
   type UseOnClickOutsideEventType,
   type UseOnClickOutsideHandler,
   type UseOnClickOutsideOptions,
@@ -35,6 +36,9 @@ import {
   type UseOnStartTypingEditableDetector,
   type UseOnStartTypingHandler,
   type UseOnStartTypingOptions,
+  type UseDevicesListUpdatedHandler,
+  type UseDevicesListOptions,
+  type UseDevicesListReturn,
 } from '@muradyanvano/react-hooks'
 ```
 
@@ -471,6 +475,56 @@ Import-safe and effect-only. No document listener during server rendering. No `u
 - Does not manage input values
 - Initial-character insertion after focus can be browser-dependent
 - Not a keyboard-shortcut API (`useOnKeyStroke` remains appropriate for shortcuts)
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useDevicesList`
+
+### Signature
+
+```ts
+function useDevicesList(options?: UseDevicesListOptions): UseDevicesListReturn
+```
+
+### Defaults
+
+```ts
+{
+  enabled: true,
+  requestPermissions: false,
+  constraints: { audio: true, video: true }, // fresh object per default resolution
+}
+```
+
+### Behavior
+
+- Enumerates via `navigator.mediaDevices.enumerateDevices` when enabled and supported
+- Groups by `videoinput` / `audioinput` / `audiooutput`
+- Listens for `devicechange` on the same `MediaDevices` instance
+- `ensurePermissions()` calls `getUserMedia` with latest constraints, stops every track in `finally`, then refreshes
+- `permissionGranted` is set only after this hook’s successful `getUserMedia`
+- Async races use generation IDs; overlapping work keeps `isLoading` accurate via a counter
+- `refresh()` / `ensurePermissions()` no-op safely when disabled; enumeration failures resolve without throwing and preserve the last successful list
+
+### Exported types
+
+- `UseDevicesListUpdatedHandler`
+- `UseDevicesListOptions`
+- `UseDevicesListReturn`
+
+### SSR
+
+Unsupported empty state. No enumeration, permission, or listeners during server render. No `useLayoutEffect`.
+
+### Limitations
+
+- Lists devices only
+- Labels may be empty until permission
+- Audio-output support varies
+- Automatic permission may be blocked
+- Not a full Permissions API
 
 ### Stability
 

@@ -474,6 +474,83 @@ By default the handler is skipped when focus is in an `<input>`, `<textarea>`, `
 
 See Storybook (`Hooks/useOnStartTyping`) for interactive examples.
 
+### `useDevicesList`
+
+Provides a reactive list of available media devices through `navigator.mediaDevices`. Groups cameras, microphones, and speakers; refreshes on `devicechange`; and offers an explicit permission workflow that immediately stops temporary tracks.
+
+```tsx
+import { useDevicesList } from '@muradyanvano/react-hooks'
+
+export function DevicePicker() {
+  const { videoInputs, audioInputs, permissionGranted, ensurePermissions } =
+    useDevicesList()
+
+  return (
+    <section>
+      {!permissionGranted ? (
+        <button
+          type="button"
+          onClick={() => {
+            void ensurePermissions()
+          }}
+        >
+          Allow camera and microphone
+        </button>
+      ) : null}
+
+      <p>Cameras: {videoInputs.length}</p>
+      <p>Microphones: {audioInputs.length}</p>
+    </section>
+  )
+}
+```
+
+Prefer explicit `ensurePermissions()` after a user gesture. Do not rely on `requestPermissions: true` as the primary pattern — browsers may block automatic prompts.
+
+#### Options
+
+| Option               | Type                                            | Default                        | Description                                      |
+| -------------------- | ----------------------------------------------- | ------------------------------ | ------------------------------------------------ |
+| `enabled`            | `boolean`                                       | `true`                         | When `false`, no enumeration or listener.        |
+| `requestPermissions` | `boolean`                                       | `false`                        | Best-effort automatic permission after mount.    |
+| `constraints`        | `MediaStreamConstraints`                        | `{ audio: true, video: true }` | Passed to `getUserMedia` (fresh copy each call). |
+| `onUpdated`          | `(devices: readonly MediaDeviceInfo[]) => void` | —                              | Called after successful enumeration.             |
+
+#### Return values
+
+| Field                                          | Description                                                                  |
+| ---------------------------------------------- | ---------------------------------------------------------------------------- |
+| `isSupported`                                  | `true` when `navigator.mediaDevices.enumerateDevices` exists.                |
+| `devices`                                      | Latest successful enumeration (readonly).                                    |
+| `videoInputs` / `audioInputs` / `audioOutputs` | Filtered by `device.kind`, preserving order.                                 |
+| `permissionGranted`                            | `true` only after this hook’s successful `getUserMedia` attempt.             |
+| `isLoading`                                    | `true` while refresh/permission operations are in flight (supports overlap). |
+| `error`                                        | Normalized `Error` or `null`.                                                |
+| `refresh`                                      | Re-enumerate; no-ops when disabled/unsupported; does not throw on failure.   |
+| `ensurePermissions`                            | Request media, stop all tracks, refresh; returns `boolean`.                  |
+
+#### Privacy and permission
+
+- Device labels/IDs may be empty until permission is granted.
+- Permission generally requires a secure context and a user gesture.
+- `permissionGranted` reflects this hook’s latest attempt, not a full Permissions API.
+- Temporary streams are never stored in React state or attached to elements.
+
+#### SSR and StrictMode
+
+- Unsupported empty state during SSR; no enumeration, permission, or listeners.
+- Listeners and async work clean up under Strict Mode; temporary tracks are always stopped.
+
+#### Current limitations
+
+- Lists devices only — does not open, preview, or switch streams
+- Audio-output support varies by browser/platform
+- `devicechange` timing varies
+- Automatic permission requests may be blocked
+- Permission requests cannot be cancelled after `getUserMedia` begins
+
+See Storybook (`Hooks/useDevicesList`) for interactive examples. Most stories use mocks; **Live hardware** uses real devices for local testing. Pages generally cannot revoke camera/microphone — clear the site permission in browser settings, then remount (or reload) to re-test the prompt.
+
 ## Development
 
 ```bash

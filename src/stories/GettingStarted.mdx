@@ -92,13 +92,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useOnStartTyping</code> — typing-intent detection outside editable
       fields
     </li>
+    <li>
+      <code>useDevicesList</code> — media-device enumeration with permission
+      workflow
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Six public hooks exist in this prerelease.</li>
+    <li>Seven public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -124,6 +128,11 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useOnStartTyping</code> defaults to ASCII alphanumeric keys, uses{' '}
       <code>keydown</code> (not IME reconstruction), and does not prevent
       default.
+    </li>
+    <li>
+      <code>useDevicesList</code> lists devices only, stops temporary permission
+      tracks immediately, and treats <code>permissionGranted</code> as
+      hook-local state.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

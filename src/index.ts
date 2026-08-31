@@ -44,3 +44,10 @@ export {
   type UseOnStartTypingHandler,
   type UseOnStartTypingOptions,
 } from './hooks/useOnStartTyping/useOnStartTyping'
+
+export {
+  useDevicesList,
+  type UseDevicesListOptions,
+  type UseDevicesListReturn,
+  type UseDevicesListUpdatedHandler,
+} from './hooks/useDevicesList/useDevicesList'
