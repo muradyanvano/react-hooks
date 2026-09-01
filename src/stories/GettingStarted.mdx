@@ -104,13 +104,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useElementByPoint</code> — reactive element hit-testing via{' '}
       <code>elementFromPoint</code> / <code>elementsFromPoint</code>
     </li>
+    <li>
+      <code>useElementHover</code> — mouse hover tracking via native{' '}
+      <code>mouseenter</code> / <code>mouseleave</code>
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Nine public hooks exist in this prerelease.</li>
+    <li>Ten public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -152,6 +156,11 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       does not poll for layout changes (call <code>update()</code> explicitly),
       and requires any custom <code>document</code> to already exist and be
       same-origin-accessible.
+    </li>
+    <li>
+      <code>useElementHover</code> tracks mouse hover only — not touch, keyboard
+      focus, or CSS <code>:hover</code>. Provide accessible alternatives for
+      hover-only information.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

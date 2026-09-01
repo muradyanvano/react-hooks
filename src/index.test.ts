@@ -43,12 +43,17 @@ describe('package entry', () => {
     expect(entry.useElementByPoint).toBeTypeOf('function')
   })
 
+  it('exports useElementHover and its public types', () => {
+    expect(entry.useElementHover).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
       'useDevicesList',
       'useDisplayMedia',
       'useElementByPoint',
+      'useElementHover',
       'useEventListener',
       'useOnClickOutside',
       'useOnElementRemoval',

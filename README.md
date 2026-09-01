@@ -760,6 +760,68 @@ export function ElementInspector() {
 
 See Storybook (`Hooks/useElementByPoint`) for interactive examples, including coordinate tracking, multi-element stacking, pause/resume, manual `update()`, SVG detection, out-of-viewport behavior, and a custom-document (iframe) fixture.
 
+### `useElementHover`
+
+Tracks whether the mouse pointer is hovering over a referenced DOM element via native `mouseenter` / `mouseleave` listeners on the target. Keyboard focus and touch presses do not affect the returned boolean.
+
+```tsx
+import { useRef } from 'react'
+import { useElementHover } from '@muradyanvano/react-hooks'
+
+export function HoverCard() {
+  const targetRef = useRef<HTMLButtonElement>(null)
+
+  const isHovered = useElementHover(targetRef, {
+    delayEnter: 150,
+    delayLeave: 100,
+  })
+
+  return (
+    <button ref={targetRef} type="button">
+      {isHovered ? 'Thank you!' : 'Hover me'}
+    </button>
+  )
+}
+```
+
+Button semantics remain available to keyboard users, but keyboard focus does not change this hook's mouse-hover state.
+
+#### Options
+
+| Option             | Type      | Default | Description                                                                  |
+| ------------------ | --------- | ------- | ---------------------------------------------------------------------------- |
+| `enabled`          | `boolean` | `true`  | When `false`, detaches listeners, cancels timers, and resets hover to false. |
+| `delayEnter`       | `number`  | `0`     | Milliseconds before hover becomes `true` after `mouseenter`.                 |
+| `delayLeave`       | `number`  | `0`     | Milliseconds before hover becomes `false` after `mouseleave` or removal.     |
+| `triggerOnRemoval` | `boolean` | `false` | When `true`, detects target/ancestor removal via `MutationObserver`.         |
+
+#### Return value
+
+Returns a `boolean` that is `true` only after the configured enter transition completes.
+
+#### Behavior notes
+
+- Uses direct native `mouseenter` / `mouseleave` on the resolved target — moving between descendants does not toggle the boolean.
+- Opposite transitions cancel pending timers (leave before delayed enter, re-enter before delayed leave).
+- Delay values are snapshotted at event time; changing options does not reschedule an already pending transition.
+- Target replacement resets hover immediately (no `delayLeave`).
+- Re-enabling starts from `false` and waits for a future `mouseenter` — the hook does not infer pointer position.
+- Imperative `ref.current` assignment requires a later React commit before the hook synchronizes.
+
+#### SSR and StrictMode
+
+- Importing the package does not touch browser globals.
+- Returns `false` during SSR with no listeners, timers, or observers.
+- Effects clean up correctly under React StrictMode.
+
+#### Current limitations
+
+- Mouse hover only — not touch, pointer-down, keyboard focus, or CSS `:hover`
+- No public pending-state API — only the final boolean is exposed
+- `triggerOnRemoval` requires `MutationObserver` and adds runtime cost
+
+See Storybook (`Hooks/useElementHover`) for the primary two-button **Hover me** example, delayed enter/leave demos, nested content, removal detection, dynamic targets, SVG targets, and a playground.
+
 ## Development
 
 ```bash

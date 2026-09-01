@@ -157,7 +157,22 @@ function HighlightOverlay({
   testId: string
   color?: OverlayColor
 }) {
-  const localRect = overlayRectInContainer(containerRef.current, rect)
+  const [localRect, setLocalRect] = useState<DOMRect | null>(null)
+
+  useEffect(() => {
+    const updateRect = () => {
+      setLocalRect(overlayRectInContainer(containerRef.current, rect))
+    }
+
+    updateRect()
+    window.addEventListener('scroll', updateRect, true)
+    window.addEventListener('resize', updateRect)
+
+    return () => {
+      window.removeEventListener('scroll', updateRect, true)
+      window.removeEventListener('resize', updateRect)
+    }
+  }, [containerRef, rect])
 
   if (localRect == null) {
     return null
@@ -276,16 +291,33 @@ export function XYCoordinatesExample() {
 
   useEffect(() => {
     if (initializedRef.current) {
-      return
+      return undefined
     }
 
-    const center = centerOf(boxARef.current)
-    if (center != null) {
-      setX(Math.round(center.x))
-      setY(Math.round(center.y))
-      initializedRef.current = true
+    let frame = 0
+
+    const tryInit = () => {
+      if (initializedRef.current) {
+        return
+      }
+
+      const center = centerOf(boxARef.current)
+      if (center != null) {
+        initializedRef.current = true
+        setX(Math.round(center.x))
+        setY(Math.round(center.y))
+        return
+      }
+
+      frame = requestAnimationFrame(tryInit)
     }
-  })
+
+    tryInit()
+
+    return () => {
+      cancelAnimationFrame(frame)
+    }
+  }, [])
 
   const moveTo = (ref: RefObject<HTMLDivElement | null>) => {
     const center = centerOf(ref.current)

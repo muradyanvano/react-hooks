@@ -678,6 +678,75 @@ Safe to import and call during server rendering. `isSupported: false` and an emp
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useElementHover`
+
+Tracks whether the mouse pointer is hovering over a referenced DOM element.
+
+### Signature
+
+```ts
+import type { RefObject } from 'react'
+
+export interface UseElementHoverOptions {
+  enabled?: boolean
+  delayEnter?: number
+  delayLeave?: number
+  triggerOnRemoval?: boolean
+}
+
+export function useElementHover<T extends Element>(
+  ref: RefObject<T | null>,
+  options?: UseElementHoverOptions,
+): boolean
+```
+
+### Defaults
+
+`{ enabled: true, delayEnter: 0, delayLeave: 0, triggerOnRemoval: false }`
+
+Initial return value: `false`.
+
+### Event model
+
+Registers native `mouseenter` and `mouseleave` directly on the resolved target. Does not use bubbling `mouseover`/`mouseout`, pointer events, or React synthetic mouse handlers.
+
+### Delays
+
+- Non-finite or negative delay values normalize to `0`.
+- Delay values are snapshotted when the boundary event occurs; changing options does not alter an already pending transition.
+- Leave before delayed enter cancels the enter timer. Re-enter before delayed leave cancels the leave timer.
+
+### Target lifecycle
+
+- Reads `ref.current` after React commits; imperative ref assignment requires a later commit to synchronize.
+- Target replacement or `null` resets hover immediately (no `delayLeave`).
+- `enabled: false` detaches listeners, cancels timers, and resets to `false`.
+
+### Removal detection
+
+When `triggerOnRemoval: true`, a `MutationObserver` watches for removal of the target or an ancestor and starts a leave transition using the latest `delayLeave`. Disabled by default.
+
+Implemented with a private observer (not composed from `useOnElementRemoval`) to keep hover listener lifecycle and removal leave transitions in one place without duplicate target-sync effects or extra tree-shaken surface.
+
+### Exported types
+
+- `UseElementHoverOptions`
+
+### SSR
+
+Safe to import and call during server rendering. Returns `false`; no listeners, timers, or observers. No `useLayoutEffect`.
+
+### Limitations
+
+- Mouse hover only — touch and keyboard focus do not affect the boolean
+- No public pending-state API
+- Re-enabling does not infer whether the pointer is already over the target
+- `triggerOnRemoval` requires `MutationObserver`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

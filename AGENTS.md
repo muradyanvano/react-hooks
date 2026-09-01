@@ -19,6 +19,7 @@ Current hooks:
 - `useDevicesList`
 - `useDisplayMedia`
 - `useElementByPoint`
+- `useElementHover`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

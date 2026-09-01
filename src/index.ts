@@ -64,3 +64,8 @@ export {
   type UseElementByPointReturn,
   type UseElementByPointScheduler,
 } from './hooks/useElementByPoint/useElementByPoint'
+
+export {
+  useElementHover,
+  type UseElementHoverOptions,
+} from './hooks/useElementHover/useElementHover'

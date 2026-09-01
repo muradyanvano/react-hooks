@@ -169,6 +169,7 @@ import {
   useDevicesList,
   useDisplayMedia,
   useElementByPoint,
+  useElementHover,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -224,6 +225,7 @@ function TestComponent() {
   useDisplayMedia()
   useElementByPoint({ x: 0, y: 0 })
   useElementByPoint({ x: 0, y: 0, multiple: true })
+  useElementHover(ref)
   return createElement('div', { ref }, 'ssr-ok')
 }
 
