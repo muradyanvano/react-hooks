@@ -168,6 +168,7 @@ import {
   useOnStartTyping,
   useDevicesList,
   useDisplayMedia,
+  useElementByPoint,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -221,6 +222,8 @@ function TestComponent() {
   useOnStartTyping(() => {})
   useDevicesList()
   useDisplayMedia()
+  useElementByPoint({ x: 0, y: 0 })
+  useElementByPoint({ x: 0, y: 0, multiple: true })
   return createElement('div', { ref }, 'ssr-ok')
 }
 

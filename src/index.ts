@@ -57,3 +57,10 @@ export {
   type UseDisplayMediaOptions,
   type UseDisplayMediaReturn,
 } from './hooks/useDisplayMedia/useDisplayMedia'
+
+export {
+  useElementByPoint,
+  type UseElementByPointOptions,
+  type UseElementByPointReturn,
+  type UseElementByPointScheduler,
+} from './hooks/useElementByPoint/useElementByPoint'

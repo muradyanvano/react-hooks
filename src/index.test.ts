@@ -39,11 +39,16 @@ describe('package entry', () => {
     expect(entry.useDisplayMedia).toBeTypeOf('function')
   })
 
+  it('exports useElementByPoint and its public types', () => {
+    expect(entry.useElementByPoint).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
       'useDevicesList',
       'useDisplayMedia',
+      'useElementByPoint',
       'useEventListener',
       'useOnClickOutside',
       'useOnElementRemoval',

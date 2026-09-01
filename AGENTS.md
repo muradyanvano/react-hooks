@@ -18,6 +18,7 @@ Current hooks:
 - `useOnStartTyping`
 - `useDevicesList`
 - `useDisplayMedia`
+- `useElementByPoint`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

@@ -100,13 +100,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useDisplayMedia</code> — screen capture via{' '}
       <code>getDisplayMedia</code> with explicit start/stop
     </li>
+    <li>
+      <code>useElementByPoint</code> — reactive element hit-testing via{' '}
+      <code>elementFromPoint</code> / <code>elementsFromPoint</code>
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Eight public hooks exist in this prerelease.</li>
+    <li>Nine public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -142,6 +146,12 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useDisplayMedia</code> owns captured streams, stops tracks on stop /
       unmount / browser-ended sharing, and recommends imperative{' '}
       <code>start()</code> from a user gesture.
+    </li>
+    <li>
+      <code>useElementByPoint</code> only accepts client (viewport) coordinates,
+      does not poll for layout changes (call <code>update()</code> explicitly),
+      and requires any custom <code>document</code> to already exist and be
+      same-origin-accessible.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

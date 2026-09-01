@@ -56,11 +56,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `UseDisplayMediaOptions`
   - `UseDisplayMediaReturn`
 - Runtime, type, and SSR coverage for `useDisplayMedia`
+- `useElementByPoint` hook with public types:
+  - `UseElementByPointOptions`
+  - `UseElementByPointReturn`
+  - `UseElementByPointScheduler`
+- Runtime, type, and SSR coverage for `useElementByPoint`
 - React 18 packed-consumer SSR check (`npm run test:ssr:react18`) integrated into `verify:ci`
 - Public API notes in `docs/public-api.md`
 - Storybook documentation environment (local only; not deployed):
   - Introduction and Getting Started pages
-  - Interactive examples for `useOnClickOutside`, `useOnElementRemoval`, `useOnKeyStroke`, `useEventListener`, `useOnLongPress`, `useOnStartTyping`, `useDevicesList`, and `useDisplayMedia`
+  - Interactive examples for `useOnClickOutside`, `useOnElementRemoval`, `useOnKeyStroke`, `useEventListener`, `useOnLongPress`, `useOnStartTyping`, `useDevicesList`, `useDisplayMedia`, and `useElementByPoint`
   - Accessibility addon checks and browser interaction tests
   - Tailwind CSS v4 styling limited to Storybook
   - Shared example showcase with Show/Hide code, Copy code, and Shiki TSX highlighting (`github-light-high-contrast`)

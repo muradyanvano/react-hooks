@@ -655,6 +655,111 @@ export function ScreenShare() {
 
 See Storybook (`Hooks/useDisplayMedia`) for interactive examples. **Live screen sharing** uses the real browser chooser; other stories use deterministic mocks for automated tests.
 
+### `useElementByPoint`
+
+Reactively resolves the DOM `Element` (or elements) sitting at viewport coordinates via `document.elementFromPoint` / `elementsFromPoint`. Coordinates are client (viewport) space — the same as `event.clientX` / `event.clientY` and `element.getBoundingClientRect()`, not page/document coordinates. The hook only reads the DOM; it never mutates the element(s) it returns.
+
+```tsx
+import { useEffect, useRef, useState } from 'react'
+import { useElementByPoint } from '@muradyanvano/react-hooks'
+
+export function ElementInspector() {
+  const targetRef = useRef<HTMLDivElement>(null)
+  const [x, setX] = useState(0)
+  const [y, setY] = useState(0)
+  const { element } = useElementByPoint({ x, y })
+
+  useEffect(() => {
+    const target = targetRef.current
+    if (target == null) {
+      return
+    }
+
+    const rect = target.getBoundingClientRect()
+    setX(Math.round(rect.left + rect.width / 2))
+    setY(Math.round(rect.top + rect.height / 2))
+  }, [])
+
+  return (
+    <section>
+      <label>
+        X
+        <input
+          type="number"
+          value={x}
+          onChange={(event) => {
+            const next = event.currentTarget.valueAsNumber
+            setX(Number.isNaN(next) ? 0 : next)
+          }}
+        />
+      </label>
+
+      <label>
+        Y
+        <input
+          type="number"
+          value={y}
+          onChange={(event) => {
+            const next = event.currentTarget.valueAsNumber
+            setY(Number.isNaN(next) ? 0 : next)
+          }}
+        />
+      </label>
+
+      <div ref={targetRef}>Inspectable target</div>
+
+      <output>
+        {element == null ? 'No element' : element.tagName.toLowerCase()}
+      </output>
+    </section>
+  )
+}
+```
+
+#### Options
+
+| Option      | Type                         | Default            | Description                                                                                                                               |
+| ----------- | ---------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `x`         | `number`                     | —                  | Required client (viewport) X coordinate.                                                                                                  |
+| `y`         | `number`                     | —                  | Required client (viewport) Y coordinate.                                                                                                  |
+| `multiple`  | `boolean`                    | `false`            | `true` switches the result to a readonly `Element[]` via `elementsFromPoint`.                                                             |
+| `enabled`   | `boolean`                    | `true`             | When `false`, clears the result and stops scheduling lookups.                                                                             |
+| `document`  | `Document \| null`           | global `document`  | Custom document to hit-test against (for example an iframe's `contentDocument`). Explicit `null` disables lookup instead of falling back. |
+| `scheduler` | `'animationFrame' \| 'sync'` | `'animationFrame'` | Batch into the next `requestAnimationFrame`, or look up immediately.                                                                      |
+
+#### Return values
+
+| Field         | Description                                                                                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `element`     | `Element \| null` (default mode) or `readonly Element[]` (`multiple: true`).                                                                               |
+| `isSupported` | `true` when the resolved document exposes the required hit-test method.                                                                                    |
+| `isPaused`    | `true` after `pause()` until the next `resume()`.                                                                                                          |
+| `update`      | Forces an immediate lookup at the latest coordinates. No-op while paused/disabled.                                                                         |
+| `pause`       | Freezes the current result and stops scheduling new lookups.                                                                                               |
+| `resume`      | Sets `isPaused` false and triggers a fresh lookup with the latest coordinates (immediate when `scheduler: 'sync'`, otherwise on the next animation frame). |
+
+#### Behavior notes
+
+- Non-finite `x`/`y` (`NaN`, `Infinity`) clear the result without calling the native hit-test method.
+- `elementsFromPoint` reports the full topmost-first ancestor chain up to `<html>`, not just visually distinct targets — filter before rendering.
+- `update()` exists because the hook only reacts to `x`/`y`/option changes; a layout shift with no coordinate change needs an explicit refresh.
+- `document.elementFromPoint` / `elementsFromPoint` return `null` / `[]` for coordinates outside the current viewport — native browser behavior, not something this hook adds.
+- The hook never mutates, clones, or styles the returned element(s).
+
+#### SSR and StrictMode
+
+- Importing the package does not touch `window`, `document`, or `requestAnimationFrame`.
+- `isSupported: false` and an empty result during SSR; no scheduling or hit-testing calls.
+- Effects clean up correctly under React StrictMode; stale animation frames are cancelled via a generation counter.
+
+#### Current limitations
+
+- Client (viewport) coordinates only — no page/document coordinate convenience
+- No built-in polling for layout changes; call `update()` explicitly
+- A custom `document` must already exist and be same-origin-accessible
+
+See Storybook (`Hooks/useElementByPoint`) for interactive examples, including coordinate tracking, multi-element stacking, pause/resume, manual `update()`, SVG detection, out-of-viewport behavior, and a custom-document (iframe) fixture.
+
 ## Development
 
 ```bash

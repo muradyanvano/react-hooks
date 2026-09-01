@@ -42,6 +42,10 @@ import {
   type UseDevicesListReturn,
   type UseDisplayMediaOptions,
   type UseDisplayMediaReturn,
+  useElementByPoint,
+  type UseElementByPointOptions,
+  type UseElementByPointReturn,
+  type UseElementByPointScheduler,
 } from '@muradyanvano/react-hooks'
 ```
 
@@ -585,6 +589,90 @@ Unsupported idle state (`isSupported: false`, `stream: null`, idle flags). `star
 - Requests cannot be aborted with `AbortSignal`
 - Does not record or transmit captured content
 - Declarative `enabled` may be blocked without a gesture
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useElementByPoint`
+
+### Signature
+
+```ts
+function useElementByPoint(
+  options: UseElementByPointOptions<false>,
+): UseElementByPointReturn<false>
+function useElementByPoint(
+  options: UseElementByPointOptions<true>,
+): UseElementByPointReturn<true>
+```
+
+### Generic parameter
+
+- `Multiple extends boolean = false` — when `true`, `element` is `readonly Element[]`; otherwise `Element | null`.
+
+### Arguments
+
+1. `options.x` / `options.y` — required client (viewport) coordinates, the same space as `event.clientX` / `event.clientY` and `element.getBoundingClientRect()`. Not page/document coordinates.
+2. `options.multiple` — switches the result shape (see below).
+3. `options.enabled` — declarative activation.
+4. `options.document` — optional custom `Document` to hit-test against (for example an iframe's `contentDocument`).
+5. `options.scheduler` — `'animationFrame' | 'sync'`.
+
+### Return type
+
+```ts
+{
+  element: Element | null | readonly Element[]
+  isSupported: boolean
+  isPaused: boolean
+  update: () => void
+  pause: () => void
+  resume: () => void
+}
+```
+
+### Defaults
+
+```ts
+{
+  multiple: false,
+  enabled: true,
+  scheduler: 'animationFrame',
+}
+```
+
+### Behavior
+
+- Single mode (`multiple: false`) uses `document.elementFromPoint(x, y)`; multiple mode uses `document.elementsFromPoint(x, y)`, returning a copied, topmost-first `readonly Element[]` that also includes ancestor containers up to `<html>`
+- Never mutates the returned element(s); purely reads
+- `'animationFrame'` (default) batches the lookup into the target document's `defaultView.requestAnimationFrame`, coalescing rapid coordinate changes; a generation counter discards stale frames superseded by newer coordinates, a pause, a disable, or an unmount
+- `'sync'` performs the lookup immediately in the same effect pass, bypassing `requestAnimationFrame`
+- Non-finite `x`/`y` (`NaN`, `Infinity`) skip the lookup and clear the result instead of calling the native hit-test method
+- `isSupported` reflects whether the resolved document exposes the method required by the current `multiple` mode
+- `pause()` freezes the current result and stops scheduling new lookups; `resume()` clears the paused state and triggers a fresh lookup with the latest `x`/`y`/options (immediate when `scheduler: 'sync'`, otherwise scheduled on the next animation frame)
+- `update()` forces an immediate lookup at the latest coordinates — useful when the DOM layout changed without `x`/`y` changing; it is a no-op while paused or disabled
+- `enabled: false` clears the result and stops scheduling; re-enabling refreshes automatically
+- Omitted `document` resolves the global `document` (evaluated inside effects/callbacks only); explicit `document: null` means "no usable document" and does not fall back
+- Skips React state updates when the resolved element (or, in multiple mode, the element list by identity) is unchanged
+
+### Exported types
+
+- `UseElementByPointOptions`
+- `UseElementByPointReturn`
+- `UseElementByPointScheduler`
+
+### SSR
+
+Safe to import and call during server rendering. `isSupported: false` and an empty result (`null` / `[]`) during SSR; no `requestAnimationFrame`, listeners, or hit-testing calls. No `useLayoutEffect`.
+
+### Limitations
+
+- Coordinates are client (viewport) space only — no page/document coordinate convenience
+- `elementsFromPoint` results include the full ancestor chain, not just visually distinct targets — filtering is the caller's responsibility
+- No built-in polling for layout changes; call `update()` explicitly when needed
+- A custom `document` must already exist and be same-origin-accessible; the hook does not create, load, or wait for one
+- Requires `elementFromPoint` / `elementsFromPoint` support on the resolved document
 
 ### Stability
 
