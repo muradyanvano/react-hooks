@@ -137,3 +137,9 @@ export {
   type UseScrollReturn,
   type UseScrollTarget,
 } from './hooks/useScroll/useScroll'
+
+export {
+  useScrollLock,
+  type UseScrollLockReturn,
+  type UseScrollLockTarget,
+} from './hooks/useScrollLock/useScrollLock'

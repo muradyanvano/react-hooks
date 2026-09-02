@@ -1197,6 +1197,80 @@ Returns idle state with no listeners, observers, timers, or measurements. Impera
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useScrollLock`
+
+Locks scrolling on an element, window, or document target by applying inline `overflow: hidden`.
+
+### Signature
+
+```ts
+import type { RefObject } from 'react'
+
+export type UseScrollLockTarget = HTMLElement | SVGElement | Window | Document
+
+export interface UseScrollLockReturn {
+  isLocked: boolean
+  lock: () => void
+  unlock: () => void
+  toggle: () => void
+}
+
+export function useScrollLock<T extends UseScrollLockTarget = HTMLElement>(
+  ref: RefObject<T | null>,
+  initialLocked?: boolean,
+): UseScrollLockReturn
+```
+
+### Defaults
+
+`initialLocked = false`
+
+`initialLocked` seeds React state once. Later changes to the argument do not update `isLocked`.
+
+### Lock model
+
+Applies inline `overflow: hidden` on the resolved style-capable element. Does not register scroll/`wheel`/`touchmove` suppressors and does not manage focus.
+
+`Window` / `Document` targets resolve to the document scroll root (`scrollingElement`, then `documentElement` / `body`). Element and SVG targets lock themselves when inline style APIs are available. Targets that resolve to the same element share one registry record.
+
+### Ownership
+
+`isLocked` is requested state for this hook instance. A module-local `WeakMap` multi-owner registry tracks owners per resolved element. The first acquirer snapshots inline `overflow` / `overflow-x` / `overflow-y` (values and priorities, including `!important` on the shorthand) before applying `hidden`. Restore runs only when the final owner releases. Unmount and target replacement release this instance’s ownership.
+
+### Controls
+
+- `lock()` / `unlock()` / `toggle()` — stable; update requested state. Styles sync in effects when a resolvable target is attached.
+- Idempotent for the same requested state.
+
+### Target lifecycle
+
+Sync target identity after every commit without putting `ref.current` in effect dependencies. After imperative `ref.current` assignment, a later React commit is required before attachment. Null or unresolved targets hold no lock.
+
+### Exported types
+
+- `UseScrollLockTarget`
+- `UseScrollLockReturn`
+
+### SSR
+
+Safe to import and call during server rendering. Returns requested `isLocked` from `initialLocked` with no style writes. Methods are safe; browser effects apply and restore overflow.
+
+### Limitations
+
+- Applies `overflow: hidden` (shorthand). Browsers may temporarily expand that into axis longhands while locked; unlock restores snapshotted overflow / overflow-x / overflow-y (including shorthand `!important`)
+- No event suppression, scrollbar compensation, or body `position: fixed` trick
+- Not a focus trap or modal primitive
+- Cross-origin iframe documents unsupported
+- Does not call `scrollTo()`; scroll offsets usually remain, but scrollbar layout shifts can occur
+- Programmatic scrolling may still change position
+- Mobile Safari / webview body locking varies; no dedicated iOS fixed-body workaround
+- SVG overflow behavior varies by browser
+- `isLocked` is requested state (can be true with no applied DOM lock)
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

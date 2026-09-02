@@ -1453,6 +1453,82 @@ Negative or non-finite `throttle` / `idle` / offset values normalize to their de
 
 See Storybook (`Hooks/useScroll`) for the scroll dashboard, vertical/horizontal galleries, throttle/idle demos, programmatic scroll, mutation observation, window/document targets, and playground examples.
 
+### `useScrollLock`
+
+Locks scrolling on an element, `window`, or `document` target by applying inline `overflow: hidden`. Returns requested lock state and stable `lock` / `unlock` / `toggle` helpers — consumers own focus management and dialog a11y.
+
+```tsx
+import { useRef } from 'react'
+import { useScrollLock } from '@muradyanvano/react-hooks'
+
+export function LockedPanel() {
+  const ref = useRef<HTMLDivElement>(null)
+  const { isLocked, unlock } = useScrollLock(ref, true)
+
+  return (
+    <div>
+      <p>isLocked: {String(isLocked)}</p>
+      <button type="button" onClick={() => unlock()}>
+        Unlock
+      </button>
+      <div ref={ref} style={{ overflow: 'auto', height: 160 }}>
+        <div style={{ height: '200%' }}>Starts locked</div>
+      </div>
+    </div>
+  )
+}
+```
+
+#### Options
+
+| Option          | Type      | Default | Description                                                                  |
+| --------------- | --------- | ------- | ---------------------------------------------------------------------------- |
+| `initialLocked` | `boolean` | `false` | Second argument. When `true`, requests a lock on the first available target. |
+
+`initialLocked` is read for the initial React state only — later prop changes do not update `isLocked`.
+
+#### Return value
+
+```ts
+{
+  isLocked: boolean
+  lock: () => void
+  unlock: () => void
+  toggle: () => void
+}
+```
+
+#### Behavior notes
+
+- Applies inline `overflow: hidden` on the resolved style-capable element. Does not suppress scroll/`wheel`/`touchmove` events and is not a focus trap.
+- `Window` and `Document` targets resolve to the document scroll root (`scrollingElement`, then `documentElement` / `body` fallbacks). Targets that share a root share one lock record.
+- Element and SVG targets lock themselves when they expose a writable inline style.
+- `isLocked` is requested state for this hook instance. Multiple instances may lock the same resolved element via a `WeakMap` multi-owner registry; the original inline overflow (including `!important` priority) is restored only when the final owner releases.
+- `lock` / `unlock` / `toggle` keep stable identities across rerenders.
+- Unmount and target replacement release this instance’s ownership. Null or unresolved targets hold no lock.
+- Mutable refs do not trigger renders. After imperative `ref.current` assignment, a later React commit is required before the lock can attach to the new target.
+
+#### SSR and StrictMode
+
+- SSR returns the requested `isLocked` from `initialLocked` with no style writes.
+- `lock`, `unlock`, and `toggle` are safe to call during SSR; styles apply only in browser effects.
+- Effects clean up correctly under React StrictMode so remounts do not leave orphan owners.
+
+#### Current limitations
+
+- Applies `overflow: hidden` (shorthand). Browsers may temporarily expand that into `overflow-x` / `overflow-y` while locked; unlock restores the snapshotted overflow axes (including `!important` on the shorthand)
+- No event suppression, scrollbar-gutter compensation, or `position: fixed` body trick
+- Not a focus trap or modal primitive — pair with consumer-owned dialog a11y
+- Cross-origin iframe documents are unsupported
+- Does not call `scrollTo()`; browsers usually keep scroll offsets, but layout can shift when a scrollbar disappears
+- After imperative `ref.current` assignment, a later React commit is required before attachment
+- Programmatic `scrollTop` / `scrollTo()` can still move a locked element
+- Mobile Safari / embedded webview body locking can vary; no dedicated iOS fixed-body workaround
+- SVG overflow behavior varies by browser
+- `isLocked` is requested state and can be true while no target exists or if a style write fails
+
+See Storybook (`Hooks/useScrollLock`) for the scroll lock demo, modal page lock, multiple owners, `initialLocked`, overflow restore, window/document/SVG targets, and playground examples.
+
 ## Development
 
 ```bash

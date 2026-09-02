@@ -177,6 +177,7 @@ import {
   useMousePressed,
   useParallax,
   useScroll,
+  useScrollLock,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -279,6 +280,14 @@ function TestComponent() {
   void scroll.isScrolling
   void scroll.arrivedState.left
   void scroll.directions.bottom
+  const scrollLockNullRef = useRef(null)
+  const scrollLock = useScrollLock(scrollLockNullRef)
+  void scrollLock.isLocked
+  void scrollLock.lock
+  void scrollLock.unlock
+  void scrollLock.toggle
+  const scrollLockInitial = useScrollLock(scrollLockNullRef, true)
+  void scrollLockInitial.isLocked
   return createElement('div', { ref, 'data-focus-api': 'ready' }, 'ssr-ok')
 }
 
@@ -316,6 +325,23 @@ function CaptureScrollApi() {
   return createElement('div', { ref }, 'scroll-api')
 }
 
+let scrollLockLock
+let scrollLockUnlock
+let scrollLockToggle
+let scrollLockIsLocked
+let scrollLockInitialIsLocked
+function CaptureScrollLockApi() {
+  const ref = useRef(null)
+  const unlocked = useScrollLock(ref)
+  const locked = useScrollLock(ref, true)
+  scrollLockLock = unlocked.lock
+  scrollLockUnlock = unlocked.unlock
+  scrollLockToggle = unlocked.toggle
+  scrollLockIsLocked = unlocked.isLocked
+  scrollLockInitialIsLocked = locked.isLocked
+  return createElement('div', { ref }, 'scroll-lock-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -326,11 +352,23 @@ let postRenderScrollMeasureError = null
 let postRenderScrollToError = null
 let postRenderScrollSetXError = null
 let postRenderScrollSetYError = null
+let postRenderScrollLockError = null
 try {
   html = renderToString(createElement(TestComponent))
   renderToString(createElement(CaptureFocusApi))
   renderToString(createElement(CaptureInfiniteApi))
   renderToString(createElement(CaptureScrollApi))
+  renderToString(createElement(CaptureScrollLockApi))
+  if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
+    postRenderScrollLockError = 'useScrollLock controls missing'
+  }
+  if (scrollLockIsLocked !== false || scrollLockInitialIsLocked !== true) {
+    postRenderScrollLockError =
+      'Unexpected SSR lock state: ' +
+      scrollLockIsLocked +
+      '/' +
+      scrollLockInitialIsLocked
+  }
   try {
     focusMethod()
   } catch (error) {
@@ -424,6 +462,7 @@ console.log(
     postRenderScrollToError,
     postRenderScrollSetXError,
     postRenderScrollSetYError,
+    postRenderScrollLockError,
   }),
 )
 `,
@@ -493,6 +532,12 @@ console.log(
   if (payload.postRenderScrollSetYError) {
     throw new Error(
       `useScroll.setY() threw after SSR render:\\n${payload.postRenderScrollSetYError}`,
+    )
+  }
+
+  if (payload.postRenderScrollLockError) {
+    throw new Error(
+      `useScrollLock SSR check failed:\\n${payload.postRenderScrollLockError}`,
     )
   }
 

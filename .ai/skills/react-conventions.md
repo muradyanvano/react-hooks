@@ -19,6 +19,7 @@
 - Mouse-pressed hooks (`useMousePressed`) attach temporary release listeners to the target’s owning window only while a lifecycle is active; reuse existing `UseMouseSourceType`; never touch browser globals at module scope.
 - Parallax hooks (`useParallax`) attach mouse listeners to the element target and orientation listeners to the owning window; resolve screen angle from that window inside event handlers; never call `requestPermission` or touch orientation APIs at module scope.
 - Scroll-tracking hooks (`useScroll`) measure scroll metrics and schedule coalesced remeasurement through the target's owning window; resolve `MutationObserver` from that window when `observe: true`; sync target identity after every commit; never touch browser globals at module scope.
+- Scroll-lock hooks (`useScrollLock`) resolve `Window` / `Document` targets to the document scroll root and apply/restore inline `overflow` only inside effects; never touch browser globals at module scope.
 - For pointer gestures, attach temporary listeners to the target’s `ownerDocument` and use that document’s `defaultView` for timers, `performance`, and blur cancellation when available.
 - Keep the main development install on the current React major. Validate React 18 SSR via the packed-consumer script (`npm run test:ssr:react18`) rather than downgrading the workspace.
 - Implement hooks only when product requirements define them; follow `hook-design.md`.

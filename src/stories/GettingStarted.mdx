@@ -136,13 +136,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useScroll</code> — scroll position, arrival, direction, and
       scrolling-state tracking for element, window, and document targets
     </li>
+    <li>
+      <code>useScrollLock</code> — lock scrolling on element, window, and
+      document targets via inline <code>overflow: hidden</code>
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Eighteen public hooks exist in this prerelease.</li>
+    <li>Nineteen public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -225,6 +229,11 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>measure()</code> or wait for scroll events. After imperative{' '}
       <code>ref.current</code> assignment, a later React commit is required
       before attachment.
+    </li>
+    <li>
+      <code>useScrollLock</code> applies inline <code>overflow: hidden</code>{' '}
+      only — it does not suppress scroll events or act as a focus trap. Multiple
+      owners share one lock; overflow restores when the final owner releases.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

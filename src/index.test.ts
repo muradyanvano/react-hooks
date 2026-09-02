@@ -75,6 +75,10 @@ describe('package entry', () => {
     expect(entry.useScroll).toBeTypeOf('function')
   })
 
+  it('exports useScrollLock and its public types', () => {
+    expect(entry.useScrollLock).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -95,6 +99,7 @@ describe('package entry', () => {
       'useOnStartTyping',
       'useParallax',
       'useScroll',
+      'useScrollLock',
     ])
   })
 })

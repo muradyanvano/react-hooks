@@ -118,11 +118,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `UseScrollOptions`
   - `UseScrollReturn`
 - Runtime, type, and SSR coverage for `useScroll`
+- `useScrollLock` hook with public types:
+  - `UseScrollLockTarget`
+  - `UseScrollLockReturn`
+- Runtime, type, and SSR coverage for `useScrollLock`
 - React 18 packed-consumer SSR check (`npm run test:ssr:react18`) integrated into `verify:ci`
 - Public API notes in `docs/public-api.md`
 - Storybook documentation environment (local only; not deployed):
   - Introduction and Getting Started pages
-  - Interactive examples for `useOnClickOutside`, `useOnElementRemoval`, `useOnKeyStroke`, `useEventListener`, `useOnLongPress`, `useOnStartTyping`, `useDevicesList`, `useDisplayMedia`, `useElementByPoint`, `useElementHover`, `useFocus`, `useFocusWithin`, `useInfiniteScroll`, `useMouse`, `useMousePressed`, `useParallax`, and `useScroll`
+  - Interactive examples for `useOnClickOutside`, `useOnElementRemoval`, `useOnKeyStroke`, `useEventListener`, `useOnLongPress`, `useOnStartTyping`, `useDevicesList`, `useDisplayMedia`, `useElementByPoint`, `useElementHover`, `useFocus`, `useFocusWithin`, `useInfiniteScroll`, `useMouse`, `useMousePressed`, `useParallax`, `useScroll`, and `useScrollLock`
   - Accessibility addon checks and browser interaction tests
   - Tailwind CSS v4 styling limited to Storybook
   - Shared example showcase with Show/Hide code, Copy code, and Shiki TSX highlighting (`github-light-high-contrast`)
