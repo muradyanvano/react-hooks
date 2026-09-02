@@ -67,6 +67,10 @@ describe('package entry', () => {
     expect(entry.useMousePressed).toBeTypeOf('function')
   })
 
+  it('exports useParallax and its public types', () => {
+    expect(entry.useParallax).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -85,6 +89,7 @@ describe('package entry', () => {
       'useOnKeyStroke',
       'useOnLongPress',
       'useOnStartTyping',
+      'useParallax',
     ])
   })
 })

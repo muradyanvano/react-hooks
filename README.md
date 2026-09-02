@@ -1244,6 +1244,86 @@ export function PressPad() {
 
 See Storybook (`Hooks/useMousePressed`) for press-and-hold, drag, capture, and playground examples.
 
+### `useParallax`
+
+Tracks normalized parallax `roll` / `tilt` for a target element from mouse movement and optional device orientation. The hook returns values only — consumers own CSS transforms and motion design.
+
+```tsx
+import { useRef } from 'react'
+import { useParallax } from '@muradyanvano/react-hooks'
+
+export function ParallaxCard() {
+  const targetRef = useRef<HTMLDivElement>(null)
+  const { roll, tilt, source } = useParallax(targetRef)
+
+  return (
+    <div ref={targetRef}>
+      <div
+        style={{
+          transform: `translate3d(
+            ${roll * 20}px,
+            ${tilt * 20}px,
+            0
+          )`,
+        }}
+      >
+        Move over the card
+      </div>
+
+      <p>
+        roll: {roll.toFixed(3)}, tilt: {tilt.toFixed(3)}, source: {source}
+      </p>
+    </div>
+  )
+}
+```
+
+#### Options
+
+| Option                        | Type                        | Default  | Description                                                                 |
+| ----------------------------- | --------------------------- | -------- | --------------------------------------------------------------------------- |
+| `enabled`                     | `boolean`                   | `true`   | When `false`, no listeners are registered and state resets to center/mouse. |
+| `deviceOrientation`           | `boolean`                   | `true`   | When `false`, no `deviceorientation` listener is registered.                |
+| `mouse`                       | `boolean`                   | `true`   | When `false`, no target `mousemove` listener is registered.                 |
+| `clamp`                       | `boolean`                   | `true`   | Clamp final adjusted values to `[-0.5, 0.5]`.                               |
+| `deviceOrientationTiltAdjust` | `(value: number) => number` | identity | Adjust normalized orientation tilt.                                         |
+| `deviceOrientationRollAdjust` | `(value: number) => number` | identity | Adjust normalized orientation roll.                                         |
+| `mouseTiltAdjust`             | `(value: number) => number` | identity | Adjust normalized mouse tilt.                                               |
+| `mouseRollAdjust`             | `(value: number) => number` | identity | Adjust normalized mouse roll.                                               |
+
+#### Coordinate convention
+
+- `roll` is the horizontal axis; `tilt` is the vertical axis.
+- Center is `{ roll: 0, tilt: 0 }`.
+- Left / up are negative; right / down are positive.
+- With default adjustment and clamping, both stay within `-0.5…0.5`.
+
+#### Behavior notes
+
+- Mouse: passive `mousemove` on the target; geometry is re-read via `getBoundingClientRect()` per event.
+- Device orientation: passive `deviceorientation` on the target’s owning window; `gamma` → horizontal, `beta` → vertical; screen angle `0/90/180/270` rotates the sensor vector to visual axes.
+- Source starts as `'mouse'`. Valid orientation samples switch to `'deviceOrientation'`; later mouse events can switch back. API presence alone does not switch source.
+- The hook never calls `DeviceOrientationEvent.requestPermission()` — request permission from a user gesture in consumer code when required.
+- Adjusters use latest-value refs without listener churn. Throwing or non-finite adjusters preserve previous state.
+- Changing `clamp` or adjusters does not reset state or re-register listeners.
+- Target replacement, null target, and `enabled: false` reset to `{ roll: 0, tilt: 0, source: 'mouse' }`.
+
+#### SSR and StrictMode
+
+- SSR returns `{ roll: 0, tilt: 0, source: 'mouse' }` with no listeners or measurements.
+- Effects clean up correctly under React StrictMode.
+
+#### Current limitations
+
+- Device-orientation permission/availability varies by browser; secure context and user gesture may be required
+- No smoothing, spring, easing, calibration, or sensor-staleness timeout
+- Zero-size targets cannot produce mouse coordinates
+- Cross-origin iframe targets unsupported
+- The hook does not write CSS; consumers must respect reduced-motion preferences
+- Visual input helper only — not an accessibility input method
+
+See Storybook (`Hooks/useParallax`) for the layered scene, orientation simulation, and playground examples.
+
 ## Development
 
 ```bash

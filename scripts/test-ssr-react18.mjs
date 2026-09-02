@@ -175,6 +175,7 @@ import {
   useInfiniteScroll,
   useMouse,
   useMousePressed,
+  useParallax,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -265,6 +266,11 @@ function TestComponent() {
   void mousePressedInitial.pressed
   const mousePressedNull = useMousePressed({ target: null })
   void mousePressedNull.pressed
+  const parallaxNullRef = useRef(null)
+  const parallax = useParallax(parallaxNullRef)
+  void parallax.roll
+  void parallax.tilt
+  void parallax.source
   return createElement('div', { ref, 'data-focus-api': 'ready' }, 'ssr-ok')
 }
 

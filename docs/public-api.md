@@ -1080,6 +1080,52 @@ Returns `{ pressed: initialValue, sourceType: null }` with no listeners.
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useParallax`
+
+Tracks normalized parallax roll/tilt from mouse movement and optional device orientation.
+
+### Signature
+
+```ts
+export function useParallax<T extends UseParallaxTarget = HTMLElement>(
+  ref: RefObject<T | null>,
+  options?: UseParallaxOptions,
+): UseParallaxReturn
+```
+
+### Defaults
+
+`{ enabled: true, deviceOrientation: true, mouse: true, clamp: true }` with identity adjusters.
+
+### Coordinates
+
+- `roll` horizontal, `tilt` vertical
+- Center `{ roll: 0, tilt: 0 }`; left/up negative; right/down positive
+- Default clamp range `[-0.5, 0.5]`
+
+### Lifecycle
+
+- Mouse: passive `mousemove` on the resolved element target
+- Orientation: passive `deviceorientation` on the owning window
+- Screen angle compensation for `0/90/180/270`
+- Most recent valid source wins; API presence alone does not switch source
+- Never requests device-orientation permission
+
+### SSR
+
+Returns `{ roll: 0, tilt: 0, source: 'mouse' }` with no listeners or measurements.
+
+### Limitations
+
+- Permission and sensor availability vary by platform
+- No built-in smoothing or permission helper
+- Consumer owns transforms and reduced-motion behavior
+- Cross-origin iframe targets unsupported
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

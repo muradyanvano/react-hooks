@@ -128,13 +128,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useMousePressed</code> — aggregate mouse/touch/drag press lifecycle
       with global release tracking
     </li>
+    <li>
+      <code>useParallax</code> — normalized roll/tilt from mouse movement and
+      optional device orientation for consumer-owned transforms
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Sixteen public hooks exist in this prerelease.</li>
+    <li>Seventeen public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -205,6 +209,11 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useMousePressed</code> exposes one aggregate boolean lifecycle, not
       button state, touch count, or keyboard activation. Release is observed
       through the owning window.
+    </li>
+    <li>
+      <code>useParallax</code> returns values only — it does not write CSS,
+      request orientation permission, or smooth sensor noise. Consumers own
+      transforms and reduced-motion behavior.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

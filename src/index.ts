@@ -114,3 +114,12 @@ export {
   type UseMousePressedReturn,
   type UseMousePressedTarget,
 } from './hooks/useMousePressed/useMousePressed'
+
+export {
+  useParallax,
+  type UseParallaxAdjuster,
+  type UseParallaxOptions,
+  type UseParallaxReturn,
+  type UseParallaxSource,
+  type UseParallaxTarget,
+} from './hooks/useParallax/useParallax'
