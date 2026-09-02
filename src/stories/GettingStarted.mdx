@@ -140,13 +140,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useScrollLock</code> — lock scrolling on element, window, and
       document targets via inline <code>overflow: hidden</code>
     </li>
+    <li>
+      <code>useUserMedia</code> — camera/microphone capture with owned streams,
+      deep constraint auto-switch, and track-ended cleanup
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Nineteen public hooks exist in this prerelease.</li>
+    <li>Twenty public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -234,6 +238,11 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useScrollLock</code> applies inline <code>overflow: hidden</code>{' '}
       only — it does not suppress scroll events or act as a focus trap. Multiple
       owners share one lock; overflow restores when the final owner releases.
+    </li>
+    <li>
+      <code>useUserMedia</code> prefers imperative <code>start()</code> from a
+      user gesture. Default <code>enabled</code> is false. It owns acquired
+      streams and does not record, upload, or analyze audio levels.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

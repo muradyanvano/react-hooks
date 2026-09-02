@@ -178,6 +178,7 @@ import {
   useParallax,
   useScroll,
   useScrollLock,
+  useUserMedia,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -288,6 +289,15 @@ function TestComponent() {
   void scrollLock.toggle
   const scrollLockInitial = useScrollLock(scrollLockNullRef, true)
   void scrollLockInitial.isLocked
+  const userMedia = useUserMedia()
+  void userMedia.isSupported
+  void userMedia.stream
+  void userMedia.isActive
+  void userMedia.isLoading
+  void userMedia.error
+  void userMedia.start
+  void userMedia.stop
+  void userMedia.restart
   return createElement('div', { ref, 'data-focus-api': 'ready' }, 'ssr-ok')
 }
 
@@ -342,6 +352,27 @@ function CaptureScrollLockApi() {
   return createElement('div', { ref }, 'scroll-lock-api')
 }
 
+let userMediaStart
+let userMediaStop
+let userMediaRestart
+let userMediaIsSupported
+let userMediaStream
+let userMediaIsActive
+let userMediaIsLoading
+let userMediaError
+function CaptureUserMediaApi() {
+  const api = useUserMedia()
+  userMediaStart = api.start
+  userMediaStop = api.stop
+  userMediaRestart = api.restart
+  userMediaIsSupported = api.isSupported
+  userMediaStream = api.stream
+  userMediaIsActive = api.isActive
+  userMediaIsLoading = api.isLoading
+  userMediaError = api.error
+  return createElement('div', null, 'user-media-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -353,12 +384,29 @@ let postRenderScrollToError = null
 let postRenderScrollSetXError = null
 let postRenderScrollSetYError = null
 let postRenderScrollLockError = null
+let postRenderUserMediaError = null
+let getUserMediaCalls = 0
+const previousGUM =
+  typeof navigator !== 'undefined' && navigator.mediaDevices
+    ? navigator.mediaDevices.getUserMedia
+    : undefined
+if (
+  typeof navigator !== 'undefined' &&
+  navigator.mediaDevices &&
+  typeof navigator.mediaDevices.getUserMedia === 'function'
+) {
+  navigator.mediaDevices.getUserMedia = function (...args) {
+    getUserMediaCalls += 1
+    return previousGUM.apply(this, args)
+  }
+}
 try {
   html = renderToString(createElement(TestComponent))
   renderToString(createElement(CaptureFocusApi))
   renderToString(createElement(CaptureInfiniteApi))
   renderToString(createElement(CaptureScrollApi))
   renderToString(createElement(CaptureScrollLockApi))
+  renderToString(createElement(CaptureUserMediaApi))
   if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
     postRenderScrollLockError = 'useScrollLock controls missing'
   }
@@ -368,6 +416,26 @@ try {
       scrollLockIsLocked +
       '/' +
       scrollLockInitialIsLocked
+  }
+  if (
+    typeof userMediaStart !== 'function' ||
+    typeof userMediaStop !== 'function' ||
+    typeof userMediaRestart !== 'function'
+  ) {
+    postRenderUserMediaError = 'useUserMedia controls missing'
+  }
+  if (
+    userMediaIsSupported !== false ||
+    userMediaStream != null ||
+    userMediaIsActive !== false ||
+    userMediaIsLoading !== false ||
+    userMediaError != null
+  ) {
+    postRenderUserMediaError = 'Unexpected useUserMedia SSR state'
+  }
+  if (getUserMediaCalls !== 0) {
+    postRenderUserMediaError =
+      'Expected zero getUserMedia calls, got ' + getUserMediaCalls
   }
   try {
     focusMethod()
@@ -440,6 +508,13 @@ try {
   if (previousAdd) {
     EventTarget.prototype.addEventListener = previousAdd
   }
+  if (
+    typeof navigator !== 'undefined' &&
+    navigator.mediaDevices &&
+    previousGUM !== undefined
+  ) {
+    navigator.mediaDevices.getUserMedia = previousGUM
+  }
 }
 
 console.log(
@@ -463,6 +538,7 @@ console.log(
     postRenderScrollSetXError,
     postRenderScrollSetYError,
     postRenderScrollLockError,
+    postRenderUserMediaError,
   }),
 )
 `,
@@ -538,6 +614,12 @@ console.log(
   if (payload.postRenderScrollLockError) {
     throw new Error(
       `useScrollLock SSR check failed:\\n${payload.postRenderScrollLockError}`,
+    )
+  }
+
+  if (payload.postRenderUserMediaError) {
+    throw new Error(
+      `useUserMedia SSR check failed:\\n${payload.postRenderUserMediaError}`,
     )
   }
 

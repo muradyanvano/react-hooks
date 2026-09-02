@@ -1271,6 +1271,68 @@ Safe to import and call during server rendering. Returns requested `isLocked` fr
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useUserMedia`
+
+Manages camera/microphone capture through `navigator.mediaDevices.getUserMedia`.
+
+### Signature
+
+```ts
+export interface UseUserMediaOptions {
+  enabled?: boolean
+  autoSwitch?: boolean
+  constraints?: MediaStreamConstraints
+}
+
+export interface UseUserMediaReturn {
+  isSupported: boolean
+  stream: MediaStream | null
+  isActive: boolean
+  isLoading: boolean
+  error: Error | null
+  start: () => Promise<MediaStream | null>
+  stop: () => void
+  restart: () => Promise<MediaStream | null>
+}
+
+export function useUserMedia(options?: UseUserMediaOptions): UseUserMediaReturn
+```
+
+### Defaults
+
+`enabled = false`, `autoSwitch = true`, `constraints = { video: true, audio: false }` (fresh object each default).
+
+### Behavior
+
+- Support detection requires callable `navigator.mediaDevices.getUserMedia`; SSR starts `isSupported: false` and syncs after mount.
+- `start()` uses latest constraints; atomic replacement keeps the old stream if the new request fails.
+- `restart()` stops first, then reacquires; failure leaves idle.
+- `stop()` invalidates pending work, detaches listeners, stops owned tracks, preserves `error`.
+- `autoSwitch` deep-compares constraints (normalized key order; array order preserved) and reacquires while active/pending.
+- Track `ended`: remain active while any track is live; clear when none remain.
+- Imperative vs declarative origin mirrors `useDisplayMedia`.
+- Compose with `useDevicesList` for device selection; do not couple the implementations.
+
+### Exported types
+
+- `UseUserMediaOptions`
+- `UseUserMediaReturn`
+
+### SSR
+
+Idle unsupported return; no media request; methods are safe.
+
+### Limitations
+
+- Secure context / permission / gesture restrictions
+- No recording, WebRTC, audio analysis, or AbortSignal for native prompts
+- Constraint requests are not guaranteed settings
+- `autoSwitch` reacquires rather than mutating live tracks
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

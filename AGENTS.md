@@ -28,6 +28,7 @@ Current hooks:
 - `useParallax`
 - `useScroll`
 - `useScrollLock`
+- `useUserMedia`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

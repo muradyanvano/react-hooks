@@ -143,3 +143,9 @@ export {
   type UseScrollLockReturn,
   type UseScrollLockTarget,
 } from './hooks/useScrollLock/useScrollLock'
+
+export {
+  useUserMedia,
+  type UseUserMediaOptions,
+  type UseUserMediaReturn,
+} from './hooks/useUserMedia/useUserMedia'

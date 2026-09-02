@@ -1529,6 +1529,104 @@ export function LockedPanel() {
 
 See Storybook (`Hooks/useScrollLock`) for the scroll lock demo, modal page lock, multiple owners, `initialLocked`, overflow restore, window/document/SVG targets, and playground examples.
 
+### `useUserMedia`
+
+Manages camera and microphone capture through `navigator.mediaDevices.getUserMedia`. Prefer imperative `start()` from a user gesture; `enabled` defaults to `false`.
+
+```tsx
+import { useEffect, useRef } from 'react'
+import { useUserMedia } from '@muradyanvano/react-hooks'
+
+export function CameraPreview() {
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  const { stream, isSupported, isActive, isLoading, error, start, stop } =
+    useUserMedia({
+      constraints: {
+        video: true,
+        audio: false,
+      },
+    })
+
+  useEffect(() => {
+    const video = videoRef.current
+
+    if (video == null) {
+      return
+    }
+
+    video.srcObject = stream
+
+    return () => {
+      video.srcObject = null
+    }
+  }, [stream])
+
+  if (!isSupported) {
+    return <p>Camera access is not supported.</p>
+  }
+
+  return (
+    <>
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
+        aria-label="Camera preview"
+      />
+
+      <button
+        type="button"
+        onClick={() => {
+          void start()
+        }}
+        disabled={isLoading}
+      >
+        Start camera
+      </button>
+
+      <button type="button" onClick={stop} disabled={!isActive}>
+        Stop
+      </button>
+
+      {error != null && <p role="alert">{error.message}</p>}
+    </>
+  )
+}
+```
+
+#### Options
+
+| Option        | Type                     | Default                         | Description                                                                 |
+| ------------- | ------------------------ | ------------------------------- | --------------------------------------------------------------------------- |
+| `enabled`     | `boolean`                | `false`                         | Declarative auto-start once when flipped true (may need a user gesture).    |
+| `autoSwitch`  | `boolean`                | `true`                          | Deep constraint changes reacquire while active/pending.                     |
+| `constraints` | `MediaStreamConstraints` | `{ video: true, audio: false }` | Fresh default object; passed to `getUserMedia` without mutating the caller. |
+
+#### Behavior notes
+
+- `start()` replaces atomically: a failed replacement keeps the existing stream.
+- `restart()` stops first, then requests; failure leaves the hook idle.
+- `stop()` invalidates pending requests, detaches listeners, and stops owned tracks.
+- `isActive` means the published stream has at least one live track.
+- Track `ended` keeps the stream when another track remains live.
+- `autoSwitch` compares deep constraint signatures (key order ignored; array order matters).
+- Compose with `useDevicesList` for device IDs — the hooks remain independent.
+- SSR returns unsupported idle state; support syncs after client mount.
+
+#### Current limitations
+
+- Requires a secure context in production (browser local-dev exceptions apply)
+- Automatic `enabled` capture may be blocked without a user gesture
+- Requested constraints are not guaranteed as actual settings
+- No recording, WebRTC, audio-level analysis, or AbortSignal cancellation
+- Stale resolved streams are stopped; the permission prompt cannot be cancelled
+- `autoSwitch` reacquires rather than applying constraints to existing tracks
+- Device labels/IDs and privacy controls vary by browser
+
+See Storybook (`Hooks/useUserMedia`) for live and mocked camera/microphone examples.
+
 ## Development
 
 ```bash

@@ -79,6 +79,10 @@ describe('package entry', () => {
     expect(entry.useScrollLock).toBeTypeOf('function')
   })
 
+  it('exports useUserMedia and its public types', () => {
+    expect(entry.useUserMedia).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -100,6 +104,9 @@ describe('package entry', () => {
       'useParallax',
       'useScroll',
       'useScrollLock',
+      'useUserMedia',
     ])
+    expect(entry).not.toHaveProperty('createConstraintsSignature')
+    expect(entry).not.toHaveProperty('normalizeUserMediaError')
   })
 })
