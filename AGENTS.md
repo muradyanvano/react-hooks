@@ -26,6 +26,7 @@ Current hooks:
 - `useMouse`
 - `useMousePressed`
 - `useParallax`
+- `useScroll`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

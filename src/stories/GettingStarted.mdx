@@ -132,13 +132,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useParallax</code> — normalized roll/tilt from mouse movement and
       optional device orientation for consumer-owned transforms
     </li>
+    <li>
+      <code>useScroll</code> — scroll position, arrival, direction, and
+      scrolling-state tracking for element, window, and document targets
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Seventeen public hooks exist in this prerelease.</li>
+    <li>Eighteen public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -214,6 +218,13 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useParallax</code> returns values only — it does not write CSS,
       request orientation permission, or smooth sensor noise. Consumers own
       transforms and reduced-motion behavior.
+    </li>
+    <li>
+      <code>useScroll</code> is scroll-metric based. Imperative{' '}
+      <code>smooth</code> scroll does not auto-sync state — call{' '}
+      <code>measure()</code> or wait for scroll events. After imperative{' '}
+      <code>ref.current</code> assignment, a later React commit is required
+      before attachment.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

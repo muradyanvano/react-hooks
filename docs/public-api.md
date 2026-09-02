@@ -1126,6 +1126,77 @@ Returns `{ roll: 0, tilt: 0, source: 'mouse' }` with no listeners or measurement
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useScroll`
+
+Tracks scroll position, arrival, direction, and scrolling state for an element, window, or document target.
+
+### Signature
+
+```ts
+import type { RefObject } from 'react'
+
+export type UseScrollTarget = HTMLElement | SVGElement | Window | Document
+
+export function useScroll<T extends UseScrollTarget = HTMLElement>(
+  ref: RefObject<T | null>,
+  options?: UseScrollOptions,
+): UseScrollReturn
+```
+
+### Defaults
+
+`{ enabled: true, throttle: 0, idle: 200, observe: false, behavior: 'auto' }` with zero offsets and passive scroll listener options.
+
+Invalid `throttle`, `idle`, and offset values (negative, `NaN`, non-finite) normalize to their defaults.
+
+### Metrics
+
+Element and SVG targets read native `scrollLeft` / `scrollTop` and dimensions. `Window` / `Document` targets resolve metrics through `document.scrollingElement` with documentElement/body fallbacks and attach the scroll listener to the provided window or document.
+
+Arrival uses a 1px threshold (`ARRIVED_THRESHOLD`) plus optional per-edge offsets. Non-scrollable axes report both edges as arrived. Horizontal RTL containers detect `negative` or `reverse` scroll modes from computed direction and initial scroll position.
+
+### Scroll session
+
+Passive `scroll` listener. `throttle > 0` applies leading plus trailing measurements. `isScrolling` becomes true on the first scroll in a session and false after `idle + throttle` ms without a processed event. `onStop` receives the last scroll event from that session.
+
+`directions` derive from the latest position delta. `measure()` and mutation-driven remeasurements reset directions without invoking scroll callbacks.
+
+### Imperative controls
+
+- `measure()` — stable; remeasures the attached target, resets directions, does not invoke `onScroll` / `onStop`.
+- `scrollTo(position, behavior?)` — scrolls to finite coordinates; omitted axes preserve the current value.
+- `setX(x, behavior?)` / `setY(y, behavior?)` — scroll one axis while preserving the other.
+
+Imperative scroll with `behavior: 'auto'` triggers an immediate `measure()`. Other behaviors rely on subsequent scroll events or manual `measure()`.
+
+Platform errors during reads or imperative scroll are contained and forwarded to optional `onError`.
+
+### Observation
+
+Optional `MutationObserver` when `observe: true` or `{ mutation: true }`. Observations coalesce through the owning window's animation frame or microtask. No polyfill is shipped.
+
+### Target lifecycle
+
+Sync target identity after every commit without putting `ref.current` in effect dependencies. After imperative `ref.current` assignment, a later React commit is required before attachment. Disabling detaches listeners/observers, preserves position, and resets directions only.
+
+### SSR
+
+Returns idle state with no listeners, observers, timers, or measurements. Imperative methods are safe no-ops when disabled, unattached, or outside a browser environment.
+
+### Limitations
+
+- Scroll-metric based, not IntersectionObserver based
+- Smooth/instant imperative scroll does not auto-sync state
+- Cross-origin iframe documents unsupported
+- MutationObserver may be unavailable
+- Elastic overscroll and RTL `scrollLeft` vary by browser
+- External DOM changes may require `measure()` unless mutation observation is enabled
+- Consumer owns focus and accessible scroll behavior
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

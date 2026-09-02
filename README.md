@@ -1324,6 +1324,135 @@ export function ParallaxCard() {
 
 See Storybook (`Hooks/useParallax`) for the layered scene, orientation simulation, and playground examples.
 
+### `useScroll`
+
+Tracks scroll position, arrival, direction, and scrolling state for an element, `window`, or `document` target. Returns reactive state and imperative scroll helpers — consumers own layout and styling.
+
+```tsx
+import { useRef, useState } from 'react'
+import { useScroll } from '@muradyanvano/react-hooks'
+
+export function ScrollDashboard() {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [smooth, setSmooth] = useState(false)
+
+  const { x, y, isScrolling, arrivedState, directions, measure, setX, setY } =
+    useScroll(scrollRef, {
+      offset: { left: 30, top: 30, right: 30, bottom: 30 },
+      behavior: smooth ? 'smooth' : 'auto',
+    })
+
+  return (
+    <div>
+      <label>
+        X
+        <input
+          type="number"
+          onChange={(event) => setX(Number(event.target.value))}
+        />
+      </label>
+      <label>
+        Y
+        <input
+          type="number"
+          onChange={(event) => setY(Number(event.target.value))}
+        />
+      </label>
+      <label>
+        <input
+          type="checkbox"
+          checked={smooth}
+          onChange={(event) => setSmooth(event.target.checked)}
+        />
+        Smooth
+      </label>
+      <button type="button" onClick={() => measure()}>
+        Measure
+      </button>
+      <div ref={scrollRef} style={{ overflow: 'auto', height: 240 }}>
+        <div style={{ width: '200%', height: '200%' }}>Scroll Me</div>
+      </div>
+      <p>
+        {x}, {y} · scrolling: {String(isScrolling)}
+      </p>
+      <p>
+        arrived: {JSON.stringify(arrivedState)} · directions:{' '}
+        {JSON.stringify(directions)}
+      </p>
+    </div>
+  )
+}
+```
+
+#### Options
+
+| Option                 | Type                                 | Default  | Description                                                                 |
+| ---------------------- | ------------------------------------ | -------- | --------------------------------------------------------------------------- |
+| `enabled`              | `boolean`                            | `true`   | When `false`, detaches listeners/observers and resets directions only.      |
+| `throttle`             | `number`                             | `0`      | Minimum ms between measurements; leading + trailing. `0` disables throttle. |
+| `idle`                 | `number`                             | `200`    | Ms after the last processed scroll before `isScrolling` becomes `false`.    |
+| `offset`               | `{ left?, right?, top?, bottom? }`   | `0` each | Arrival margins subtracted from each edge before testing limits.            |
+| `observe`              | `boolean \| { mutation?: boolean }`  | `false`  | When `true` or `{ mutation: true }`, remeasure on DOM mutations.            |
+| `onScroll`             | `(event: Event) => void`             | —        | Called when a scroll event is processed (respects `throttle`).              |
+| `onStop`               | `(event: Event) => void`             | —        | Called once when scrolling idles after the effective idle window.           |
+| `onError`              | `(error: unknown) => void`           | —        | Called when metric reads or imperative scroll operations throw.             |
+| `eventListenerOptions` | `boolean \| AddEventListenerOptions` | passive  | Native options for the hook-owned `scroll` listener.                        |
+| `behavior`             | `'auto' \| 'smooth' \| 'instant'`    | `'auto'` | Default scroll behavior for `scrollTo` / `setX` / `setY`.                   |
+
+Negative or non-finite `throttle` / `idle` / offset values normalize to their defaults.
+
+#### Return value
+
+```ts
+{
+  x: number
+  y: number
+  isScrolling: boolean
+  arrivedState: { left: boolean; right: boolean; top: boolean; bottom: boolean }
+  directions: { left: boolean; right: boolean; top: boolean; bottom: boolean }
+  measure: () => void
+  scrollTo: (position: { x: number; y: number }, behavior?: ScrollBehavior) => void
+  setX: (x: number, behavior?: ScrollBehavior) => void
+  setY: (y: number, behavior?: ScrollBehavior) => void
+}
+```
+
+#### Behavior notes
+
+- Passive `scroll` listener on the resolved target: elements/SVG directly; `Window` / `Document` on themselves.
+- Metrics come from `scrollLeft` / `scrollTop` on elements or from `document.scrollingElement` for window/document targets.
+- `x` / `y` update on scroll (subject to `throttle`), on attach, via `measure()`, and immediately after imperative scroll when `behavior` is `'auto'`.
+- `throttle > 0` runs a leading measurement plus one trailing measurement per window.
+- `isScrolling` becomes `true` on the first scroll in a session and `false` after `idle + throttle` ms without a processed event; `onStop` receives the last scroll event.
+- `arrivedState` uses a 1px threshold plus optional offsets; non-scrollable axes report both edges as arrived.
+- Horizontal RTL containers detect `negative` or `reverse` scroll modes from computed direction and initial `scrollLeft`.
+- `directions` reflect the latest position delta; `measure()` and non-scroll remeasurements reset them without invoking callbacks.
+- `scrollTo` / `setX` / `setY` no-op when disabled, when no target is attached, or when both coordinates are invalid.
+- Optional `MutationObserver` (when `observe: true`) coalesces remeasurements through the owning window's animation frame or microtask.
+- Latest callbacks and options are kept without listener churn. Listener-option changes reset `isScrolling` without calling `onStop`.
+- Mutable refs do not trigger renders. After imperative `ref.current` assignment, a later React commit is required before the hook attaches to the new target.
+
+#### SSR and StrictMode
+
+- SSR returns idle state (`x: 0`, `y: 0`, `isScrolling: false`, default arrived/direction flags) with no listeners, observers, timers, or measurements.
+- `measure`, `scrollTo`, `setX`, and `setY` are safe no-ops during SSR and after hydration when disabled or unattached.
+- Effects clean up correctly under React StrictMode.
+
+#### Current limitations
+
+- Scroll-metric based, not IntersectionObserver based
+- `smooth` / `instant` imperative scroll does not auto-sync state — rely on scroll events or call `measure()`
+- Consumers own focus management and accessible scroll announcements
+- Cross-origin iframe documents are unsupported
+- `MutationObserver` may be unavailable in some environments
+- Elastic overscroll may produce temporary unusual values
+- RTL horizontal `scrollLeft` behavior varies by browser
+- External DOM changes may require `measure()` unless `observe: { mutation: true }`
+- Does not dedupe or cancel in-flight smooth-scroll animations
+- After imperative `ref.current` assignment, a later React commit is required before attachment
+
+See Storybook (`Hooks/useScroll`) for the scroll dashboard, vertical/horizontal galleries, throttle/idle demos, programmatic scroll, mutation observation, window/document targets, and playground examples.
+
 ## Development
 
 ```bash

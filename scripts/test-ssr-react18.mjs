@@ -176,6 +176,7 @@ import {
   useMouse,
   useMousePressed,
   useParallax,
+  useScroll,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -271,6 +272,13 @@ function TestComponent() {
   void parallax.roll
   void parallax.tilt
   void parallax.source
+  const scrollNullRef = useRef(null)
+  const scroll = useScroll(scrollNullRef)
+  void scroll.x
+  void scroll.y
+  void scroll.isScrolling
+  void scroll.arrivedState.left
+  void scroll.directions.bottom
   return createElement('div', { ref, 'data-focus-api': 'ready' }, 'ssr-ok')
 }
 
@@ -294,16 +302,35 @@ function CaptureInfiniteApi() {
   return createElement('div', { ref }, 'infinite-api')
 }
 
+let scrollMeasure
+let scrollToMethod
+let scrollSetX
+let scrollSetY
+function CaptureScrollApi() {
+  const ref = useRef(null)
+  const api = useScroll(ref)
+  scrollMeasure = api.measure
+  scrollToMethod = api.scrollTo
+  scrollSetX = api.setX
+  scrollSetY = api.setY
+  return createElement('div', { ref }, 'scroll-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
 let postRenderBlurError = null
 let postRenderInfiniteCheckError = null
 let postRenderInfiniteResetError = null
+let postRenderScrollMeasureError = null
+let postRenderScrollToError = null
+let postRenderScrollSetXError = null
+let postRenderScrollSetYError = null
 try {
   html = renderToString(createElement(TestComponent))
   renderToString(createElement(CaptureFocusApi))
   renderToString(createElement(CaptureInfiniteApi))
+  renderToString(createElement(CaptureScrollApi))
   try {
     focusMethod()
   } catch (error) {
@@ -326,6 +353,30 @@ try {
     infiniteReset()
   } catch (error) {
     postRenderInfiniteResetError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
+  try {
+    scrollMeasure()
+  } catch (error) {
+    postRenderScrollMeasureError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
+  try {
+    scrollToMethod({ x: 0, y: 0 })
+  } catch (error) {
+    postRenderScrollToError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
+  try {
+    scrollSetX(0)
+  } catch (error) {
+    postRenderScrollSetXError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
+  try {
+    scrollSetY(0)
+  } catch (error) {
+    postRenderScrollSetYError =
       error instanceof Error ? error.stack ?? error.message : String(error)
   }
 } catch (error) {
@@ -369,6 +420,10 @@ console.log(
     postRenderBlurError,
     postRenderInfiniteCheckError,
     postRenderInfiniteResetError,
+    postRenderScrollMeasureError,
+    postRenderScrollToError,
+    postRenderScrollSetXError,
+    postRenderScrollSetYError,
   }),
 )
 `,
@@ -414,6 +469,30 @@ console.log(
   if (payload.postRenderInfiniteResetError) {
     throw new Error(
       `useInfiniteScroll.reset() threw after SSR render:\\n${payload.postRenderInfiniteResetError}`,
+    )
+  }
+
+  if (payload.postRenderScrollMeasureError) {
+    throw new Error(
+      `useScroll.measure() threw after SSR render:\\n${payload.postRenderScrollMeasureError}`,
+    )
+  }
+
+  if (payload.postRenderScrollToError) {
+    throw new Error(
+      `useScroll.scrollTo() threw after SSR render:\\n${payload.postRenderScrollToError}`,
+    )
+  }
+
+  if (payload.postRenderScrollSetXError) {
+    throw new Error(
+      `useScroll.setX() threw after SSR render:\\n${payload.postRenderScrollSetXError}`,
+    )
+  }
+
+  if (payload.postRenderScrollSetYError) {
+    throw new Error(
+      `useScroll.setY() threw after SSR render:\\n${payload.postRenderScrollSetYError}`,
     )
   }
 

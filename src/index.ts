@@ -123,3 +123,17 @@ export {
   type UseParallaxSource,
   type UseParallaxTarget,
 } from './hooks/useParallax/useParallax'
+
+export {
+  useScroll,
+  type UseScrollArrivedState,
+  type UseScrollDirections,
+  type UseScrollErrorHandler,
+  type UseScrollHandler,
+  type UseScrollObserveOptions,
+  type UseScrollOffset,
+  type UseScrollOptions,
+  type UseScrollPosition,
+  type UseScrollReturn,
+  type UseScrollTarget,
+} from './hooks/useScroll/useScroll'

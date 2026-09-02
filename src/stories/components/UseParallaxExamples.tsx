@@ -125,13 +125,7 @@ export function LayeredSceneExample() {
             preserveAspectRatio="xMidYMid slice"
           >
             <defs>
-              <linearGradient
-                id={`${uid}-sky`}
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
+              <linearGradient id={`${uid}-sky`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#0f172a" />
                 <stop offset="45%" stopColor="#312e81" />
                 <stop offset="100%" stopColor="#6d28d9" />
@@ -262,7 +256,14 @@ export function LayeredSceneExample() {
             viewBox="0 0 200 160"
             aria-hidden="true"
           >
-            <ellipse cx="100" cy="132" rx="72" ry="16" fill="#000" opacity="0.35" />
+            <ellipse
+              cx="100"
+              cy="132"
+              rx="72"
+              ry="16"
+              fill="#000"
+              opacity="0.35"
+            />
             <path
               d="M40,128 C55,118 145,118 160,128 C150,138 50,138 40,128 Z"
               fill="#312e81"
@@ -344,8 +345,8 @@ export function BasicCardExample() {
             Aurora workspace
           </p>
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            Roll and tilt drive a lightweight perspective tilt without moving the
-            tracking bounds.
+            Roll and tilt drive a lightweight perspective tilt without moving
+            the tracking bounds.
           </p>
         </div>
       </div>
