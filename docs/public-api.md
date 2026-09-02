@@ -46,6 +46,12 @@ import {
   type UseElementByPointOptions,
   type UseElementByPointReturn,
   type UseElementByPointScheduler,
+  useElementHover,
+  type UseElementHoverOptions,
+  useFocus,
+  type UseFocusOptions,
+  type UseFocusReturn,
+  type UseFocusTarget,
 } from '@muradyanvano/react-hooks'
 ```
 
@@ -742,6 +748,91 @@ Safe to import and call during server rendering. Returns `false`; no listeners, 
 - No public pending-state API
 - Re-enabling does not infer whether the pointer is already over the target
 - `triggerOnRemoval` requires `MutationObserver`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useFocus`
+
+Tracks whether a referenced element has direct native focus and exposes imperative `focus` / `blur` methods.
+
+### Signature
+
+```ts
+import type { RefObject } from 'react'
+
+export type UseFocusTarget = HTMLElement | SVGElement
+
+export interface UseFocusOptions {
+  enabled?: boolean
+  initialValue?: boolean
+  focusVisible?: boolean
+  preventScroll?: boolean
+}
+
+export interface UseFocusReturn {
+  focused: boolean
+  focus: () => void
+  blur: () => void
+}
+
+export function useFocus<T extends UseFocusTarget>(
+  ref: RefObject<T | null>,
+  options?: UseFocusOptions,
+): UseFocusReturn
+```
+
+### Defaults
+
+`{ enabled: true, initialValue: false, focusVisible: false, preventScroll: false }`
+
+Initial SSR return: `{ focused: false, focus, blur }` (methods are safe no-ops).
+
+### Focus state
+
+When `focusVisible: false`, `focused` is true when `target.ownerDocument.activeElement === target`.
+
+When `focusVisible: true`, the target must also match `:focus-visible`. If matching cannot be evaluated, returns false conservatively.
+
+Descendant focus does not count as direct focus.
+
+### Events
+
+Registers native `focus` and `blur` on the resolved target. Does not use React synthetic focus handlers.
+
+### Imperative methods
+
+- `focus()` calls native `focus({ preventScroll })` with latest options; no optimistic state.
+- `blur()` calls native `blur()`; no optimistic state unless native events fail (not assumed).
+- Both no-op when disabled, null target, or during SSR.
+
+### Initial focus
+
+When `initialValue: true`, focuses each newly resolved enabled target once after commit. Does not refocus on unrelated rerenders after the user moves focus elsewhere. Changing `initialValue` false→true focuses once; true→false does not blur.
+
+### Target lifecycle
+
+- Reads `ref.current` after React commits.
+- Replacement resets `focused` without blurring the old browser focus automatically.
+- `enabled: false` detaches listeners and resets hook state without blurring the element.
+
+### Exported types
+
+- `UseFocusTarget`
+- `UseFocusOptions`
+- `UseFocusReturn`
+
+### SSR
+
+Safe during server rendering. No listeners or DOM method calls. No `useLayoutEffect`.
+
+### Limitations
+
+- Direct focus only — not focus-within
+- Disabled state does not blur the actual element
+- External DOM removal may require React ref synchronization
+- Cross-origin iframe elements cannot be accessed
 
 ### Stability
 

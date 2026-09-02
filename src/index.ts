@@ -69,3 +69,10 @@ export {
   useElementHover,
   type UseElementHoverOptions,
 } from './hooks/useElementHover/useElementHover'
+
+export {
+  useFocus,
+  type UseFocusOptions,
+  type UseFocusReturn,
+  type UseFocusTarget,
+} from './hooks/useFocus/useFocus'

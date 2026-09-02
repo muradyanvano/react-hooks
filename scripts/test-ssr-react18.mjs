@@ -170,6 +170,7 @@ import {
   useDisplayMedia,
   useElementByPoint,
   useElementHover,
+  useFocus,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -226,13 +227,40 @@ function TestComponent() {
   useElementByPoint({ x: 0, y: 0 })
   useElementByPoint({ x: 0, y: 0, multiple: true })
   useElementHover(ref)
-  return createElement('div', { ref }, 'ssr-ok')
+  const { focused, focus, blur } = useFocus(ref)
+  void focused
+  return createElement('div', { ref, 'data-focus-api': 'ready' }, 'ssr-ok')
+}
+
+let focusMethod
+let blurMethod
+function CaptureFocusApi() {
+  const ref = useRef(null)
+  const api = useFocus(ref)
+  focusMethod = api.focus
+  blurMethod = api.blur
+  return createElement('div', { ref }, 'focus-api')
 }
 
 let html = ''
 let renderError = null
+let postRenderFocusError = null
+let postRenderBlurError = null
 try {
   html = renderToString(createElement(TestComponent))
+  renderToString(createElement(CaptureFocusApi))
+  try {
+    focusMethod()
+  } catch (error) {
+    postRenderFocusError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
+  try {
+    blurMethod()
+  } catch (error) {
+    postRenderBlurError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
 } catch (error) {
   renderError = error instanceof Error ? error.stack ?? error.message : String(error)
 } finally {
@@ -258,6 +286,8 @@ console.log(
     warnings,
     errors,
     renderError,
+    postRenderFocusError,
+    postRenderBlurError,
   }),
 )
 `,
@@ -278,6 +308,18 @@ console.log(
 
   if (payload.renderError) {
     throw new Error(`SSR render threw:\\n${payload.renderError}`)
+  }
+
+  if (payload.postRenderFocusError) {
+    throw new Error(
+      `useFocus.focus() threw after SSR render:\\n${payload.postRenderFocusError}`,
+    )
+  }
+
+  if (payload.postRenderBlurError) {
+    throw new Error(
+      `useFocus.blur() threw after SSR render:\\n${payload.postRenderBlurError}`,
+    )
   }
 
   if (!String(payload.html).includes('ssr-ok')) {

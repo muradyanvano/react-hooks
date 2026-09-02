@@ -20,6 +20,7 @@ Current hooks:
 - `useDisplayMedia`
 - `useElementByPoint`
 - `useElementHover`
+- `useFocus`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

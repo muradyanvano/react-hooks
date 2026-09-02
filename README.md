@@ -822,6 +822,79 @@ Returns a `boolean` that is `true` only after the configured enter transition co
 
 See Storybook (`Hooks/useElementHover`) for the primary two-button **Hover me** example, delayed enter/leave demos, nested content, removal detection, dynamic targets, SVG targets, and a playground.
 
+### `useFocus`
+
+Tracks whether a referenced element has **direct native focus** and exposes stable `focus()` / `blur()` methods. Descendant focus does not count — use a future focus-within hook for that scope.
+
+```tsx
+import { useRef } from 'react'
+import { useFocus } from '@muradyanvano/react-hooks'
+
+export function SearchField() {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const { focused, focus, blur } = useFocus(inputRef, {
+    preventScroll: true,
+  })
+
+  return (
+    <section>
+      <label htmlFor="search">Search</label>
+      <input ref={inputRef} id="search" type="search" />
+
+      <p>{focused ? 'Search has focus' : 'Search is not focused'}</p>
+
+      <button type="button" onClick={focus}>
+        Focus search
+      </button>
+
+      <button type="button" onClick={blur}>
+        Blur search
+      </button>
+    </section>
+  )
+}
+```
+
+#### Options
+
+| Option          | Type      | Default | Description                                                                      |
+| --------------- | --------- | ------- | -------------------------------------------------------------------------------- |
+| `enabled`       | `boolean` | `true`  | When `false`, detaches listeners, resets `focused` to false, and no-ops methods. |
+| `initialValue`  | `boolean` | `false` | When `true`, focuses the target once when it becomes available after commit.     |
+| `focusVisible`  | `boolean` | `false` | When `true`, `focused` requires native `:focus-visible` matching.                |
+| `preventScroll` | `boolean` | `false` | Passed to hook-initiated `focus({ preventScroll })` calls.                       |
+
+#### Return value
+
+```ts
+{ focused: boolean; focus: () => void; blur: () => void }
+```
+
+#### Behavior notes
+
+- Uses native `focus` / `blur` listeners on the resolved target — not React synthetic handlers.
+- State follows `target.ownerDocument.activeElement === target` (with optional `:focus-visible` filter).
+- `focus()` / `initialValue` do not set `focused` optimistically; native focus events synchronize state.
+- Disabling resets the hook boolean but does **not** blur the element in the browser.
+- Target replacement resets hook state without automatically blurring the old target.
+- Changing `initialValue` from false to true focuses once; true to false does not blur.
+- Imperative `ref.current` assignment requires a later React commit before synchronization.
+
+#### SSR and StrictMode
+
+- Returns `{ focused: false, focus, blur }` during SSR; methods are safe no-ops.
+- No listeners or DOM calls at module evaluation.
+- Effects clean up correctly under React StrictMode.
+
+#### Current limitations
+
+- Direct focus only — not descendant focus-within
+- `:focus-visible` matching is conservative when unsupported (returns false)
+- `preventScroll` support varies in older environments
+- External DOM removal without a React commit may not synchronize immediately
+
+See Storybook (`Hooks/useFocus`) for the primary **Focus controls** example (paragraph, input, button), initial focus, prevent scroll, focus-visible filtering, dynamic targets, SVG targets, custom documents, and a playground.
+
 ## Development
 
 ```bash

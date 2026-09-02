@@ -47,6 +47,10 @@ describe('package entry', () => {
     expect(entry.useElementHover).toBeTypeOf('function')
   })
 
+  it('exports useFocus and its public types', () => {
+    expect(entry.useFocus).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -55,6 +59,7 @@ describe('package entry', () => {
       'useElementByPoint',
       'useElementHover',
       'useEventListener',
+      'useFocus',
       'useOnClickOutside',
       'useOnElementRemoval',
       'useOnKeyStroke',
