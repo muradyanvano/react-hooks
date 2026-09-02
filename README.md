@@ -1181,6 +1181,69 @@ export function ElementRelativeTracker() {
 
 See Storybook (`Hooks/useMouse`) for the primary tracker, extractor, touch, drag, scroll, and playground examples.
 
+### `useMousePressed`
+
+Tracks whether a mouse, touch, or drag press lifecycle is currently active. Press-start listeners attach to the target; release listeners attach to the owning window only while a lifecycle is active.
+
+```tsx
+import { useRef } from 'react'
+import { useMousePressed } from '@muradyanvano/react-hooks'
+
+export function PressPad() {
+  const targetRef = useRef<HTMLDivElement>(null)
+
+  const { pressed, sourceType } = useMousePressed({
+    target: targetRef,
+  })
+
+  return (
+    <div ref={targetRef}>
+      <p>{pressed ? 'Pressed' : 'Released'}</p>
+      <p>Source: {sourceType ?? 'none'}</p>
+    </div>
+  )
+}
+```
+
+#### Options
+
+| Option         | Type                                                                   | Default  | Description                                                                  |
+| -------------- | ---------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------- |
+| `enabled`      | `boolean`                                                              | `true`   | When `false`, no listeners are registered and state resets administratively. |
+| `touch`        | `boolean`                                                              | `true`   | When `false`, no touch listeners are registered.                             |
+| `drag`         | `boolean`                                                              | `true`   | When `false`, no drag listeners are registered.                              |
+| `capture`      | `boolean`                                                              | `false`  | Capture phase for all hook-owned listeners.                                  |
+| `initialValue` | `boolean`                                                              | `false`  | Initial `pressed` value; `sourceType` starts as `null`.                      |
+| `target`       | `Window \| Document \| HTMLElement \| SVGElement \| RefObject \| null` | `window` | Omitted → `window`. Explicit `null` → no listen.                             |
+| `onPressed`    | `(event) => void`                                                      | —        | Called once when transitioning to pressed.                                   |
+| `onReleased`   | `(event) => void`                                                      | —        | Called once when transitioning to released via a native release event.       |
+
+#### Behavior notes
+
+- Mouse: `mousedown` on target; `mouseup` / `mouseleave` on owning window release.
+- Touch: `touchstart` on target; final `touchend` / `touchcancel` on owning window release.
+- Drag: `dragstart` on target; `dragend` / `drop` on owning window release.
+- `mousedown` followed by `dragstart` is one lifecycle (one `onPressed`).
+- Multi-touch stays pressed until the final active touch ends.
+- Releasing outside the target still clears state via owning-window listeners.
+- Administrative resets (disable, target change, touch/drag/capture change) do not call `onReleased`.
+- `initialValue: true` starts pressed with unknown source until a real release event.
+
+#### SSR and StrictMode
+
+- SSR returns `{ pressed: initialValue, sourceType: null }` with no listeners.
+- Effects clean up correctly under React StrictMode.
+
+#### Current limitations
+
+- Aggregate boolean only — no button, touch count, or pointer ID
+- Not Pointer Events; no keyboard pressed state
+- Does not call `preventDefault()` or make elements draggable
+- Cross-origin iframe targets unsupported
+- Administrative lifecycle changes reset without `onReleased`
+
+See Storybook (`Hooks/useMousePressed`) for press-and-hold, drag, capture, and playground examples.
+
 ## Development
 
 ```bash

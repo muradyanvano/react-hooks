@@ -105,3 +105,12 @@ export {
   type UseMouseSourceType,
   type UseMouseTarget,
 } from './hooks/useMouse/useMouse'
+
+export {
+  useMousePressed,
+  type UseMousePressedEvent,
+  type UseMousePressedHandler,
+  type UseMousePressedOptions,
+  type UseMousePressedReturn,
+  type UseMousePressedTarget,
+} from './hooks/useMousePressed/useMousePressed'

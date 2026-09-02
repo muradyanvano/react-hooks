@@ -1043,6 +1043,43 @@ Returns `{ x: initialValue.x, y: initialValue.y, sourceType: null }` with no lis
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useMousePressed`
+
+Tracks whether a mouse, touch, or drag press lifecycle is active.
+
+### Signature
+
+```ts
+export function useMousePressed(
+  options?: UseMousePressedOptions,
+): UseMousePressedReturn
+```
+
+### Defaults
+
+`{ enabled: true, touch: true, drag: true, capture: false, initialValue: false, target: window }`
+
+### Lifecycle
+
+- Press-start on target: `mousedown`, optional `touchstart`, optional `dragstart`
+- Release on owning window while active: `mouseup`, `mouseleave`, `touchend`, `touchcancel`, `dragend`, `drop`
+- Callbacks fire only on native transitions, not administrative resets
+
+### SSR
+
+Returns `{ pressed: initialValue, sourceType: null }` with no listeners.
+
+### Limitations
+
+- Boolean aggregate state only
+- No keyboard or Pointer Events
+- Consumer owns draggable configuration
+- Does not call `preventDefault()`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

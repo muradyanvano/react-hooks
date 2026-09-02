@@ -16,6 +16,7 @@
 - Direct-focus hooks (`useFocus`) return `{ focused, focus, blur }` from native target-bound `focus`/`blur` and `ownerDocument.activeElement`; do not treat descendant focus as direct focus. Focus-within semantics belong in `useFocusWithin`.
 - Infinite-scroll hooks (`useInfiniteScroll`) measure scroll metrics and schedule post-load frames through the target’s owning window; resolve `ResizeObserver` from that window when available; never touch browser globals at module scope.
 - Mouse-coordinate hooks (`useMouse`) resolve omitted `window` targets and owning-window scroll offsets inside effects only; detect mouse/touch events by shape rather than realm-specific constructors when crossing documents; never touch `MouseEvent` / `TouchEvent` / DOM globals at module scope.
+- Mouse-pressed hooks (`useMousePressed`) attach temporary release listeners to the target’s owning window only while a lifecycle is active; reuse existing `UseMouseSourceType`; never touch browser globals at module scope.
 - For pointer gestures, attach temporary listeners to the target’s `ownerDocument` and use that document’s `defaultView` for timers, `performance`, and blur cancellation when available.
 - Keep the main development install on the current React major. Validate React 18 SSR via the packed-consumer script (`npm run test:ssr:react18`) rather than downgrading the workspace.
 - Implement hooks only when product requirements define them; follow `hook-design.md`.

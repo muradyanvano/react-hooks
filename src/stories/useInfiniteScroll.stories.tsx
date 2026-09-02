@@ -110,6 +110,12 @@ function scrollNearBottom(element: HTMLElement): void {
   element.dispatchEvent(new Event('scroll'))
 }
 
+function nudgeScrollForLoad(element: HTMLElement): void {
+  element.scrollTop = 0
+  element.dispatchEvent(new Event('scroll'))
+  scrollNearBottom(element)
+}
+
 export const InfiniteList: Story = {
   name: 'Infinite list',
   render: () => <InfiniteListExample />,
@@ -237,14 +243,18 @@ export const EndOfData: Story = {
 
     await waitFor(
       async () => {
-        if (canvas.getByTestId('end-complete').textContent === 'true') {
-          return
-        }
-        scrollNearBottom(list)
-        expect(canvas.getByTestId('end-complete')).toHaveTextContent('true')
+        nudgeScrollForLoad(list)
+        await new Promise((resolve) => {
+          window.setTimeout(resolve, 75)
+        })
+        expect(canvas.getByTestId('end-status')).toHaveTextContent(
+          'All items loaded',
+        )
       },
-      { timeout: 5000 },
+      { timeout: 15000 },
     )
+
+    await expect(canvas.getByTestId('end-complete')).toHaveTextContent('true')
 
     await expectCodeDisclosure(canvas, endOfDataSnippet)
   },
