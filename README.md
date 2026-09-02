@@ -1086,6 +1086,101 @@ export function InfiniteList() {
 
 See Storybook (`Hooks/useInfiniteScroll`) for the primary **Infinite list** example and additional direction, async, error, and playground stories.
 
+### `useMouse`
+
+Tracks mouse and optional touch coordinates for a target. Listens to `mousemove` and `dragover`, and optionally touch events.
+
+```tsx
+import { useMouse } from '@muradyanvano/react-hooks'
+
+export function PointerCoordinates() {
+  const { x, y, sourceType } = useMouse()
+
+  return (
+    <p>
+      x: {x}, y: {y}, source: {sourceType ?? 'idle'}
+    </p>
+  )
+}
+```
+
+Custom target with an element-relative extractor:
+
+```tsx
+import { useRef } from 'react'
+import {
+  useMouse,
+  type UseMouseEventExtractor,
+} from '@muradyanvano/react-hooks'
+
+export function ElementRelativeTracker() {
+  const surfaceRef = useRef<HTMLDivElement>(null)
+
+  const extractor: UseMouseEventExtractor = (event) => {
+    if (!(event instanceof MouseEvent)) {
+      return null
+    }
+
+    return [event.offsetX, event.offsetY]
+  }
+
+  const { x, y, sourceType } = useMouse({
+    target: surfaceRef,
+    type: extractor,
+    touch: false,
+  })
+
+  return (
+    <div ref={surfaceRef}>
+      offset x: {x}, y: {y}, source: {sourceType ?? 'idle'}
+    </div>
+  )
+}
+```
+
+#### Options
+
+| Option            | Type                                                                   | Default          | Description                                                                 |
+| ----------------- | ---------------------------------------------------------------------- | ---------------- | --------------------------------------------------------------------------- |
+| `enabled`         | `boolean`                                                              | `true`           | When `false`, no listeners are registered. Preserves last coordinates.      |
+| `type`            | `'page' \| 'client' \| 'screen' \| 'movement' \| extractor`            | `'page'`         | Built-in coordinate mode or a custom extractor.                             |
+| `target`          | `Window \| Document \| HTMLElement \| SVGElement \| RefObject \| null` | `window`         | Omitted → `window`. Explicit `null` → no listen.                            |
+| `touch`           | `boolean`                                                              | `true`           | When `false`, no touch listeners are registered.                            |
+| `scroll`          | `boolean`                                                              | `true`           | Recalculate page coordinates on owning-window scroll after first position.  |
+| `resetOnTouchEnd` | `boolean`                                                              | `false`          | Reset to `initialValue` after the final active touch ends.                  |
+| `initialValue`    | `{ x: number; y: number }`                                             | `{ x: 0, y: 0 }` | SSR/first-paint coordinates; also used by touch-end reset.                  |
+| `eventFilter`     | `(invoke, event) => void`                                              | immediate invoke | Consumer-controlled scheduling/throttling for mouse/drag/touchmove updates. |
+
+#### Behavior notes
+
+- `mousemove` and `dragover` set `sourceType: 'mouse'`.
+- Touch uses the first active touch (`touches`, then `changedTouches` fallback).
+- Built-in `page` mode can update on owning-window scroll using the last client coordinates.
+- Custom extractors own coordinate semantics; `null`/`undefined` preserves state; throws are contained.
+- `eventFilter` delayed `invoke()` calls become no-ops after disable, target replacement, or unmount.
+- Option-object identity and callback identity changes do not reset live coordinates.
+- Changing `initialValue` after mount does not rewrite the current position.
+
+#### SSR and StrictMode
+
+- Importing the package does not touch `window`, `document`, `MouseEvent`, or `TouchEvent`.
+- SSR returns `{ x: initialValue.x, y: initialValue.y, sourceType: null }` with no listeners.
+- Effects clean up correctly under React StrictMode (one effective listener set).
+
+#### Current limitations
+
+- Mouse and optional touch only — not unified Pointer Events
+- No pressure, tilt, pointer ID, or button-state API
+- Movement values vary by browser and pointer-lock context
+- One touch contact is tracked, not every concurrent touch
+- Element targets do not automatically produce element-relative coordinates — use an extractor
+- Cross-origin iframe targets are unsupported
+- High-frequency events can cause frequent React renders — use `eventFilter` to throttle
+- Consumer-delayed filters cannot be cancelled by the hook, but stale invocations are ignored
+- The hook does not draw a cursor/marker and does not call `preventDefault()`
+
+See Storybook (`Hooks/useMouse`) for the primary tracker, extractor, touch, drag, scroll, and playground examples.
+
 ## Development
 
 ```bash

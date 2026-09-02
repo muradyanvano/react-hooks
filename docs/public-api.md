@@ -993,6 +993,56 @@ Idle return `{ isLoading: false, error: null, check, reset }`. No listeners, obs
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useMouse`
+
+Tracks mouse and optional touch coordinates for a target.
+
+### Signature
+
+```ts
+export type UseMouseCoordinateType = 'page' | 'client' | 'screen' | 'movement'
+export type UseMouseSourceType = 'mouse' | 'touch' | null
+export type UseMouseTarget = Window | Document | HTMLElement | SVGElement
+
+export function useMouse(options?: UseMouseOptions): UseMouseReturn
+```
+
+### Defaults
+
+`{ enabled: true, type: 'page', target: window, touch: true, scroll: true, resetOnTouchEnd: false, initialValue: { x: 0, y: 0 }, eventFilter: (invoke) => invoke() }`
+
+Omitted `target` resolves to `window` inside an effect. Explicit `target: null` registers nothing.
+
+### Coordinates
+
+- `page` — `pageX`/`pageY`; optional owning-window scroll recalculation from last client coordinates
+- `client` — `clientX`/`clientY`
+- `screen` — `screenX`/`screenY`
+- `movement` — latest `movementX`/`movementY` (mouse only unless a custom extractor is supplied)
+- Custom extractor — receives `MouseEvent` or `Touch`; `null`/`undefined` preserves state
+
+### Events
+
+Passive `mousemove` and `dragover` listeners. Optional passive `touchstart` / `touchmove` / `touchend` / `touchcancel`. No `preventDefault` / `stopPropagation`.
+
+### SSR
+
+Returns `{ x: initialValue.x, y: initialValue.y, sourceType: null }` with no listeners, scroll reads, or browser constructor access.
+
+### Limitations
+
+- Not Pointer Events
+- No pressure/tilt/button-state API
+- One tracked touch contact
+- Element-relative coordinates require a custom extractor
+- Cross-origin iframes unsupported
+- High-frequency events may need `eventFilter` throttling
+- Does not draw overlays or suppress native drag/touch behavior
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

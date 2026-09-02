@@ -93,3 +93,15 @@ export {
   type UseInfiniteScrollState,
   type UseInfiniteScrollTarget,
 } from './hooks/useInfiniteScroll/useInfiniteScroll'
+
+export {
+  useMouse,
+  type UseMouseCoordinateType,
+  type UseMouseEventExtractor,
+  type UseMouseEventFilter,
+  type UseMouseOptions,
+  type UseMousePosition,
+  type UseMouseReturn,
+  type UseMouseSourceType,
+  type UseMouseTarget,
+} from './hooks/useMouse/useMouse'

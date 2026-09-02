@@ -23,6 +23,7 @@ Current hooks:
 - `useFocus`
 - `useFocusWithin`
 - `useInfiniteScroll`
+- `useMouse`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

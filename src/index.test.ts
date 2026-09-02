@@ -59,6 +59,10 @@ describe('package entry', () => {
     expect(entry.useInfiniteScroll).toBeTypeOf('function')
   })
 
+  it('exports useMouse and its public types', () => {
+    expect(entry.useMouse).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -70,6 +74,7 @@ describe('package entry', () => {
       'useFocus',
       'useFocusWithin',
       'useInfiniteScroll',
+      'useMouse',
       'useOnClickOutside',
       'useOnElementRemoval',
       'useOnKeyStroke',

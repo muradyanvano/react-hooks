@@ -120,13 +120,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useInfiniteScroll</code> — edge-triggered loading for element,
       window, and document scroll targets
     </li>
+    <li>
+      <code>useMouse</code> — mouse and optional touch coordinate tracking with
+      page/client/screen/movement modes
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Fourteen public hooks exist in this prerelease.</li>
+    <li>Fifteen public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -187,6 +191,11 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useInfiniteScroll</code> is scroll-metric based. Consumers own
       fetching, item state, and scroll anchoring for top/left layouts. Provide
       accessible alternatives for long feeds.
+    </li>
+    <li>
+      <code>useMouse</code> tracks mouse and optional touch events, not unified
+      Pointer Events. Element-relative coordinates require a custom extractor.
+      High-frequency updates may need <code>eventFilter</code> throttling.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

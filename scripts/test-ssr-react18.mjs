@@ -173,6 +173,7 @@ import {
   useFocus,
   useFocusWithin,
   useInfiniteScroll,
+  useMouse,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -253,6 +254,10 @@ function TestComponent() {
   void focusWithin
   const infinite = useInfiniteScroll(ref, async () => {})
   void infinite.isLoading
+  const mouse = useMouse()
+  void mouse.x
+  const mouseCustom = useMouse({ initialValue: { x: 12, y: 34 } })
+  void mouseCustom.y
   return createElement('div', { ref, 'data-focus-api': 'ready' }, 'ssr-ok')
 }
 
