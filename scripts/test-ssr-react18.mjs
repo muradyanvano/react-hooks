@@ -171,6 +171,7 @@ import {
   useElementByPoint,
   useElementHover,
   useFocus,
+  useFocusWithin,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -229,6 +230,8 @@ function TestComponent() {
   useElementHover(ref)
   const { focused, focus, blur } = useFocus(ref)
   void focused
+  const { focused: focusWithin } = useFocusWithin(ref)
+  void focusWithin
   return createElement('div', { ref, 'data-focus-api': 'ready' }, 'ssr-ok')
 }
 

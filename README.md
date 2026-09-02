@@ -824,7 +824,7 @@ See Storybook (`Hooks/useElementHover`) for the primary two-button **Hover me** 
 
 ### `useFocus`
 
-Tracks whether a referenced element has **direct native focus** and exposes stable `focus()` / `blur()` methods. Descendant focus does not count — use a future focus-within hook for that scope.
+Tracks whether a referenced element has **direct native focus** and exposes stable `focus()` / `blur()` methods. Descendant focus does not count — use `useFocusWithin` for container-level focus tracking.
 
 ```tsx
 import { useRef } from 'react'
@@ -894,6 +894,92 @@ export function SearchField() {
 - External DOM removal without a React commit may not synchronize immediately
 
 See Storybook (`Hooks/useFocus`) for the primary **Focus controls** example (paragraph, input, button), initial focus, prevent scroll, focus-visible filtering, dynamic targets, SVG targets, custom documents, and a playground.
+
+### `useFocusWithin`
+
+Tracks whether a referenced element **or any DOM descendant** currently contains focus, aligned with CSS `:focus-within`. Read-only — it does not move focus.
+
+```tsx
+import { useRef } from 'react'
+import { useFocusWithin } from '@muradyanvano/react-hooks'
+
+export function ContactForm() {
+  const formRef = useRef<HTMLFormElement>(null)
+  const { focused } = useFocusWithin(formRef)
+
+  return (
+    <form ref={formRef}>
+      <p>Focus in form: {String(focused)}</p>
+
+      <label>
+        First Name
+        <input name="firstName" />
+      </label>
+
+      <label>
+        Last Name
+        <input name="lastName" />
+      </label>
+
+      <label>
+        Email
+        <input name="email" type="email" />
+      </label>
+
+      <label>
+        Password
+        <input name="password" type="password" />
+      </label>
+    </form>
+  )
+}
+```
+
+#### Options
+
+| Option    | Type      | Default | Description                                                                      |
+| --------- | --------- | ------- | -------------------------------------------------------------------------------- |
+| `enabled` | `boolean` | `true`  | When `false`, detaches listeners and resets `focused` to false without blurring. |
+
+#### Return value
+
+```ts
+{
+  focused: boolean
+}
+```
+
+#### Behavior notes
+
+- Uses native bubbling `focusin` / `focusout` on the resolved container — not React synthetic handlers.
+- State follows `target.ownerDocument.activeElement` containment (target itself or a descendant).
+- Moving focus between descendants keeps `focused` true; leaving the container sets false.
+- When `relatedTarget` is unavailable, a microtask reconciles against the owning document.
+- Disabling resets the hook boolean but does **not** blur actual browser focus.
+- React portals outside the DOM subtree do not count — containment is DOM-based, not component ownership.
+- Imperative `ref.current` assignment requires a later React commit before synchronization.
+
+#### SSR and StrictMode
+
+- Returns `{ focused: false }` during SSR; no listeners or microtasks.
+- Hydration begins false, then synchronizes after mount.
+- Effects clean up correctly under React StrictMode.
+
+#### Current limitations
+
+- Focus-within means actual DOM containment, not React component ownership
+- Portals outside the subtree do not count
+- Shadow DOM behavior depends on browser retargeting and `activeElement` rules; closed roots are not deeply inspected
+- Cross-origin iframe focus cannot be inspected
+- Disabled mode and dynamic target replacement do not blur the active or previous target
+- Imperative `ref.current` changes require a later React commit before synchronization
+- External DOM removal without a React commit may not synchronize immediately
+- Ambiguous `focusout` events may reconcile on a microtask after `activeElement` settles
+- SSR starts with `focused: false`
+- Does not expose which descendant is focused
+- Does not trap focus or manage roving tab index
+
+See Storybook (`Hooks/useFocusWithin`) for the primary **Focus in form** example (First Name, Last Name, Email, Password), field groups, moving within, target focus, nested controls, portal boundaries, SVG groups, custom documents, and a playground.
 
 ## Development
 

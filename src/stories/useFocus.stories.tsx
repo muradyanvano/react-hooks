@@ -52,7 +52,7 @@ useFocus<T extends UseFocusTarget>(
 
 **Defaults:** \`{ enabled: true, initialValue: false, focusVisible: false, preventScroll: false }\`
 
-**Direct focus only:** Descendant focus does not count. A future focus-within hook may cover descendant focus separately.
+**Direct focus only:** Descendant focus does not count. Use \`useFocusWithin\` for container-level focus tracking.
 
 Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
         `,

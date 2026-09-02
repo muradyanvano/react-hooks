@@ -49,6 +49,7 @@ import {
   useElementHover,
   type UseElementHoverOptions,
   useFocus,
+  useFocusWithin,
   type UseFocusOptions,
   type UseFocusReturn,
   type UseFocusTarget,
@@ -833,6 +834,86 @@ Safe during server rendering. No listeners or DOM method calls. No `useLayoutEff
 - Disabled state does not blur the actual element
 - External DOM removal may require React ref synchronization
 - Cross-origin iframe elements cannot be accessed
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useFocusWithin`
+
+Tracks whether a referenced element or any DOM descendant currently contains focus.
+
+### Signature
+
+```ts
+import type { RefObject } from 'react'
+
+export interface UseFocusWithinOptions {
+  enabled?: boolean
+}
+
+export interface UseFocusWithinReturn {
+  focused: boolean
+}
+
+export function useFocusWithin<T extends Element>(
+  ref: RefObject<T | null>,
+  options?: UseFocusWithinOptions,
+): UseFocusWithinReturn
+```
+
+### Defaults
+
+`{ enabled: true }`
+
+Initial SSR return: `{ focused: false }`
+
+### Focus-within state
+
+`focused` is true when `target.ownerDocument.activeElement` is the target itself or contained by the target. Parent-document focus does not count for iframe-owned targets.
+
+### Events
+
+Registers native bubbling `focusin` and `focusout` on the resolved target. Does not use React synthetic focus handlers.
+
+When `focusout` reports an internal `relatedTarget`, state stays true. External `relatedTarget` sets false. Null or non-node `relatedTarget` schedules one microtask reconciliation against the owning document.
+
+### Enabled lifecycle
+
+When `enabled: false`, detaches listeners, invalidates pending microtasks, and resets `focused` without blurring actual browser focus. Re-enabling synchronizes actual containment.
+
+### Target lifecycle
+
+- Reads `ref.current` after React commits.
+- Replacement resets `focused` without blurring the old target.
+- Same-target commits re-synchronize containment.
+
+### Difference from `useFocus`
+
+- `useFocus` tracks direct focus only and exposes imperative `focus` / `blur`.
+- `useFocusWithin` tracks container focus including descendants and is read-only.
+
+### Exported types
+
+- `UseFocusWithinOptions`
+- `UseFocusWithinReturn`
+
+### SSR
+
+Safe during server rendering. No listeners, microtasks, or DOM calls. No `useLayoutEffect`.
+
+### Limitations
+
+- DOM containment only — React portals outside the subtree do not count
+- Cross-origin iframe focus cannot be inspected
+- Shadow DOM behavior varies; closed roots are not deeply inspected
+- Disabled mode does not blur the active element
+- Dynamic target replacement does not blur the old target
+- Imperative `ref.current` changes require a later React commit before synchronization
+- External DOM removal may require a focus event or React commit to resynchronize
+- Ambiguous `focusout` events may reconcile on a microtask after `activeElement` settles
+- SSR starts with `focused: false`
+- Does not move, trap, or rove focus, and does not expose which descendant is focused
 
 ### Stability
 

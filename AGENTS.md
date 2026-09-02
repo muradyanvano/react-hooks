@@ -21,6 +21,7 @@ Current hooks:
 - `useElementByPoint`
 - `useElementHover`
 - `useFocus`
+- `useFocusWithin`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

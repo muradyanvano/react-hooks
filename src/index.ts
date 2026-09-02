@@ -76,3 +76,9 @@ export {
   type UseFocusReturn,
   type UseFocusTarget,
 } from './hooks/useFocus/useFocus'
+
+export {
+  useFocusWithin,
+  type UseFocusWithinOptions,
+  type UseFocusWithinReturn,
+} from './hooks/useFocusWithin/useFocusWithin'
