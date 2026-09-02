@@ -172,6 +172,7 @@ import {
   useElementHover,
   useFocus,
   useFocusWithin,
+  useInfiniteScroll,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -203,6 +204,24 @@ globalThis.MutationObserver = class {
   }
 }
 
+let resizeObserverCalls = 0
+const previousRO = globalThis.ResizeObserver
+globalThis.ResizeObserver = class {
+  constructor() {
+    resizeObserverCalls += 1
+  }
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+let animationFrameCalls = 0
+const previousRaf = globalThis.requestAnimationFrame
+globalThis.requestAnimationFrame = (callback) => {
+  animationFrameCalls += 1
+  return typeof previousRaf === 'function' ? previousRaf(callback) : 0
+}
+
 let listenerCalls = 0
 const previousAdd =
   typeof EventTarget !== 'undefined'
@@ -232,6 +251,8 @@ function TestComponent() {
   void focused
   const { focused: focusWithin } = useFocusWithin(ref)
   void focusWithin
+  const infinite = useInfiniteScroll(ref, async () => {})
+  void infinite.isLoading
   return createElement('div', { ref, 'data-focus-api': 'ready' }, 'ssr-ok')
 }
 
@@ -245,13 +266,26 @@ function CaptureFocusApi() {
   return createElement('div', { ref }, 'focus-api')
 }
 
+let infiniteCheck
+let infiniteReset
+function CaptureInfiniteApi() {
+  const ref = useRef(null)
+  const api = useInfiniteScroll(ref, async () => {})
+  infiniteCheck = api.check
+  infiniteReset = api.reset
+  return createElement('div', { ref }, 'infinite-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
 let postRenderBlurError = null
+let postRenderInfiniteCheckError = null
+let postRenderInfiniteResetError = null
 try {
   html = renderToString(createElement(TestComponent))
   renderToString(createElement(CaptureFocusApi))
+  renderToString(createElement(CaptureInfiniteApi))
   try {
     focusMethod()
   } catch (error) {
@@ -264,6 +298,18 @@ try {
     postRenderBlurError =
       error instanceof Error ? error.stack ?? error.message : String(error)
   }
+  try {
+    void infiniteCheck()
+  } catch (error) {
+    postRenderInfiniteCheckError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
+  try {
+    infiniteReset()
+  } catch (error) {
+    postRenderInfiniteResetError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
 } catch (error) {
   renderError = error instanceof Error ? error.stack ?? error.message : String(error)
 } finally {
@@ -273,6 +319,16 @@ try {
     delete globalThis.MutationObserver
   } else {
     globalThis.MutationObserver = previousMO
+  }
+  if (previousRO === undefined) {
+    delete globalThis.ResizeObserver
+  } else {
+    globalThis.ResizeObserver = previousRO
+  }
+  if (previousRaf === undefined) {
+    delete globalThis.requestAnimationFrame
+  } else {
+    globalThis.requestAnimationFrame = previousRaf
   }
   if (previousAdd) {
     EventTarget.prototype.addEventListener = previousAdd
@@ -285,12 +341,16 @@ console.log(
     reactDomVersion: reactDomPkg.version,
     html,
     mutationObserverCalls,
+    resizeObserverCalls,
+    animationFrameCalls,
     listenerCalls,
     warnings,
     errors,
     renderError,
     postRenderFocusError,
     postRenderBlurError,
+    postRenderInfiniteCheckError,
+    postRenderInfiniteResetError,
   }),
 )
 `,
@@ -307,6 +367,8 @@ console.log(
   console.log(
     `MutationObserver constructions: ${payload.mutationObserverCalls}`,
   )
+  console.log(`ResizeObserver constructions: ${payload.resizeObserverCalls}`)
+  console.log(`requestAnimationFrame calls: ${payload.animationFrameCalls}`)
   console.log(`addEventListener constructions: ${payload.listenerCalls}`)
 
   if (payload.renderError) {
@@ -325,6 +387,18 @@ console.log(
     )
   }
 
+  if (payload.postRenderInfiniteCheckError) {
+    throw new Error(
+      `useInfiniteScroll.check() threw after SSR render:\\n${payload.postRenderInfiniteCheckError}`,
+    )
+  }
+
+  if (payload.postRenderInfiniteResetError) {
+    throw new Error(
+      `useInfiniteScroll.reset() threw after SSR render:\\n${payload.postRenderInfiniteResetError}`,
+    )
+  }
+
   if (!String(payload.html).includes('ssr-ok')) {
     throw new Error(`Unexpected SSR HTML: ${payload.html}`)
   }
@@ -332,6 +406,18 @@ console.log(
   if (payload.mutationObserverCalls !== 0) {
     throw new Error(
       `Expected no MutationObserver constructions, got ${payload.mutationObserverCalls}`,
+    )
+  }
+
+  if (payload.resizeObserverCalls !== 0) {
+    throw new Error(
+      `Expected no ResizeObserver constructions, got ${payload.resizeObserverCalls}`,
+    )
+  }
+
+  if (payload.animationFrameCalls !== 0) {
+    throw new Error(
+      `Expected no requestAnimationFrame calls, got ${payload.animationFrameCalls}`,
     )
   }
 

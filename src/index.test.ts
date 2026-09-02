@@ -55,6 +55,10 @@ describe('package entry', () => {
     expect(entry.useFocusWithin).toBeTypeOf('function')
   })
 
+  it('exports useInfiniteScroll and its public types', () => {
+    expect(entry.useInfiniteScroll).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -65,6 +69,7 @@ describe('package entry', () => {
       'useEventListener',
       'useFocus',
       'useFocusWithin',
+      'useInfiniteScroll',
       'useOnClickOutside',
       'useOnElementRemoval',
       'useOnKeyStroke',

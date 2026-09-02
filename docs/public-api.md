@@ -919,6 +919,80 @@ Safe during server rendering. No listeners, microtasks, or DOM calls. No `useLay
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useInfiniteScroll`
+
+Loads more content when a scrollable target approaches a configured edge.
+
+### Signature
+
+```ts
+import type { RefObject } from 'react'
+
+export type UseInfiniteScrollDirection = 'top' | 'right' | 'bottom' | 'left'
+export type UseInfiniteScrollTarget = HTMLElement | Window | Document
+
+export function useInfiniteScroll<
+  T extends UseInfiniteScrollTarget = HTMLElement,
+>(
+  ref: RefObject<T | null>,
+  onLoadMore: UseInfiniteScrollLoadMore<T>,
+  options?: UseInfiniteScrollOptions<T>,
+): UseInfiniteScrollReturn
+```
+
+### Defaults
+
+`{ enabled: true, distance: 0, direction: 'bottom', canLoadMore: () => true }`
+
+Invalid `distance` values (negative, `NaN`, non-finite) normalize to `0`.
+
+### Metrics
+
+Element targets use native scroll metrics. `Window` / `Document` targets resolve metrics through `document.scrollingElement` with documentElement/body fallbacks, and attach the scroll listener to the provided window or document.
+
+Distance formulas:
+
+- `top`: `scrollTop`
+- `bottom`: `scrollHeight - scrollTop - clientHeight`
+- `left`: `scrollLeft`
+- `right`: `scrollWidth - scrollLeft - clientWidth`
+
+Load when `distanceToEdge <= distance`. Negative remainders from overscroll count as reached.
+
+### Loading
+
+Passive `scroll` listener. Loads are serialized. Failures normalize into `error` without unhandled rejections. After success, an owning-window animation frame remeasures and may chain while geometry progresses. No-progress stops auto-chaining until scroll, resize, `check()`, or `reset()`.
+
+### Controls
+
+- `check()` — stable; measures immediately; joins an active promise.
+- `reset()` — stable; clears error and progress suppression; schedules a fresh measurement; does not clear consumer items or scroll position.
+
+### Observation
+
+Optional `ResizeObserver` on the scrolling root when available. No MutationObserver by default. No polyfill.
+
+### SSR
+
+Idle return `{ isLoading: false, error: null, check, reset }`. No listeners, observers, frames, or measurements during SSR.
+
+### Limitations
+
+- Scroll-metric based, not IntersectionObserver based
+- Consumers own fetch/pagination/cancellation
+- Active promises cannot be aborted
+- `reset()` does not clear items or scroll position
+- Top/left anchoring is consumer-owned
+- RTL `scrollLeft` is not normalized
+- Cross-origin iframe documents unsupported
+- ResizeObserver may be unavailable
+- Virtualized lists may need extra integration
+- Provide accessible alternatives for long feeds
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

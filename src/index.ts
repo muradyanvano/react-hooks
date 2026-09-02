@@ -82,3 +82,14 @@ export {
   type UseFocusWithinOptions,
   type UseFocusWithinReturn,
 } from './hooks/useFocusWithin/useFocusWithin'
+
+export {
+  useInfiniteScroll,
+  type UseInfiniteScrollCanLoadMore,
+  type UseInfiniteScrollDirection,
+  type UseInfiniteScrollLoadMore,
+  type UseInfiniteScrollOptions,
+  type UseInfiniteScrollReturn,
+  type UseInfiniteScrollState,
+  type UseInfiniteScrollTarget,
+} from './hooks/useInfiniteScroll/useInfiniteScroll'

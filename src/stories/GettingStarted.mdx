@@ -116,13 +116,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useFocusWithin</code> — container focus tracking via native{' '}
       <code>focusin</code> / <code>focusout</code>
     </li>
+    <li>
+      <code>useInfiniteScroll</code> — edge-triggered loading for element,
+      window, and document scroll targets
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Thirteen public hooks exist in this prerelease.</li>
+    <li>Fourteen public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -178,6 +182,11 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
     <li>
       <code>useFocusWithin</code> tracks DOM containment only — React portals
       outside the subtree do not count. It does not move or trap focus.
+    </li>
+    <li>
+      <code>useInfiniteScroll</code> is scroll-metric based. Consumers own
+      fetching, item state, and scroll anchoring for top/left layouts. Provide
+      accessible alternatives for long feeds.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

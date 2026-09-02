@@ -981,6 +981,111 @@ export function ContactForm() {
 
 See Storybook (`Hooks/useFocusWithin`) for the primary **Focus in form** example (First Name, Last Name, Email, Password), field groups, moving within, target focus, nested controls, portal boundaries, SVG groups, custom documents, and a playground.
 
+### `useInfiniteScroll`
+
+Loads more content when a scrollable target approaches a configured edge. Supports `HTMLElement`, `Window`, and `Document` targets with `top` / `right` / `bottom` / `left` directions.
+
+```tsx
+import { useRef, useState } from 'react'
+import { useInfiniteScroll } from '@muradyanvano/react-hooks'
+
+async function loadMoreItems(offset: number) {
+  await new Promise((resolve) => setTimeout(resolve, 120))
+  return Array.from({ length: 4 }, (_, index) => offset + index + 1)
+}
+
+export function InfiniteList() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [items, setItems] = useState(() =>
+    Array.from({ length: 6 }, (_, index) => index + 1),
+  )
+  const itemsRef = useRef(items)
+  itemsRef.current = items
+
+  const { isLoading, reset } = useInfiniteScroll(
+    containerRef,
+    async () => {
+      const nextItems = await loadMoreItems(itemsRef.current.length)
+      setItems((current) => [...current, ...nextItems])
+    },
+    {
+      distance: 10,
+      canLoadMore: () => itemsRef.current.length < 50,
+    },
+  )
+
+  const handleReset = () => {
+    setItems([1, 2, 3, 4, 5, 6])
+    reset()
+  }
+
+  return (
+    <>
+      <div ref={containerRef} style={{ maxHeight: 320, overflowY: 'auto' }}>
+        {items.map((item) => (
+          <article key={item}>Item {item}</article>
+        ))}
+      </div>
+
+      <p>{isLoading ? 'Loading…' : `${items.length} items`}</p>
+      <button type="button" onClick={handleReset}>
+        Reset
+      </button>
+    </>
+  )
+}
+```
+
+#### Options
+
+| Option        | Type                                     | Default      | Description                                                      |
+| ------------- | ---------------------------------------- | ------------ | ---------------------------------------------------------------- |
+| `enabled`     | `boolean`                                | `true`       | When `false`, detaches listeners/observers and does not load.    |
+| `distance`    | `number`                                 | `0`          | Edge proximity threshold. Negative/non-finite values become `0`. |
+| `direction`   | `'top' \| 'right' \| 'bottom' \| 'left'` | `'bottom'`   | Which edge triggers loading.                                     |
+| `canLoadMore` | `(state) => boolean`                     | `() => true` | Return `false` when the dataset is complete.                     |
+
+#### Return value
+
+```ts
+{
+  isLoading: boolean
+  error: Error | null
+  check: () => Promise<void>
+  reset: () => void
+}
+```
+
+#### Behavior notes
+
+- Passive `scroll` listener on the resolved target; metrics come from the element or `document.scrollingElement`.
+- Load condition: `distanceToEdge <= distance`.
+- Loads are serialized. `check()` joins an in-flight attempt.
+- After a successful load, the hook remeasures (animation frame) and may chain while geometry progresses and the edge remains within distance.
+- No-progress protection stops auto-chaining until a later scroll, resize, `check()`, or `reset()`.
+- `reset()` clears errors and progress suppression, then remeasures. It does not clear items or change scroll position — pair with `setItems(initial)`.
+- Optional `ResizeObserver` rechecks on geometry changes when available.
+- Top/left directions usually need consumer CSS (reversed flow) and consumer-managed scroll anchoring after prepending.
+
+#### Current limitations
+
+- Scroll-metric based, not IntersectionObserver based
+- Consumers own fetching, pagination, deduplication, and cancellation
+- Active promises cannot be aborted by the hook
+- `reset()` does not clear items or mutate scroll position
+- Top/left prepending may require consumer-managed anchoring
+- RTL horizontal `scrollLeft` behavior varies by browser
+- Elastic overscroll may produce temporary unusual values
+- Cross-origin iframe documents are unsupported
+- ResizeObserver may be unavailable
+- External DOM changes may require `check()` or `reset()`
+- Virtualized lists may need virtualizer measurement integration
+- SSR starts idle with no measurement
+- Provide an accessible fallback/navigation strategy for long feeds
+- `canLoadMore` should become false at the end of the dataset
+
+See Storybook (`Hooks/useInfiniteScroll`) for the primary **Infinite list** example and additional direction, async, error, and playground stories.
+
 ## Development
 
 ```bash
