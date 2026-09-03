@@ -30,6 +30,7 @@ Current hooks:
 - `useScrollLock`
 - `useUserMedia`
 - `useWebSocket`
+- `useLocalStorage`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

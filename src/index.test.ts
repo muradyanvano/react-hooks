@@ -87,6 +87,10 @@ describe('package entry', () => {
     expect(entry.useWebSocket).toBeTypeOf('function')
   })
 
+  it('exports useLocalStorage and its public types', () => {
+    expect(entry.useLocalStorage).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -98,6 +102,7 @@ describe('package entry', () => {
       'useFocus',
       'useFocusWithin',
       'useInfiniteScroll',
+      'useLocalStorage',
       'useMouse',
       'useMousePressed',
       'useOnClickOutside',
@@ -115,5 +120,8 @@ describe('package entry', () => {
     expect(entry).not.toHaveProperty('normalizeUserMediaError')
     expect(entry).not.toHaveProperty('normalizeUrlSnapshot')
     expect(entry).not.toHaveProperty('createEndpointSignature')
+    expect(entry).not.toHaveProperty('createDefaultSerializer')
+    expect(entry).not.toHaveProperty('subscribeSameDocument')
+    expect(entry).not.toHaveProperty('notifySameDocument')
   })
 })

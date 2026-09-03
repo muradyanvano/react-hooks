@@ -1729,6 +1729,116 @@ export function ChatConnection() {
 
 See Storybook (`Hooks/useWebSocket`) for the dashboard and mocked connection examples.
 
+### `useLocalStorage`
+
+Persists a value in `localStorage` with SSR-safe hydration, automatic serializers, same-document registry sync, and optional cross-tab `storage` events.
+
+```tsx
+import { useLocalStorage } from '@muradyanvano/react-hooks'
+
+interface Preferences {
+  theme: 'light' | 'dark'
+  compact: boolean
+}
+
+const defaultPreferences: Preferences = {
+  theme: 'light',
+  compact: false,
+}
+
+export function PreferencesPanel() {
+  const {
+    value: preferences,
+    setValue: setPreferences,
+    reset,
+    remove,
+    isReady,
+    error,
+  } = useLocalStorage('app-preferences', defaultPreferences, {
+    mergeDefaults: true,
+  })
+
+  if (!isReady) {
+    return <p>Loading preferences…</p>
+  }
+
+  return (
+    <section>
+      <p>Theme: {preferences.theme}</p>
+
+      <button
+        type="button"
+        onClick={() =>
+          setPreferences((current) => ({
+            ...current,
+            theme: current.theme === 'light' ? 'dark' : 'light',
+          }))
+        }
+      >
+        Toggle theme
+      </button>
+
+      <button type="button" onClick={reset}>
+        Reset defaults
+      </button>
+
+      <button type="button" onClick={remove}>
+        Remove saved preferences
+      </button>
+
+      {error && <p role="alert">{error.message}</p>}
+    </section>
+  )
+}
+```
+
+#### Options
+
+| Option                   | Type                                     | Default | Description                                                                |
+| ------------------------ | ---------------------------------------- | ------- | -------------------------------------------------------------------------- |
+| `serializer`             | `{ read, write }`                        | auto    | Completely replaces automatic serialization for the inferred default type. |
+| `mergeDefaults`          | `boolean \| (stored, default) => merged` | `false` | Shallow-merge plain objects when `true`, or use a custom merge function.   |
+| `writeDefaults`          | `boolean`                                | `true`  | Persist the default when the key is missing during initialization.         |
+| `listenToStorageChanges` | `boolean`                                | `true`  | Same-document registry sync and native cross-tab `storage` events.         |
+| `window`                 | `Window \| null`                         | global  | Omitted → global `window` after mount. Explicit `null` → unsupported.      |
+| `onError`                | `(error: Error) => void`                 | no-op   | Latest callback; throws are contained and do not break ownership.          |
+
+#### Automatic serializers
+
+| Default value | Storage representation                                                       |
+| ------------- | ---------------------------------------------------------------------------- |
+| string        | Raw string                                                                   |
+| boolean       | `"true"` / `"false"`                                                         |
+| number        | Decimal string; `NaN` / `Infinity` / `-Infinity` as tokens; `-0` becomes `0` |
+| object/array  | JSON (`NaN`/`Infinity` become `null` in JSON)                                |
+| Date          | ISO string (invalid dates are serialization errors)                          |
+| Map           | JSON array of entries                                                        |
+| Set           | JSON array of values                                                         |
+| `null`        | JSON (`"null"`) — prefer an explicit serializer when ambiguous               |
+
+#### Behavior notes
+
+- Storage is read and written only in effects. The first client render matches SSR (`value: defaultValue`, `isReady: false`, `isSupported: false`).
+- Malformed stored data sets `error`, falls back to the default locally, and does **not** automatically overwrite or delete the bad payload.
+- `remove()` deletes the key; `reset()` writes the latest default.
+- Cross-tab removal/clear resets to the latest default without immediately rewriting defaults (`writeDefaults` does not undo another tab’s deletion).
+- Same-document sync uses a private `WeakMap` registry (not a public custom event). Multiple bundled copies of the package do not share that registry.
+- `Object.is` equal updates skip re-renders and storage writes.
+- Failed persistence keeps the new React value locally and does not notify peers.
+- Changing `defaultValue` alone does not overwrite a stored value.
+
+#### Current limitations
+
+- Storage access is synchronous and can block the main thread
+- Browser quotas and private/restricted modes may deny access
+- Stored data is readable by same-origin scripts — never store passwords, tokens, or secrets without a security design (this is persistence, not encryption)
+- JSON cannot preserve every JavaScript type; custom serializers own validation and migration
+- Object mutation without `setValue` is not tracked
+- Dynamic keys do not migrate data
+- Consumers own versioning, schema migration, validation, and conflict resolution
+
+See Storybook (`Hooks/useLocalStorage`) for the fruit editor and related examples.
+
 ## Development
 
 ```bash

@@ -180,6 +180,7 @@ import {
   useScrollLock,
   useUserMedia,
   useWebSocket,
+  useLocalStorage,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -314,7 +315,30 @@ function TestComponent() {
     heartbeat: true,
   })
   void webSocketConfigured.status
-  return createElement('div', { ref, 'data-focus-api': 'ready' }, 'ssr-ok')
+  const localStoragePrimitive = useLocalStorage('ssr-local-storage', 'ssr-default')
+  void localStoragePrimitive.value
+  void localStoragePrimitive.isReady
+  void localStoragePrimitive.isSupported
+  void localStoragePrimitive.error
+  void localStoragePrimitive.setValue
+  void localStoragePrimitive.remove
+  void localStoragePrimitive.reset
+  const localStorageObject = useLocalStorage('ssr-local-storage-object', {
+    theme: 'light',
+  })
+  void localStorageObject.value.theme
+  const localStorageCustom = useLocalStorage('ssr-local-storage-custom', 0, {
+    serializer: {
+      read: (raw) => Number(raw),
+      write: (value) => String(value),
+    },
+  })
+  void localStorageCustom.value
+  return createElement(
+    'div',
+    { ref, 'data-focus-api': 'ready' },
+    'ssr-ok:' + localStoragePrimitive.value + ':' + localStorageObject.value.theme,
+  )
 }
 
 let focusMethod
@@ -413,6 +437,36 @@ function CaptureWebSocketApi() {
   return createElement('div', null, 'web-socket-api')
 }
 
+let localStorageSetValue
+let localStorageRemove
+let localStorageReset
+let localStorageValue
+let localStorageIsReady
+let localStorageIsSupported
+let localStorageError
+let localStorageObjectTheme
+let localStorageCustomValue
+function CaptureLocalStorageApi() {
+  const primitive = useLocalStorage('ssr-capture-primitive', 'ssr-default')
+  const objectValue = useLocalStorage('ssr-capture-object', { theme: 'light' })
+  const custom = useLocalStorage('ssr-capture-custom', 0, {
+    serializer: {
+      read: (raw) => Number(raw),
+      write: (value) => String(value),
+    },
+  })
+  localStorageSetValue = primitive.setValue
+  localStorageRemove = primitive.remove
+  localStorageReset = primitive.reset
+  localStorageValue = primitive.value
+  localStorageIsReady = primitive.isReady
+  localStorageIsSupported = primitive.isSupported
+  localStorageError = primitive.error
+  localStorageObjectTheme = objectValue.value.theme
+  localStorageCustomValue = custom.value
+  return createElement('div', null, 'local-storage-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -426,8 +480,12 @@ let postRenderScrollSetYError = null
 let postRenderScrollLockError = null
 let postRenderUserMediaError = null
 let postRenderWebSocketError = null
+let postRenderLocalStorageError = null
 let getUserMediaCalls = 0
 let webSocketConstructCalls = 0
+let localStorageGetItemCalls = 0
+let localStorageSetItemCalls = 0
+let localStorageRemoveItemCalls = 0
 const previousGUM =
   typeof navigator !== 'undefined' && navigator.mediaDevices
     ? navigator.mediaDevices.getUserMedia
@@ -453,6 +511,30 @@ if (typeof previousWebSocket === 'function') {
   globalThis.WebSocket.CLOSING = previousWebSocket.CLOSING
   globalThis.WebSocket.CLOSED = previousWebSocket.CLOSED
 }
+const previousStorageGetItem =
+  typeof Storage !== 'undefined' ? Storage.prototype.getItem : null
+const previousStorageSetItem =
+  typeof Storage !== 'undefined' ? Storage.prototype.setItem : null
+const previousStorageRemoveItem =
+  typeof Storage !== 'undefined' ? Storage.prototype.removeItem : null
+if (previousStorageGetItem) {
+  Storage.prototype.getItem = function (...args) {
+    localStorageGetItemCalls += 1
+    return previousStorageGetItem.apply(this, args)
+  }
+}
+if (previousStorageSetItem) {
+  Storage.prototype.setItem = function (...args) {
+    localStorageSetItemCalls += 1
+    return previousStorageSetItem.apply(this, args)
+  }
+}
+if (previousStorageRemoveItem) {
+  Storage.prototype.removeItem = function (...args) {
+    localStorageRemoveItemCalls += 1
+    return previousStorageRemoveItem.apply(this, args)
+  }
+}
 try {
   html = renderToString(createElement(TestComponent))
   renderToString(createElement(CaptureFocusApi))
@@ -461,6 +543,7 @@ try {
   renderToString(createElement(CaptureScrollLockApi))
   renderToString(createElement(CaptureUserMediaApi))
   renderToString(createElement(CaptureWebSocketApi))
+  renderToString(createElement(CaptureLocalStorageApi))
   if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
     postRenderScrollLockError = 'useScrollLock controls missing'
   }
@@ -522,6 +605,57 @@ try {
     postRenderWebSocketError =
       'Expected zero WebSocket constructions after safe method calls, got ' +
       webSocketConstructCalls
+  }
+  if (
+    typeof localStorageSetValue !== 'function' ||
+    typeof localStorageRemove !== 'function' ||
+    typeof localStorageReset !== 'function'
+  ) {
+    postRenderLocalStorageError = 'useLocalStorage controls missing'
+  }
+  if (
+    localStorageValue !== 'ssr-default' ||
+    localStorageIsReady !== false ||
+    localStorageIsSupported !== false ||
+    localStorageError != null ||
+    localStorageObjectTheme !== 'light' ||
+    localStorageCustomValue !== 0
+  ) {
+    postRenderLocalStorageError = 'Unexpected useLocalStorage SSR state'
+  }
+  if (
+    localStorageGetItemCalls !== 0 ||
+    localStorageSetItemCalls !== 0 ||
+    localStorageRemoveItemCalls !== 0
+  ) {
+    postRenderLocalStorageError =
+      'Expected zero Storage method calls during SSR, got get=' +
+      localStorageGetItemCalls +
+      ' set=' +
+      localStorageSetItemCalls +
+      ' remove=' +
+      localStorageRemoveItemCalls
+  }
+  try {
+    localStorageSetValue('safe')
+    localStorageRemove()
+    localStorageReset()
+  } catch (error) {
+    postRenderLocalStorageError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
+  if (
+    localStorageGetItemCalls !== 0 ||
+    localStorageSetItemCalls !== 0 ||
+    localStorageRemoveItemCalls !== 0
+  ) {
+    postRenderLocalStorageError =
+      'Expected zero Storage method calls after safe controls, got get=' +
+      localStorageGetItemCalls +
+      ' set=' +
+      localStorageSetItemCalls +
+      ' remove=' +
+      localStorageRemoveItemCalls
   }
   try {
     focusMethod()
@@ -606,6 +740,15 @@ try {
   } else {
     globalThis.WebSocket = previousWebSocket
   }
+  if (previousStorageGetItem) {
+    Storage.prototype.getItem = previousStorageGetItem
+  }
+  if (previousStorageSetItem) {
+    Storage.prototype.setItem = previousStorageSetItem
+  }
+  if (previousStorageRemoveItem) {
+    Storage.prototype.removeItem = previousStorageRemoveItem
+  }
 }
 
 console.log(
@@ -631,7 +774,11 @@ console.log(
     postRenderScrollLockError,
     postRenderUserMediaError,
     postRenderWebSocketError,
+    postRenderLocalStorageError,
     webSocketConstructCalls,
+    localStorageGetItemCalls,
+    localStorageSetItemCalls,
+    localStorageRemoveItemCalls,
   }),
 )
 `,
@@ -722,9 +869,25 @@ console.log(
     )
   }
 
+  if (payload.postRenderLocalStorageError) {
+    throw new Error(
+      `useLocalStorage SSR check failed:\\n${payload.postRenderLocalStorageError}`,
+    )
+  }
+
   if (payload.webSocketConstructCalls !== 0) {
     throw new Error(
       `Expected no WebSocket constructions, got ${payload.webSocketConstructCalls}`,
+    )
+  }
+
+  if (
+    payload.localStorageGetItemCalls !== 0 ||
+    payload.localStorageSetItemCalls !== 0 ||
+    payload.localStorageRemoveItemCalls !== 0
+  ) {
+    throw new Error(
+      `Expected no Storage method calls during SSR, got get=${payload.localStorageGetItemCalls} set=${payload.localStorageSetItemCalls} remove=${payload.localStorageRemoveItemCalls}`,
     )
   }
 

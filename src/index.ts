@@ -161,3 +161,11 @@ export {
   type UseWebSocketSendData,
   type UseWebSocketStatus,
 } from './hooks/useWebSocket/useWebSocket'
+
+export {
+  useLocalStorage,
+  type UseLocalStorageMergeDefaults,
+  type UseLocalStorageOptions,
+  type UseLocalStorageReturn,
+  type UseLocalStorageSerializer,
+} from './hooks/useLocalStorage/useLocalStorage'

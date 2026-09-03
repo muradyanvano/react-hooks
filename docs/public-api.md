@@ -1438,6 +1438,92 @@ Closed idle return (`data: null`, `status: 'CLOSED'`, `ws: null`); no WebSocket 
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useLocalStorage`
+
+Persists a value in `window.localStorage` with SSR-safe hydration, automatic serializers, same-document registry synchronization, and optional native cross-tab `storage` events.
+
+### Signature
+
+```ts
+import type { Dispatch, SetStateAction } from 'react'
+
+export interface UseLocalStorageSerializer<T> {
+  read: (raw: string) => T
+  write: (value: T) => string
+}
+
+export type UseLocalStorageMergeDefaults<T> =
+  boolean | ((storedValue: T, defaultValue: T) => T)
+
+export interface UseLocalStorageOptions<T> {
+  serializer?: UseLocalStorageSerializer<T>
+  mergeDefaults?: UseLocalStorageMergeDefaults<T>
+  writeDefaults?: boolean
+  listenToStorageChanges?: boolean
+  window?: Window | null
+  onError?: (error: Error) => void
+}
+
+export interface UseLocalStorageReturn<T> {
+  value: T
+  setValue: Dispatch<SetStateAction<T>>
+  remove: () => void
+  reset: () => void
+  isSupported: boolean
+  isReady: boolean
+  error: Error | null
+}
+
+export function useLocalStorage<T>(
+  key: string,
+  defaultValue: T,
+  options?: UseLocalStorageOptions<T>,
+): UseLocalStorageReturn<T>
+```
+
+### Defaults
+
+`mergeDefaults = false`, `writeDefaults = true`, `listenToStorageChanges = true`, omitted `window` resolves to the global window after mount, `onError` is a no-op.
+
+Initial / SSR return: `value = defaultValue`, `isSupported = false`, `isReady = false`, `error = null`.
+
+### Behavior
+
+- Effect-only storage access; no `window` / `localStorage` reads during module evaluation or render.
+- Automatic serializers for string, boolean, number, JSON object/array, Date, Map, Set, and null; custom serializers fully replace automatic read/write.
+- Missing keys use the latest default; with `writeDefaults: true` the default is persisted during initialization only.
+- Malformed values set `error`, call `onError`, fall back locally, and leave storage untouched.
+- `mergeDefaults: true` shallow-merges plain objects only (stored fields win); arrays/maps/sets/dates/primitives are not shallow-merged.
+- `setValue` supports functional updates, stable identity, and `Object.is` skip; failed writes keep local state and do not notify peers.
+- `remove()` deletes the key; `reset()` writes the latest default.
+- Same-document sync uses a private WeakMap registry; native `storage` events cover cross-tab. `listenToStorageChanges: false` disables both.
+- Cross-tab removal/clear resets to the latest default without rewriting defaults.
+- Dynamic key/window changes unsubscribe/resubscribe without migrating data; stale events are ignored.
+- Latest default/serializer/merge/`onError` are read from refs without unnecessary listener churn.
+
+### Exported types
+
+- `UseLocalStorageSerializer`
+- `UseLocalStorageMergeDefaults`
+- `UseLocalStorageOptions`
+- `UseLocalStorageReturn`
+
+### SSR
+
+Default-first return with safe no-op controls; no Storage method calls, listeners, timers, or layout effects during render.
+
+### Limitations
+
+- Synchronous storage can block the main thread; quotas and private modes may deny access
+- Same-origin scripts can read stored data — not encryption; never store secrets casually
+- JSON cannot preserve every JS type; consumers own migration/validation
+- Multiple package copies do not share the in-memory registry
+- Object mutation without `setValue` is not tracked
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

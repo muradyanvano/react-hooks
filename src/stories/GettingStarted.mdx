@@ -148,13 +148,18 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useWebSocket</code> — browser WebSocket helper with send buffering,
       automatic reconnect, and application-level heartbeats
     </li>
+    <li>
+      <code>useLocalStorage</code> — persist values in <code>localStorage</code>{' '}
+      with SSR-safe hydration, automatic serializers, same-document sync, and
+      optional cross-tab events
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Twenty-one public hooks exist in this prerelease.</li>
+    <li>Twenty-two public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -253,6 +258,12 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>close()</code> never auto-reconnects. <code>autoClose</code> only
       controls <code>beforeunload</code> — React unmount always releases
       ownership. Heartbeats are application messages, not native ping frames.
+    </li>
+    <li>
+      <code>useLocalStorage</code> reads storage only after mount. Malformed
+      payloads fall back locally without auto-deletion. <code>remove()</code>{' '}
+      deletes; <code>reset()</code> writes defaults. Do not store secrets — this
+      is persistence, not encryption.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.
