@@ -144,13 +144,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useUserMedia</code> — camera/microphone capture with owned streams,
       deep constraint auto-switch, and track-ended cleanup
     </li>
+    <li>
+      <code>useWebSocket</code> — browser WebSocket helper with send buffering,
+      automatic reconnect, and application-level heartbeats
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Twenty public hooks exist in this prerelease.</li>
+    <li>Twenty-one public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -243,6 +247,12 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useUserMedia</code> prefers imperative <code>start()</code> from a
       user gesture. Default <code>enabled</code> is false. It owns acquired
       streams and does not record, upload, or analyze audio levels.
+    </li>
+    <li>
+      <code>useWebSocket</code> constructs sockets only in effects. Explicit{' '}
+      <code>close()</code> never auto-reconnects. <code>autoClose</code> only
+      controls <code>beforeunload</code> — React unmount always releases
+      ownership. Heartbeats are application messages, not native ping frames.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

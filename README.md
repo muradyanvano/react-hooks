@@ -1627,6 +1627,108 @@ export function CameraPreview() {
 
 See Storybook (`Hooks/useUserMedia`) for live and mocked camera/microphone examples.
 
+### `useWebSocket`
+
+Manages a browser `WebSocket` with optional send buffering, automatic reconnect, and application-level heartbeats. Connections are created only in effects — never during render or module evaluation.
+
+```tsx
+import { useState } from 'react'
+import { useWebSocket } from '@muradyanvano/react-hooks'
+
+export function ChatConnection() {
+  const [message, setMessage] = useState('Hello')
+
+  const { data, status, send, open, close } = useWebSocket<string>(
+    'wss://example.com/socket',
+    {
+      immediate: false,
+      autoReconnect: {
+        retries: 3,
+        delay: (attempt) => attempt * 1000,
+      },
+      heartbeat: {
+        message: 'ping',
+        responseMessage: 'pong',
+        interval: 10_000,
+        pongTimeout: 2_000,
+      },
+    },
+  )
+
+  return (
+    <section>
+      <p>Status: {status}</p>
+      <p>Latest message: {data ?? 'None'}</p>
+
+      <input
+        value={message}
+        onChange={(event) => setMessage(event.target.value)}
+      />
+
+      <button type="button" onClick={open}>
+        Connect
+      </button>
+
+      <button type="button" onClick={() => send(message)}>
+        Send
+      </button>
+
+      <button type="button" onClick={() => close(1000, 'Done')}>
+        Disconnect
+      </button>
+    </section>
+  )
+}
+```
+
+#### Options
+
+| Option           | Type                                          | Default | Description                                                                |
+| ---------------- | --------------------------------------------- | ------- | -------------------------------------------------------------------------- |
+| `immediate`      | `boolean`                                     | `true`  | Connect after mount when a usable URL exists.                              |
+| `autoConnect`    | `boolean`                                     | `true`  | Reconnect when the effective URL or protocols change.                      |
+| `autoClose`      | `boolean`                                     | `true`  | Attach `beforeunload` to close the owned socket. Unmount always cleans up. |
+| `autoReconnect`  | `boolean \| UseWebSocketAutoReconnectOptions` | `false` | Retry after unexpected native close. `true` means unlimited retries.       |
+| `heartbeat`      | `boolean \| UseWebSocketHeartbeatOptions`     | `false` | Application-level ping/pong while open. `true` uses `ping` defaults.       |
+| `protocols`      | `string \| readonly string[]`                 | —       | Subprotocol argument(s) passed to the native constructor.                  |
+| `binaryType`     | `BinaryType`                                  | —       | Applied to new sockets; live updates do not reconnect.                     |
+| `onConnected`    | `(socket) => void`                            | —       | Latest callback; identity changes do not reconnect.                        |
+| `onDisconnected` | `(socket, event) => void`                     | —       | Latest callback after close.                                               |
+| `onError`        | `(socket, event) => void`                     | —       | Latest callback; errors do not start reconnect (close does).               |
+| `onMessage`      | `(socket, event) => void`                     | —       | Latest callback for non-heartbeat messages.                                |
+
+#### Defaults detail
+
+- Reconnect (`true` / missing fields): `retries: -1` (infinite), `delay: 1000`
+- Heartbeat (`true` / missing fields): `message: 'ping'`, `responseMessage: message`, `interval: 1000`, `pongTimeout: 1000`
+- `send(data, useBuffer = true)`
+- Invalid negative / `NaN` / infinite timing values normalize to safe non-negative fallbacks (`1000` for reconnect delay and heartbeat interval/pong timeout)
+
+#### Behavior notes
+
+- Status lifecycle: `CLOSED` → `CONNECTING` → `OPEN` → `CLOSED`
+- `data` holds the exact latest non-heartbeat `event.data` (no JSON parse, no clone)
+- After close, `ws` retains the closed instance until a later `open()` replaces it (SSR/idle stay `null`)
+- `send` buffers FIFO while not open when `useBuffer` is true; buffer is memory-based, instance-local, and unbounded; cleared on explicit `close`, endpoint change, and unmount; preserved across automatic reconnect
+- Explicit `close()` never auto-reconnects; unexpected close may reconnect per policy
+- Heartbeat responses are consumed internally and do not update `data` / `onMessage`; string responses use exact equality; `ArrayBuffer` responses compare byte-for-byte; `Blob` responses compare actual byte contents asynchronously (size and MIME type are only an early mismatch gate). A Blob comparison that finishes after the pong timeout or after socket replacement/close/unmount is ignored and cannot revive the connection.
+- Heartbeat timeout closes with code `4000` and reason `Heartbeat timeout`
+- React unmount always releases sockets, timers, listeners, and the buffer even when `autoClose` is `false`
+
+#### Current limitations
+
+- Prefer `wss://` from secure pages
+- Browser WebSocket constructors do not support arbitrary request headers
+- Avoid placing sensitive credentials in URLs; treat subprotocol auth carefully
+- Validate and parse incoming messages in consumer code (no automatic JSON parsing)
+- Not Socket.IO / SSE; no message persistence or cross-tab sharing
+- Pending connects cannot be aborted via `AbortSignal`
+- Heartbeats are application messages, not native protocol ping frames
+- Background-tab timer throttling can delay reconnects and heartbeats
+- SSR remains closed and idle
+
+See Storybook (`Hooks/useWebSocket`) for the dashboard and mocked connection examples.
+
 ## Development
 
 ```bash

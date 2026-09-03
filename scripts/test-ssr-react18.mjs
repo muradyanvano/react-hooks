@@ -179,6 +179,7 @@ import {
   useScroll,
   useScrollLock,
   useUserMedia,
+  useWebSocket,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -298,6 +299,21 @@ function TestComponent() {
   void userMedia.start
   void userMedia.stop
   void userMedia.restart
+  const webSocket = useWebSocket('wss://example.test')
+  void webSocket.data
+  void webSocket.status
+  void webSocket.ws
+  void webSocket.send
+  void webSocket.open
+  void webSocket.close
+  const webSocketConfigured = useWebSocket('wss://example.test', {
+    immediate: true,
+    autoConnect: true,
+    autoClose: true,
+    autoReconnect: true,
+    heartbeat: true,
+  })
+  void webSocketConfigured.status
   return createElement('div', { ref, 'data-focus-api': 'ready' }, 'ssr-ok')
 }
 
@@ -373,6 +389,30 @@ function CaptureUserMediaApi() {
   return createElement('div', null, 'user-media-api')
 }
 
+let webSocketOpen
+let webSocketClose
+let webSocketSend
+let webSocketData
+let webSocketStatus
+let webSocketWs
+let webSocketConfiguredStatus
+function CaptureWebSocketApi() {
+  const api = useWebSocket('wss://example.test')
+  const configured = useWebSocket('wss://example.test', {
+    immediate: false,
+    autoReconnect: { retries: 3, delay: 1000 },
+    heartbeat: { message: 'ping', responseMessage: 'pong' },
+  })
+  webSocketOpen = api.open
+  webSocketClose = api.close
+  webSocketSend = api.send
+  webSocketData = api.data
+  webSocketStatus = api.status
+  webSocketWs = api.ws
+  webSocketConfiguredStatus = configured.status
+  return createElement('div', null, 'web-socket-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -385,7 +425,9 @@ let postRenderScrollSetXError = null
 let postRenderScrollSetYError = null
 let postRenderScrollLockError = null
 let postRenderUserMediaError = null
+let postRenderWebSocketError = null
 let getUserMediaCalls = 0
+let webSocketConstructCalls = 0
 const previousGUM =
   typeof navigator !== 'undefined' && navigator.mediaDevices
     ? navigator.mediaDevices.getUserMedia
@@ -400,6 +442,17 @@ if (
     return previousGUM.apply(this, args)
   }
 }
+const previousWebSocket = globalThis.WebSocket
+if (typeof previousWebSocket === 'function') {
+  globalThis.WebSocket = function (...args) {
+    webSocketConstructCalls += 1
+    return new previousWebSocket(...args)
+  }
+  globalThis.WebSocket.CONNECTING = previousWebSocket.CONNECTING
+  globalThis.WebSocket.OPEN = previousWebSocket.OPEN
+  globalThis.WebSocket.CLOSING = previousWebSocket.CLOSING
+  globalThis.WebSocket.CLOSED = previousWebSocket.CLOSED
+}
 try {
   html = renderToString(createElement(TestComponent))
   renderToString(createElement(CaptureFocusApi))
@@ -407,6 +460,7 @@ try {
   renderToString(createElement(CaptureScrollApi))
   renderToString(createElement(CaptureScrollLockApi))
   renderToString(createElement(CaptureUserMediaApi))
+  renderToString(createElement(CaptureWebSocketApi))
   if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
     postRenderScrollLockError = 'useScrollLock controls missing'
   }
@@ -436,6 +490,38 @@ try {
   if (getUserMediaCalls !== 0) {
     postRenderUserMediaError =
       'Expected zero getUserMedia calls, got ' + getUserMediaCalls
+  }
+  if (
+    typeof webSocketOpen !== 'function' ||
+    typeof webSocketClose !== 'function' ||
+    typeof webSocketSend !== 'function'
+  ) {
+    postRenderWebSocketError = 'useWebSocket controls missing'
+  }
+  if (
+    webSocketData != null ||
+    webSocketStatus !== 'CLOSED' ||
+    webSocketWs != null ||
+    webSocketConfiguredStatus !== 'CLOSED'
+  ) {
+    postRenderWebSocketError = 'Unexpected useWebSocket SSR state'
+  }
+  if (webSocketConstructCalls !== 0) {
+    postRenderWebSocketError =
+      'Expected zero WebSocket constructions, got ' + webSocketConstructCalls
+  }
+  try {
+    webSocketOpen()
+    webSocketClose(1000, 'ssr')
+    void webSocketSend('ssr', false)
+  } catch (error) {
+    postRenderWebSocketError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
+  if (webSocketConstructCalls !== 0) {
+    postRenderWebSocketError =
+      'Expected zero WebSocket constructions after safe method calls, got ' +
+      webSocketConstructCalls
   }
   try {
     focusMethod()
@@ -515,6 +601,11 @@ try {
   ) {
     navigator.mediaDevices.getUserMedia = previousGUM
   }
+  if (previousWebSocket === undefined) {
+    delete globalThis.WebSocket
+  } else {
+    globalThis.WebSocket = previousWebSocket
+  }
 }
 
 console.log(
@@ -539,6 +630,8 @@ console.log(
     postRenderScrollSetYError,
     postRenderScrollLockError,
     postRenderUserMediaError,
+    postRenderWebSocketError,
+    webSocketConstructCalls,
   }),
 )
 `,
@@ -620,6 +713,18 @@ console.log(
   if (payload.postRenderUserMediaError) {
     throw new Error(
       `useUserMedia SSR check failed:\\n${payload.postRenderUserMediaError}`,
+    )
+  }
+
+  if (payload.postRenderWebSocketError) {
+    throw new Error(
+      `useWebSocket SSR check failed:\\n${payload.postRenderWebSocketError}`,
+    )
+  }
+
+  if (payload.webSocketConstructCalls !== 0) {
+    throw new Error(
+      `Expected no WebSocket constructions, got ${payload.webSocketConstructCalls}`,
     )
   }
 

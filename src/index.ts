@@ -149,3 +149,15 @@ export {
   type UseUserMediaOptions,
   type UseUserMediaReturn,
 } from './hooks/useUserMedia/useUserMedia'
+
+export {
+  useWebSocket,
+  type UseWebSocketAutoReconnectOptions,
+  type UseWebSocketHeartbeatOptions,
+  type UseWebSocketOptions,
+  type UseWebSocketReconnectDelay,
+  type UseWebSocketReconnectRetries,
+  type UseWebSocketReturn,
+  type UseWebSocketSendData,
+  type UseWebSocketStatus,
+} from './hooks/useWebSocket/useWebSocket'

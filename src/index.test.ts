@@ -83,6 +83,10 @@ describe('package entry', () => {
     expect(entry.useUserMedia).toBeTypeOf('function')
   })
 
+  it('exports useWebSocket and its public types', () => {
+    expect(entry.useWebSocket).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -105,8 +109,11 @@ describe('package entry', () => {
       'useScroll',
       'useScrollLock',
       'useUserMedia',
+      'useWebSocket',
     ])
     expect(entry).not.toHaveProperty('createConstraintsSignature')
     expect(entry).not.toHaveProperty('normalizeUserMediaError')
+    expect(entry).not.toHaveProperty('normalizeUrlSnapshot')
+    expect(entry).not.toHaveProperty('createEndpointSignature')
   })
 })

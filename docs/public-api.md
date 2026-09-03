@@ -1333,6 +1333,111 @@ Idle unsupported return; no media request; methods are safe.
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useWebSocket`
+
+Manages a browser `WebSocket` with send buffering, optional automatic reconnect, and application-level heartbeats.
+
+### Signature
+
+```ts
+export type UseWebSocketStatus = 'OPEN' | 'CONNECTING' | 'CLOSED'
+
+export type UseWebSocketSendData =
+  string | ArrayBufferLike | Blob | ArrayBufferView
+
+export type UseWebSocketReconnectRetries =
+  number | ((attempt: number, event: CloseEvent) => boolean)
+
+export type UseWebSocketReconnectDelay = number | ((attempt: number) => number)
+
+export interface UseWebSocketAutoReconnectOptions {
+  retries?: UseWebSocketReconnectRetries
+  delay?: UseWebSocketReconnectDelay
+  onFailed?: () => void
+}
+
+export interface UseWebSocketHeartbeatOptions {
+  message?: string | ArrayBuffer | Blob
+  responseMessage?: string | ArrayBuffer | Blob
+  interval?: number
+  pongTimeout?: number
+}
+
+export interface UseWebSocketOptions<T = unknown> {
+  immediate?: boolean
+  autoConnect?: boolean
+  autoClose?: boolean
+  autoReconnect?: boolean | UseWebSocketAutoReconnectOptions
+  heartbeat?: boolean | UseWebSocketHeartbeatOptions
+  protocols?: string | readonly string[]
+  binaryType?: BinaryType
+  onConnected?: (socket: WebSocket) => void
+  onDisconnected?: (socket: WebSocket, event: CloseEvent) => void
+  onError?: (socket: WebSocket, event: Event) => void
+  onMessage?: (socket: WebSocket, event: MessageEvent<T>) => void
+}
+
+export interface UseWebSocketReturn<T = unknown> {
+  data: T | null
+  status: UseWebSocketStatus
+  ws: WebSocket | null
+  send: (data: UseWebSocketSendData, useBuffer?: boolean) => boolean
+  open: () => void
+  close: (code?: number, reason?: string) => void
+}
+
+export function useWebSocket<T = unknown>(
+  url: string | URL | null | undefined,
+  options?: UseWebSocketOptions<T>,
+): UseWebSocketReturn<T>
+```
+
+### Defaults
+
+`immediate = true`, `autoConnect = true`, `autoClose = true`, `autoReconnect = false`, `heartbeat = false`, `data = null`, `status = 'CLOSED'`, `ws = null`, `send` `useBuffer = true`.
+
+Reconnect `true` / missing fields: `retries = -1`, `delay = 1000`.
+
+Heartbeat `true` / missing fields: `message = 'ping'`, `responseMessage = message`, `interval = 1000`, `pongTimeout = 1000`.
+
+Timing normalization: non-finite or negative delay/interval/pongTimeout values fall back to `1000`.
+
+### Behavior
+
+- Effect-only construction; generation guards reject stale socket/timer events.
+- Semantic URL/protocol snapshots drive `autoConnect` replacement; equivalent values do not reconnect.
+- Explicit `close` cancels reconnect, clears the outbound buffer, and never auto-reconnects.
+- Buffer is FIFO, in-memory, unbounded; preserved across automatic reconnect; cleared on explicit close, endpoint change, and unmount.
+- After close, `ws` keeps the closed instance until the next `open()` (SSR/idle remain `null`).
+- `autoClose` only controls `beforeunload`; React unmount always releases ownership.
+- Heartbeat responses are consumed internally; string responses use exact equality; `ArrayBuffer` responses compare bytes; `Blob` responses compare actual contents asynchronously (size/MIME are early gates only). A late Blob comparison after pong timeout or ownership change is ignored.
+- Heartbeat timeout closes with `4000` / `Heartbeat timeout`.
+
+### Exported types
+
+- `UseWebSocketStatus`
+- `UseWebSocketSendData`
+- `UseWebSocketReconnectRetries`
+- `UseWebSocketReconnectDelay`
+- `UseWebSocketAutoReconnectOptions`
+- `UseWebSocketHeartbeatOptions`
+- `UseWebSocketOptions`
+- `UseWebSocketReturn`
+
+### SSR
+
+Closed idle return (`data: null`, `status: 'CLOSED'`, `ws: null`); no WebSocket construction, listeners, or timers during render; methods are safe no-ops without a browser environment.
+
+### Limitations
+
+- No automatic JSON, Socket.IO, SSE, custom HTTP headers, or AbortSignal for pending connects
+- Application heartbeats are not native WebSocket ping frames
+- Buffer is not persisted; credentials in URLs are discouraged
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.
