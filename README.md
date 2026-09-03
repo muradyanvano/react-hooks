@@ -2143,10 +2143,13 @@ function Upload({ progress }: { progress: number | null }) {
 **Key behaviors:**
 
 - Multiple hook instances sharing `(document, parent)` share one visual bar. The bar shows the minimum active progress.
+- Switching declarative `currentProgress` from a number to `undefined` stops declarative sync without removing the active owner.
+- `aria-valuenow` mirrors the shared visual percentage, including estimated trickle progress — keep a textual loading state for important work.
 - SSR-safe: idle state on the server, no DOM work, no `useLayoutEffect`.
 - StrictMode-safe: effect cleanup ensures exactly one active owner.
 - Reduced motion: injected stylesheet includes `prefers-reduced-motion` media query.
-- Custom parent: progress is `position: absolute` inside the parent element.
+- Custom parent: progress is `position: absolute` inside the parent element without mutating the parent’s layout styles.
+- CSP: one shared namespaced `<style>` per document (keyframes / reduced-motion). Color and easing use element styles; allow style injection via your CSP policy.
 
 See Storybook (`Hooks/useNProgress`) for 20 interactive examples.
 

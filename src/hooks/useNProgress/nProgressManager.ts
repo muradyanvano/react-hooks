@@ -47,7 +47,9 @@ interface OwnerRecord {
   progress: number | null // null = idle, number = active progress value
   options: ChannelOptions
   completionTimer: TimerId
+  completionGeneration: number
   lastUpdated: number // monotonic generation for presentation-owner selection
+  onProgress: ((progress: number | null) => void) | null
 }
 
 interface ChannelDom {
@@ -56,7 +58,6 @@ interface ChannelDom {
   peg: HTMLDivElement
   progressbar: HTMLDivElement
   spinner: HTMLDivElement
-  style: HTMLStyleElement
 }
 
 interface ProgressChannel {
@@ -67,13 +68,17 @@ interface ProgressChannel {
   renderedProgress: number // last rendered CSS transform value
   document: Document
   parent: HTMLElement
-  generation: number // incremented on each significant change
 }
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
 // WeakMap<Document, Map<HTMLElement, ProgressChannel>>
+// Documents are weakly held. Parent keys are removed when a channel empties so
+// they are not retained by a module-level strong collection.
 const registry = new WeakMap<Document, Map<HTMLElement, ProgressChannel>>()
+
+// One shared stylesheet per document (keyframe + reduced-motion base rules).
+const documentStyles = new WeakMap<Document, HTMLStyleElement>()
 
 function getChannel(
   doc: Document,
@@ -95,9 +100,91 @@ function setChannel(
   docMap.set(parent, channel)
 }
 
+function countDocumentChannelsWithDom(doc: Document): number {
+  const docMap = registry.get(doc)
+  if (docMap == null) return 0
+  let count = 0
+  for (const channel of docMap.values()) {
+    if (channel.dom != null && channel.dom.root.isConnected) count += 1
+  }
+  return count
+}
+
+function pruneEmptyChannel(channel: ProgressChannel): void {
+  if (channel.owners.size > 0) return
+
+  stopTrickle(channel)
+  if (channel.dom != null) {
+    try {
+      channel.dom.root.remove()
+    } catch {
+      /* ignore */
+    }
+    channel.dom = null
+  }
+
+  const docMap = registry.get(channel.document)
+  if (docMap != null) {
+    docMap.delete(channel.parent)
+  }
+  syncDocumentStyle(channel.document)
+}
+
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 
 const NS = 'data-react-hooks-nprogress'
+
+function ensureDocumentStyle(doc: Document): void {
+  const existing = documentStyles.get(doc)
+  if (existing != null && existing.isConnected) return
+
+  const style = doc.createElement('style')
+  style.setAttribute(`${NS}-style`, '')
+  // Structural defaults only — per-channel layout/color/easing use element styles.
+  style.textContent = [
+    `[${NS}-bar]{height:100%;will-change:transform;transform:translate3d(-100%,0,0);}`,
+    `[${NS}-peg]{display:block;position:absolute;right:0;width:100px;height:100%;opacity:1;transform:rotate(3deg) translate(0,-4px);pointer-events:none;}`,
+    `[${NS}-spinner-icon]{width:18px;height:18px;box-sizing:border-box;border-radius:50%;border-top:2px solid;border-left:2px solid;border-bottom:2px solid transparent;border-right:2px solid transparent;animation:${NS}-spin 400ms linear infinite;}`,
+    `@keyframes ${NS}-spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`,
+    `@media(prefers-reduced-motion:reduce){[${NS}-bar]{transition:none !important;}[${NS}-spinner-icon]{animation:none !important;}}`,
+  ].join('\n')
+
+  if (doc.head != null) {
+    doc.head.append(style)
+  } else {
+    doc.documentElement.prepend(style)
+  }
+  documentStyles.set(doc, style)
+}
+
+function syncDocumentStyle(doc: Document): void {
+  if (countDocumentChannelsWithDom(doc) > 0) {
+    ensureDocumentStyle(doc)
+    return
+  }
+
+  const style = documentStyles.get(doc)
+  documentStyles.delete(doc)
+  if (style != null) {
+    try {
+      style.remove()
+    } catch {
+      /* ignore */
+    }
+  }
+  // Also remove any orphaned owned style nodes left by prior external cleanup.
+  try {
+    doc.querySelectorAll(`[${NS}-style]`).forEach((node) => {
+      try {
+        node.remove()
+      } catch {
+        /* ignore */
+      }
+    })
+  } catch {
+    /* ignore */
+  }
+}
 
 function createDom(
   doc: Document,
@@ -105,13 +192,6 @@ function createDom(
   options: ChannelOptions,
 ): ChannelDom | null {
   try {
-    const isBody = parent === doc.body
-
-    // Style element
-    const style = doc.createElement('style')
-    style.setAttribute(`${NS}-style`, '')
-    applyStyles(style, options, isBody)
-
     // Root container
     const root = doc.createElement('div') as HTMLDivElement
     root.setAttribute(`${NS}-root`, '')
@@ -127,8 +207,9 @@ function createDom(
     // Bar
     const bar = doc.createElement('div') as HTMLDivElement
     bar.setAttribute(`${NS}-bar`, '')
+    bar.style.position = 'relative'
 
-    // Peg (decorative)
+    // Peg (decorative tip glow — must live inside the bar so it tracks progress)
     const peg = doc.createElement('div') as HTMLDivElement
     peg.setAttribute(`${NS}-peg`, '')
     peg.setAttribute('aria-hidden', 'true')
@@ -138,63 +219,53 @@ function createDom(
     spinner.setAttribute(`${NS}-spinner`, '')
     spinner.setAttribute('aria-hidden', 'true')
 
-    progressbar.append(bar, peg)
+    bar.append(peg)
+    progressbar.append(bar)
     root.append(progressbar, spinner)
 
-    const dom: ChannelDom = { root, bar, peg, progressbar, spinner, style }
+    const dom: ChannelDom = { root, bar, peg, progressbar, spinner }
 
     // Apply initial styles
-    applyDomStyles(dom, options, 0)
+    applyDomStyles(dom, options, 0, parent === doc.body)
 
-    // Insert into document
-    if (doc.head != null) {
-      doc.head.append(style)
-    } else {
-      doc.documentElement.prepend(style)
-    }
     parent.prepend(root)
-
     return dom
   } catch {
     return null
   }
 }
 
-function applyStyles(
-  style: HTMLStyleElement,
-  options: ChannelOptions,
-  isBody: boolean,
-): void {
-  const h = safeCssNumber(normalizeHeight(options.height), 3)
-  const z = safeCssNumber(normalizeZIndex(options.zIndex), 1031)
-  const speed = safeCssNumber(normalizeDurationStrict(options.speed, 200), 200)
-  const pos = isBody ? 'fixed' : 'absolute'
-
-  const css = [
-    `[${NS}-root]{pointer-events:none;position:${pos};top:0;left:0;right:0;z-index:${z};}`,
-    `[${NS}-root] [role=progressbar]{position:${pos};top:0;left:0;right:0;height:${h}px;overflow:hidden;}`,
-    `[${NS}-bar]{height:100%;will-change:transform;transform:translate3d(-100%,0,0);}`,
-    `[${NS}-peg]{display:block;position:absolute;right:0;width:100px;height:100%;opacity:1;transform:rotate(3deg) translate(0,-4px);}`,
-    `[${NS}-spinner]{display:block;position:${pos};top:${h + 4}px;right:12px;}`,
-    `[${NS}-spinner-icon]{width:18px;height:18px;box-sizing:border-box;border-radius:50%;border-top:2px solid;border-left:2px solid;border-bottom:2px solid transparent;border-right:2px solid transparent;animation:${NS}-spin 400ms linear infinite;}`,
-    `@keyframes ${NS}-spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`,
-    `@media(prefers-reduced-motion:reduce){[${NS}-bar]{transition:none !important;}[${NS}-spinner-icon]{animation:none !important;}}`,
-    `[${NS}-bar]{transition:transform ${speed}ms;}`,
-  ].join('\n')
-
-  style.textContent = css
-}
-
 function applyDomStyles(
   dom: ChannelDom,
   options: ChannelOptions,
   renderedProgress: number,
+  isBody: boolean,
 ): void {
   const color =
     typeof options.color === 'string' && options.color.trim().length > 0
       ? options.color
       : '#4f46e5'
+  const h = safeCssNumber(normalizeHeight(options.height), 3)
+  const z = safeCssNumber(normalizeZIndex(options.zIndex), 1031)
+  const pos = isBody ? 'fixed' : 'absolute'
+
+  // Per-channel layout via element styles so separate parents stay independent.
+  dom.root.style.pointerEvents = 'none'
+  dom.root.style.position = pos
+  dom.root.style.top = '0'
+  dom.root.style.left = '0'
+  dom.root.style.right = '0'
+  dom.root.style.zIndex = String(z)
+
+  dom.progressbar.style.position = pos
+  dom.progressbar.style.top = '0'
+  dom.progressbar.style.left = '0'
+  dom.progressbar.style.right = '0'
+  dom.progressbar.style.height = `${h}px`
+  dom.progressbar.style.overflow = 'hidden'
+
   dom.bar.style.background = color
+  // Assign color via element style properties (not stylesheet text).
   dom.peg.style.boxShadow = `0 0 10px ${color}, 0 0 5px ${color}`
 
   let spinnerIcon = dom.spinner.querySelector(
@@ -214,6 +285,9 @@ function applyDomStyles(
   }
 
   dom.spinner.style.display = options.showSpinner ? 'block' : 'none'
+  dom.spinner.style.position = pos
+  dom.spinner.style.top = `${h + 4}px`
+  dom.spinner.style.right = '12px'
 
   const pct = clampFinite(renderedProgress, 0, 1, 0) * 100
   dom.bar.style.transform = `translate3d(${-(100 - pct)}%,0,0)`
@@ -226,17 +300,13 @@ function applyDomStyles(
   dom.bar.style.transition = `transform ${speed}ms ${easing}`
 }
 
-function removeDom(dom: ChannelDom): void {
+function removeDom(dom: ChannelDom, doc: Document): void {
   try {
     dom.root.remove()
   } catch {
     /* ignore */
   }
-  try {
-    dom.style.remove()
-  } catch {
-    /* ignore */
-  }
+  syncDocumentStyle(doc)
 }
 
 function ensureDom(channel: ProgressChannel, options: ChannelOptions): void {
@@ -244,12 +314,12 @@ function ensureDom(channel: ProgressChannel, options: ChannelOptions): void {
     // Verify root is still in DOM; if externally removed, recreate
     try {
       if (!channel.parent.contains(channel.dom.root)) {
-        try {
-          channel.dom.style.remove()
-        } catch {
-          /* ignore */
-        }
+        channel.dom = null
+        syncDocumentStyle(channel.document)
         channel.dom = createDom(channel.document, channel.parent, options)
+        if (channel.dom != null) {
+          ensureDocumentStyle(channel.document)
+        }
       }
     } catch {
       channel.dom = null
@@ -257,6 +327,9 @@ function ensureDom(channel: ProgressChannel, options: ChannelOptions): void {
     return
   }
   channel.dom = createDom(channel.document, channel.parent, options)
+  if (channel.dom != null) {
+    ensureDocumentStyle(channel.document)
+  }
 }
 
 // ─── Aggregation helpers ───────────────────────────────────────────────────────
@@ -308,10 +381,10 @@ function renderChannel(channel: ProgressChannel): void {
   const presenter = getPresentationOwner(channel)
 
   if (agg === null || presenter === null) {
-    // No active owners — remove DOM
+    // No active owners — remove DOM (channel may still hold idle records briefly)
     stopTrickle(channel)
     if (channel.dom != null) {
-      removeDom(channel.dom)
+      removeDom(channel.dom, channel.document)
       channel.dom = null
     }
     return
@@ -325,12 +398,11 @@ function renderChannel(channel: ProgressChannel): void {
   const dom = channel.dom
   const isBody = channel.parent === channel.document.body
 
-  // Re-apply styles if options changed (safe: just re-assign properties)
-  applyStyles(dom.style, options, isBody)
-  applyDomStyles(dom, options, agg)
+  applyDomStyles(dom, options, agg, isBody)
   channel.renderedProgress = agg
 
-  // Update ARIA value
+  // Update ARIA value — reflects the shared visual percentage (including estimated
+  // trickle progress). Consumers should still expose textual loading state.
   dom.progressbar.setAttribute('aria-valuenow', String(Math.round(agg * 100)))
   dom.progressbar.setAttribute('aria-label', options.ariaLabel)
 }
@@ -377,6 +449,15 @@ function scheduleTrickle(channel: ProgressChannel): void {
     }
 
     if (changed) {
+      for (const [, record] of channel.owners) {
+        if (record.progress === null || record.onProgress == null) continue
+        if (!record.options.trickle) continue
+        try {
+          record.onProgress(record.progress)
+        } catch {
+          /* ignore consumer throws */
+        }
+      }
       renderChannel(channel)
     }
 
@@ -426,6 +507,7 @@ export function acquireOwner(
   token: OwnerToken,
   options: ChannelOptions,
   initialProgress: number,
+  onProgress: ((progress: number | null) => void) | null = null,
 ): ProgressChannel {
   let channel = getChannel(doc, parent)
   if (channel == null) {
@@ -437,7 +519,6 @@ export function acquireOwner(
       renderedProgress: 0,
       document: doc,
       parent,
-      generation: 0,
     }
     setChannel(doc, parent, channel)
   }
@@ -446,7 +527,9 @@ export function acquireOwner(
     progress: initialProgress,
     options,
     completionTimer: null,
+    completionGeneration: 0,
     lastUpdated: Date.now(),
+    onProgress,
   })
 
   renderChannel(channel)
@@ -466,12 +549,16 @@ export function updateOwner(
   token: OwnerToken,
   progress: number | null,
   options: ChannelOptions,
+  onProgress?: ((progress: number | null) => void) | null,
 ): void {
   const record = channel.owners.get(token)
   if (record == null) return
   record.progress = progress
   record.options = options
   record.lastUpdated = Date.now()
+  if (onProgress !== undefined) {
+    record.onProgress = onProgress
+  }
   renderChannel(channel)
 
   if (progress !== null) {
@@ -497,6 +584,7 @@ export function updateOwner(
 
 /**
  * Releases an owner immediately (no completion animation).
+ * Removes the owner record; empty channels leave the registry.
  */
 export function releaseOwner(
   channel: ProgressChannel,
@@ -517,14 +605,14 @@ export function releaseOwner(
     record.completionTimer = null
   }
 
-  record.progress = null
-  channel.owners.set(token, record)
+  channel.owners.delete(token)
 
   // Re-render: if no active owners, removes DOM
   renderChannel(channel)
   if (getActiveOwners(channel).length === 0) {
     stopTrickle(channel)
   }
+  pruneEmptyChannel(channel)
 }
 
 /**
@@ -552,8 +640,9 @@ export function completeOwner(
     record.completionTimer = null
   }
 
-  // Set to 1 for this owner
-  const completionGen = ++channel.generation
+  // Set to 1 for this owner. Generation is per-owner so concurrent
+  // completions on the same channel cannot cancel each other.
+  const completionGen = ++record.completionGeneration
   record.progress = 1
   record.options = options
   record.lastUpdated = Date.now()
@@ -564,18 +653,18 @@ export function completeOwner(
   const totalDelay = speed + removeDelay
 
   const doRelease = () => {
-    // Generation guard: ensure no restart happened
-    if (channel.generation !== completionGen) return
     const currentRecord = channel.owners.get(token)
     if (currentRecord == null) return
+    if (currentRecord.completionGeneration !== completionGen) return
     if (currentRecord.progress !== 1) return // was restarted
 
-    currentRecord.progress = null
     currentRecord.completionTimer = null
+    channel.owners.delete(token)
     renderChannel(channel)
     if (getActiveOwners(channel).length === 0) {
       stopTrickle(channel)
     }
+    pruneEmptyChannel(channel)
     onDone()
   }
 
@@ -588,8 +677,9 @@ export function completeOwner(
     record.completionTimer = timer
   } catch {
     // If timer fails, release immediately
-    record.progress = null
+    channel.owners.delete(token)
     renderChannel(channel)
+    pruneEmptyChannel(channel)
     onDone()
   }
 }
@@ -602,7 +692,9 @@ export function cancelCompletion(
   token: OwnerToken,
 ): void {
   const record = channel.owners.get(token)
-  if (record?.completionTimer == null) return
+  if (record == null) return
+  record.completionGeneration += 1
+  if (record.completionTimer == null) return
   try {
     const win = channel.document.defaultView
     if (win != null) win.clearTimeout(record.completionTimer)
@@ -632,6 +724,7 @@ export function evictOwner(channel: ProgressChannel, token: OwnerToken): void {
   if (getActiveOwners(channel).length === 0) {
     stopTrickle(channel)
   }
+  pruneEmptyChannel(channel)
 }
 
 /**

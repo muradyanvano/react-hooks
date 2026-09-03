@@ -1864,6 +1864,10 @@ export interface UseNProgressReturn {
 | `number >= 1`      | Declaratively complete                                                 |
 | `NaN` / `Infinity` | Ignored; keeps previous coherent state                                 |
 
+Switching from a finite number to `undefined` stops declarative synchronization and leaves the current owner active (it does not call `remove()` / `done()`). Resume control with the imperative methods.
+
+`aria-valuenow` reflects the shared visual percentage (0–100), including estimated trickle progress. Trickle is not measured work — pair the bar with textual loading state for important operations.
+
 ### DOM structure
 
 ```
@@ -1896,8 +1900,10 @@ During server-side rendering, `useNProgress` returns `{ isLoading: false, progre
 
 - No automatic fetch/router interception — you must call `start()`/`done()` manually.
 - No automatic routing-library coupling.
-- No global CSS imports required (styles are injected per channel via `<style>` element).
+- No global CSS imports required (one shared namespaced `<style>` per document for keyframes / reduced-motion; per-channel color, height, easing, and positioning use element styles).
+- Injected `<style>` text requires a CSP that allows the document’s style policy (commonly `style-src` with `'unsafe-inline'` or a nonce/hash strategy). Color and easing are applied via element style properties, not interpolated into the shared stylesheet text.
 - The spinner uses a CSS keyframe animation. On `prefers-reduced-motion: reduce`, the animation is disabled automatically.
+- Custom `parent` elements are not mutated (`position` / `overflow` / `display` / `contain` / `z-index` stay as the consumer set them). Use a positioned ancestor when you need the absolute bar clipped to a container.
 
 ### Exported names
 

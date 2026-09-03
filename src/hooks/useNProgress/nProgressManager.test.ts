@@ -44,8 +44,11 @@ function makeParent(doc: Document = document): HTMLElement {
 
 afterEach(() => {
   vi.useRealTimers()
-  // Clean up any children added to body
+  // Clean up any children added to body and owned styles left in head
   document.body.innerHTML = ''
+  document.head
+    .querySelectorAll('[data-react-hooks-nprogress-style]')
+    .forEach((node) => node.remove())
 })
 
 describe('createOwnerToken', () => {
@@ -284,6 +287,29 @@ describe('completeOwner', () => {
     // onDone must not have fired because the owner is now restarted
     expect(onDone).not.toHaveBeenCalled()
   })
+
+  it('two owners can complete concurrently without cancelling each other', () => {
+    const parent = makeParent()
+    const token1 = createOwnerToken()
+    const token2 = createOwnerToken()
+    const opts: ChannelOptions = {
+      ...noTrickleOptions(),
+      speed: 100,
+      removeDelay: 50,
+    }
+    const channel = acquireOwner(document, parent, token1, opts, 0.3)
+    acquireOwner(document, parent, token2, opts, 0.4)
+    const onDone1 = vi.fn()
+    const onDone2 = vi.fn()
+
+    completeOwner(channel, token1, opts, onDone1)
+    completeOwner(channel, token2, opts, onDone2)
+    vi.advanceTimersByTime(200)
+
+    expect(onDone1).toHaveBeenCalledOnce()
+    expect(onDone2).toHaveBeenCalledOnce()
+    expect(channelHasDom(document, parent)).toBe(false)
+  })
 })
 
 describe('cancelCompletion', () => {
@@ -508,11 +534,10 @@ describe('DOM structure', () => {
     const parent = makeParent()
     const token = createOwnerToken()
     acquireOwner(document, parent, token, noTrickleOptions(), 0.08)
-    // pointer-events: none is set via inline style sheet
-    const styleEl = document.head.querySelector(
-      '[data-react-hooks-nprogress-style]',
-    )
-    expect(styleEl?.textContent).toContain('pointer-events:none')
+    const root = parent.querySelector(
+      '[data-react-hooks-nprogress-root]',
+    ) as HTMLElement | null
+    expect(root?.style.pointerEvents).toBe('none')
   })
 
   it('has one style element per document', () => {
@@ -522,12 +547,96 @@ describe('DOM structure', () => {
     const token2 = createOwnerToken()
     acquireOwner(document, parent1, token1, noTrickleOptions(), 0.08)
     acquireOwner(document, parent2, token2, noTrickleOptions(), 0.08)
-    // Only one style per manager invocation per parent (actually per channel)
-    // The CSS is per-channel-creation so count by the test parent
     const styles = document.head.querySelectorAll(
       '[data-react-hooks-nprogress-style]',
     )
-    expect(styles.length).toBeGreaterThanOrEqual(1)
+    expect(styles).toHaveLength(1)
+  })
+
+  it('keeps peg inside the bar so the tip glow tracks progress', () => {
+    const parent = makeParent()
+    const token = createOwnerToken()
+    acquireOwner(document, parent, token, noTrickleOptions(), 0.3)
+    const bar = parent.querySelector('[data-react-hooks-nprogress-bar]')
+    const peg = parent.querySelector('[data-react-hooks-nprogress-peg]')
+    expect(bar).toBeTruthy()
+    expect(peg).toBeTruthy()
+    expect(bar?.contains(peg)).toBe(true)
+  })
+
+  it('applies independent height per parent channel', () => {
+    const parent1 = makeParent()
+    const parent2 = makeParent()
+    const token1 = createOwnerToken()
+    const token2 = createOwnerToken()
+    acquireOwner(
+      document,
+      parent1,
+      token1,
+      { ...noTrickleOptions(), height: 2 },
+      0.2,
+    )
+    acquireOwner(
+      document,
+      parent2,
+      token2,
+      { ...noTrickleOptions(), height: 8 },
+      0.2,
+    )
+    const bar1 = parent1.querySelector(
+      '[role=progressbar]',
+    ) as HTMLElement | null
+    const bar2 = parent2.querySelector(
+      '[role=progressbar]',
+    ) as HTMLElement | null
+    expect(bar1?.style.height).toBe('2px')
+    expect(bar2?.style.height).toBe('8px')
+  })
+
+  it('does not mutate custom parent layout styles', () => {
+    const parent = makeParent()
+    parent.style.position = 'relative'
+    parent.style.overflow = 'auto'
+    parent.style.display = 'flex'
+    parent.style.zIndex = '3'
+    const token = createOwnerToken()
+    acquireOwner(document, parent, token, noTrickleOptions(), 0.08)
+    expect(parent.style.position).toBe('relative')
+    expect(parent.style.overflow).toBe('auto')
+    expect(parent.style.display).toBe('flex')
+    expect(parent.style.zIndex).toBe('3')
+  })
+
+  it('removes the shared style when the last channel empties', () => {
+    const parent1 = makeParent()
+    const parent2 = makeParent()
+    const token1 = createOwnerToken()
+    const token2 = createOwnerToken()
+    const channel1 = acquireOwner(
+      document,
+      parent1,
+      token1,
+      noTrickleOptions(),
+      0.08,
+    )
+    const channel2 = acquireOwner(
+      document,
+      parent2,
+      token2,
+      noTrickleOptions(),
+      0.08,
+    )
+    expect(
+      document.head.querySelectorAll('[data-react-hooks-nprogress-style]'),
+    ).toHaveLength(1)
+    releaseOwner(channel1, token1)
+    expect(
+      document.head.querySelectorAll('[data-react-hooks-nprogress-style]'),
+    ).toHaveLength(1)
+    releaseOwner(channel2, token2)
+    expect(
+      document.head.querySelector('[data-react-hooks-nprogress-style]'),
+    ).toBeNull()
   })
 
   it('includes reduced-motion media query in CSS', () => {
@@ -565,10 +674,60 @@ describe('multiple owners aggregation', () => {
     acquireOwner(document, parent, token2, opts, 0.7)
 
     completeOwner(channel, token1, opts, vi.fn())
+    // While completing owner is at 1, shared visual must stay at the other owner's 0.7
+    expect(getChannelRenderedProgress(document, parent)).toBeCloseTo(0.7)
     vi.advanceTimersByTime(200)
 
     expect(channelHasDom(document, parent)).toBe(true)
     expect(getChannelActiveOwnerCount(document, parent)).toBe(1)
+    expect(getChannelRenderedProgress(document, parent)).toBeCloseTo(0.7)
+  })
+
+  it('presentation options fall back to newest remaining owner', () => {
+    const parent = makeParent()
+    const token1 = createOwnerToken()
+    const token2 = createOwnerToken()
+    const channel = acquireOwner(
+      document,
+      parent,
+      token1,
+      { ...noTrickleOptions(), color: 'rgb(0, 0, 255)' },
+      0.2,
+    )
+    acquireOwner(
+      document,
+      parent,
+      token2,
+      { ...noTrickleOptions(), color: 'rgb(0, 128, 0)' },
+      0.4,
+    )
+    const bar = parent.querySelector(
+      '[data-react-hooks-nprogress-bar]',
+    ) as HTMLElement | null
+    expect(bar?.style.background).toBe('rgb(0, 128, 0)')
+    releaseOwner(channel, token2)
+    const barAfter = parent.querySelector(
+      '[data-react-hooks-nprogress-bar]',
+    ) as HTMLElement | null
+    expect(barAfter?.style.background).toBe('rgb(0, 0, 255)')
+  })
+
+  it('malicious color is not interpolated into shared stylesheet text', () => {
+    const parent = makeParent()
+    const token = createOwnerToken()
+    const evil = 'red;} body{background:url(https://evil.example)'
+    acquireOwner(
+      document,
+      parent,
+      token,
+      { ...noTrickleOptions(), color: evil },
+      0.08,
+    )
+    const styleEl = document.head.querySelector(
+      '[data-react-hooks-nprogress-style]',
+    )
+    expect(styleEl?.textContent).not.toContain('evil.example')
+    expect(styleEl?.textContent).not.toContain(evil)
   })
 
   it('final owner cleanup removes all DOM', () => {

@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.1.0-beta.1] - Unreleased
+
+### Fixed
+
+- `useNProgress`: keep the decorative peg inside the bar so tip glow tracks progress instead of sitting at the container's right edge near the spinner
+- `useNProgress`: `start()` during completion resets to `minimum` instead of remaining at `1`
+- `useNProgress`: prune empty parent channels from the registry; share one document stylesheet and apply per-channel presentation via element styles
+- `useNProgress`: mirror trickle manager updates into public `progress` / `isLoading` state
+- `useNProgress`: per-owner completion generation so concurrent `done()` calls cannot cancel each other
 
 ### Added
 

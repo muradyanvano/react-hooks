@@ -128,6 +128,25 @@ describe('useNProgress – imperative lifecycle', () => {
     expect(result.current.isLoading).toBe(false)
   })
 
+  it('trickle advances public progress state', async () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() =>
+      useNProgress(undefined, {
+        trickle: true,
+        trickleSpeed: 200,
+        minimum: 0.08,
+      }),
+    )
+    act(() => {
+      result.current.start()
+    })
+    const before = result.current.progress ?? 0
+    await act(async () => {
+      vi.advanceTimersByTime(201)
+    })
+    expect(result.current.progress ?? 0).toBeGreaterThan(before)
+  })
+
   it('increment() advances from current progress', () => {
     const { result } = renderHook(() =>
       useNProgress(undefined, { trickle: false }),
@@ -295,11 +314,14 @@ describe('useNProgress – imperative lifecycle', () => {
     act(() => {
       result.current.start()
     })
+    expect(result.current.isLoading).toBe(true)
+    expect(result.current.progress).toBeCloseTo(0.08)
     await act(async () => {
       vi.advanceTimersByTime(500)
     })
-    // Should remain active (the restart's start() fired)
+    // Should remain active at minimum (stale completion must not clear it)
     expect(result.current.isLoading).toBe(true)
+    expect(result.current.progress).toBeCloseTo(0.08)
   })
 
   it('set(<1) during completion reactivates', async () => {

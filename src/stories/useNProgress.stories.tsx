@@ -290,9 +290,12 @@ export const Declarative: Story = {
       expect(canvas.getByTestId('status-loading')).toHaveTextContent('true'),
     )
 
-    // Reset to undefined
+    // Reset to undefined (stops declarative sync; owner may still be completing)
     await userEvent.click(canvas.getByTestId('btn-undefined'))
-    // Loading stays true because switching to undefined doesn't auto-complete
+    // Loading stays true because switching to undefined doesn't auto-complete —
+    // finish via null so the story does not leave an active channel behind.
+    await userEvent.click(canvas.getByTestId('btn-null'))
+    await waitForIdle(canvas)
 
     await expectCodeDisclosure(canvas, declarativeSnippet)
   },
@@ -495,19 +498,17 @@ export const Spinner: Story = {
     // With spinner on
     await userEvent.click(canvas.getByTestId('btn-start'))
     await waitFor(() =>
-      expect(canvas.getByTestId('status-loading' as string)).toHaveTextContent(
-        /true|Loading/,
-      ),
+      expect(canvas.getByTestId('status-loading')).toHaveTextContent('true'),
     )
     await userEvent.click(canvas.getByTestId('btn-done'))
-    await waitFor(() =>
-      expect(canvas.getByTestId('spinner-toggle')).toBeVisible(),
-    )
+    await waitForIdle(canvas)
+    await expect(canvas.getByTestId('spinner-toggle')).toBeVisible()
 
     // Toggle spinner off
     await userEvent.click(canvas.getByTestId('spinner-toggle'))
     await userEvent.click(canvas.getByTestId('btn-start'))
     await userEvent.click(canvas.getByTestId('btn-done'))
+    await waitForIdle(canvas)
 
     await expectCodeDisclosure(canvas, spinnerSnippet)
   },

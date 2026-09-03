@@ -361,7 +361,7 @@ export function DeclarativeExample() {
             type="button"
             data-testid="btn-complete"
             onClick={() => setValue(1)}
-            className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white border-green-600"
+            className="rounded-lg bg-green-800 px-3 py-1.5 text-sm font-medium text-white border-green-800"
           >
             1 (complete)
           </button>
@@ -719,7 +719,7 @@ export function MultipleOwnersExample() {
               data-testid="btn-fast"
               onClick={runFast}
               disabled={fastLoading}
-              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-lg bg-emerald-800 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
             >
               {fastLoading
                 ? `${Math.round((fastProgress ?? 0) * 100)}%`
@@ -742,7 +742,7 @@ export function CustomContainerExample() {
   const [parent, setParent] = useState<HTMLElement | null>(null)
   const { isLoading, progress, start, done } = useNProgress(undefined, {
     parent,
-    color: '#10b981',
+    color: '#047857',
     height: 2,
     trickle: true,
   })
@@ -780,7 +780,7 @@ export function CustomContainerExample() {
               void save()
             }}
             disabled={isLoading}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900 disabled:opacity-50"
           >
             {isLoading ? 'Saving…' : 'Save'}
           </button>
@@ -827,8 +827,7 @@ function IndependentPanel({
           data-testid={`${testId}-btn`}
           onClick={run}
           disabled={isLoading}
-          className="rounded-lg px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-          style={{ backgroundColor: color }}
+          className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
         >
           {isLoading ? 'Loading…' : 'Load'}
         </button>
@@ -848,7 +847,7 @@ export function MultipleContainersExample() {
     >
       <div className="grid grid-cols-2 gap-4">
         <IndependentPanel label="Panel A" color="#4f46e5" testId="panel-a" />
-        <IndependentPanel label="Panel B" color="#10b981" testId="panel-b" />
+        <IndependentPanel label="Panel B" color="#047857" testId="panel-b" />
       </div>
     </ExampleShowcase>
   )
@@ -859,7 +858,7 @@ export function MultipleContainersExample() {
 export function SpinnerExample() {
   const [parent, setParent] = useState<HTMLElement | null>(null)
   const [showSpinner, setShowSpinner] = useState(true)
-  const { isLoading, start, done } = useNProgress(undefined, {
+  const { isLoading, progress, start, done } = useNProgress(undefined, {
     parent,
     showSpinner,
     trickle: true,
@@ -906,6 +905,25 @@ export function SpinnerExample() {
           </div>
         </div>
       </ProgressContainer>
+      <StatusPanel
+        items={[
+          {
+            label: 'isLoading',
+            value: String(isLoading),
+            testId: 'status-loading',
+          },
+          {
+            label: 'progress',
+            value: progress != null ? `${Math.round(progress * 100)}%` : 'null',
+            testId: 'status-progress',
+          },
+          {
+            label: 'showSpinner',
+            value: String(showSpinner),
+            testId: 'status-spinner',
+          },
+        ]}
+      />
     </ExampleShowcase>
   )
 }
@@ -1281,8 +1299,7 @@ function ConcurrentRequest({
         data-testid={`${testId}-btn`}
         onClick={run}
         disabled={isLoading}
-        className="rounded px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
-        style={{ backgroundColor: color }}
+        className="rounded bg-slate-800 px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
       >
         {isLoading ? `${Math.round((progress ?? 0) * 100)}%` : 'Start'}
       </button>
@@ -1313,14 +1330,14 @@ export function ConcurrentRequestsExample() {
           <ConcurrentRequest
             label="Task B"
             duration={1200}
-            color="#10b981"
+            color="#047857"
             testId="task-b"
             parent={parent}
           />
           <ConcurrentRequest
             label="Task C"
             duration={2000}
-            color="#f59e0b"
+            color="#b45309"
             testId="task-c"
             parent={parent}
           />
@@ -1554,7 +1571,7 @@ export function PlaygroundExample({
             type="button"
             data-testid="btn-done"
             onClick={() => done()}
-            className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white"
+            className="rounded-lg bg-green-800 px-3 py-1.5 text-sm font-medium text-white"
           >
             done()
           </button>

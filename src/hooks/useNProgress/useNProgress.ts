@@ -160,6 +160,19 @@ export function useNProgress(
     setIsLoading((prev) => (prev === loading ? prev : loading))
   }, [])
 
+  // Trickle updates mutate manager state; mirror them into public React state.
+  const handleManagedProgress = useCallback(
+    (p: number | null) => {
+      if (!mountedRef.current) return
+      if (p == null) {
+        setOwnerState(null, false)
+        return
+      }
+      setOwnerState(p, true)
+    },
+    [setOwnerState],
+  )
+
   // ── Internal: release this owner from the current channel ─────────────────
   const releaseFromChannel = useCallback(() => {
     const channel = channelRef.current
@@ -251,7 +264,14 @@ export function useNProgress(
 
       if (channelRef.current == null) {
         // Acquire first to show completion
-        channelRef.current = acquireOwner(doc, parent, token, opts, minimum)
+        channelRef.current = acquireOwner(
+          doc,
+          parent,
+          token,
+          opts,
+          minimum,
+          handleManagedProgress,
+        )
         setOwnerState(minimum, true)
       }
       completingRef.current = true
@@ -279,10 +299,23 @@ export function useNProgress(
 
     if (channelRef.current == null) {
       // Acquire new channel
-      channelRef.current = acquireOwner(doc, parent, token, opts, normalized)
+      channelRef.current = acquireOwner(
+        doc,
+        parent,
+        token,
+        opts,
+        normalized,
+        handleManagedProgress,
+      )
     } else {
       cancelCompletion(channelRef.current, token)
-      updateOwner(channelRef.current, token, normalized, opts)
+      updateOwner(
+        channelRef.current,
+        token,
+        normalized,
+        opts,
+        handleManagedProgress,
+      )
     }
     setOwnerState(normalized, true)
   })
@@ -307,19 +340,25 @@ export function useNProgress(
     }
 
     if (channel != null && isOwnerActive(channel, token)) {
-      // Already active after cancelling completion — update options only
-      updateOwner(
-        channel,
-        token,
-        getOwnerProgress(channel, token) ?? minimum,
-        opts,
-      )
+      const current = getOwnerProgress(channel, token) ?? minimum
+      // Restart during completion (progress === 1) resets to minimum.
+      // Already-active below 1 keeps current progress and refreshes options.
+      const next = current >= 1 ? minimum : current
+      updateOwner(channel, token, next, opts, handleManagedProgress)
+      setOwnerState(next, true)
       return
     }
 
-    channelRef.current = acquireOwner(doc, parent, token, opts, minimum)
+    channelRef.current = acquireOwner(
+      doc,
+      parent,
+      token,
+      opts,
+      minimum,
+      handleManagedProgress,
+    )
     setOwnerState(minimum, true)
-  }, [getOptions, getContext, setOwnerState])
+  }, [getOptions, getContext, setOwnerState, handleManagedProgress])
 
   const set = useCallback(
     (value: number) => {
@@ -337,7 +376,14 @@ export function useNProgress(
       if (clamped >= 1) {
         // done()
         if (channelRef.current == null) {
-          channelRef.current = acquireOwner(doc, parent, token, opts, minimum)
+          channelRef.current = acquireOwner(
+            doc,
+            parent,
+            token,
+            opts,
+            minimum,
+            handleManagedProgress,
+          )
           setOwnerState(minimum, true)
         } else {
           cancelCompletion(channelRef.current, token)
@@ -352,14 +398,27 @@ export function useNProgress(
       const displayed = Math.max(minimum, clamped)
 
       if (channelRef.current == null) {
-        channelRef.current = acquireOwner(doc, parent, token, opts, displayed)
+        channelRef.current = acquireOwner(
+          doc,
+          parent,
+          token,
+          opts,
+          displayed,
+          handleManagedProgress,
+        )
       } else {
         cancelCompletion(channelRef.current, token)
-        updateOwner(channelRef.current, token, displayed, opts)
+        updateOwner(
+          channelRef.current,
+          token,
+          displayed,
+          opts,
+          handleManagedProgress,
+        )
       }
       setOwnerState(displayed, true)
     },
-    [getOptions, getContext, setOwnerState],
+    [getOptions, getContext, setOwnerState, handleManagedProgress],
   )
 
   const increment = useCallback(
@@ -390,14 +449,27 @@ export function useNProgress(
       const displayed = Math.max(minimum, next)
 
       if (channelRef.current == null) {
-        channelRef.current = acquireOwner(doc, parent, token, opts, displayed)
+        channelRef.current = acquireOwner(
+          doc,
+          parent,
+          token,
+          opts,
+          displayed,
+          handleManagedProgress,
+        )
       } else {
         cancelCompletion(channelRef.current, token)
-        updateOwner(channelRef.current, token, displayed, opts)
+        updateOwner(
+          channelRef.current,
+          token,
+          displayed,
+          opts,
+          handleManagedProgress,
+        )
       }
       setOwnerState(displayed, true)
     },
-    [getOptions, getContext, setOwnerState],
+    [getOptions, getContext, setOwnerState, handleManagedProgress],
   )
 
   const done = useCallback(
@@ -416,7 +488,14 @@ export function useNProgress(
         if (!force) return
         // force: briefly show a complete bar
         if (doc == null || parent == null) return
-        channelRef.current = acquireOwner(doc, parent, token, opts, minimum)
+        channelRef.current = acquireOwner(
+          doc,
+          parent,
+          token,
+          opts,
+          minimum,
+          handleManagedProgress,
+        )
         setOwnerState(minimum, true)
         completeOwner(channelRef.current, token, opts, () => {
           if (mountedRef.current) setOwnerState(null, false)
@@ -430,7 +509,7 @@ export function useNProgress(
       })
       setOwnerState(1, true)
     },
-    [getOptions, getContext, setOwnerState],
+    [getOptions, getContext, setOwnerState, handleManagedProgress],
   )
 
   const remove = useCallback(() => {
