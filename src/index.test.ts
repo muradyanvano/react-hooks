@@ -95,9 +95,14 @@ describe('package entry', () => {
     expect(entry.useSessionStorage).toBeTypeOf('function')
   })
 
+  it('exports useCookies and its public types', () => {
+    expect(entry.useCookies).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
+      'useCookies',
       'useDevicesList',
       'useDisplayMedia',
       'useElementByPoint',
@@ -130,5 +135,7 @@ describe('package entry', () => {
     expect(entry).not.toHaveProperty('notifySameDocument')
     expect(entry).not.toHaveProperty('useBrowserStorage')
     expect(entry).not.toHaveProperty('resolveBrowserStorage')
+    expect(entry).not.toHaveProperty('parseCookieString')
+    expect(entry).not.toHaveProperty('subscribeCookieDocument')
   })
 })

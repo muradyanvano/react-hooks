@@ -182,6 +182,7 @@ import {
   useWebSocket,
   useLocalStorage,
   useSessionStorage,
+  useCookies,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -355,6 +356,18 @@ function TestComponent() {
   })
   void sessionStorageCustom.value
   void sessionStorageCustom.isSupported
+  const cookiesEmpty = useCookies(['ssr-cookie-locale'])
+  void cookiesEmpty.get('ssr-cookie-locale')
+  void cookiesEmpty.isReady
+  void cookiesEmpty.isSupported
+  const cookiesInitial = useCookies(['ssr-cookie-locale'], {
+    initialCookies: 'ssr-cookie-locale=en-US; ssr-cookie-theme=dark',
+  })
+  void cookiesInitial.get('ssr-cookie-locale')
+  void cookiesInitial.isReady
+  const cookiesNullDocument = useCookies(null, { document: null })
+  void cookiesNullDocument.getAll()
+  void cookiesNullDocument.isSupported
   return createElement(
     'div',
     { ref, 'data-focus-api': 'ready' },
@@ -363,7 +376,9 @@ function TestComponent() {
       ':' +
       localStorageObject.value.theme +
       ':' +
-      sessionStoragePrimitive.value,
+      sessionStoragePrimitive.value +
+      ':' +
+      String(cookiesInitial.get('ssr-cookie-locale')),
   )
 }
 
@@ -531,6 +546,49 @@ function CaptureSessionStorageApi() {
   return createElement('div', null, 'session-storage-api')
 }
 
+let cookiesGet
+let cookiesGetAll
+let cookiesSet
+let cookiesRemove
+let cookiesRefresh
+let cookiesAddChangeListener
+let cookiesRemoveChangeListener
+let cookiesValue
+let cookiesIsReady
+let cookiesIsSupported
+let cookiesError
+let cookiesInitialValue
+let cookiesInitialReady
+let cookiesNullDocumentSupported
+let setIntervalCalls = 0
+let documentCookieReads = 0
+let documentCookieWrites = 0
+function CaptureCookiesApi() {
+  const empty = useCookies(['ssr-capture-cookie'])
+  const initial = useCookies(['ssr-capture-cookie'], {
+    initialCookies: 'ssr-capture-cookie=en-US',
+  })
+  const nullDocument = useCookies(['ssr-capture-cookie-null'], {
+    document: null,
+    initialCookies: 'ssr-capture-cookie-null=x',
+  })
+  cookiesGet = empty.get
+  cookiesGetAll = empty.getAll
+  cookiesSet = empty.set
+  cookiesRemove = empty.remove
+  cookiesRefresh = empty.refresh
+  cookiesAddChangeListener = empty.addChangeListener
+  cookiesRemoveChangeListener = empty.removeChangeListener
+  cookiesValue = empty.get('ssr-capture-cookie')
+  cookiesIsReady = empty.isReady
+  cookiesIsSupported = empty.isSupported
+  cookiesError = empty.error
+  cookiesInitialValue = initial.get('ssr-capture-cookie')
+  cookiesInitialReady = initial.isReady
+  cookiesNullDocumentSupported = nullDocument.isSupported
+  return createElement('div', null, 'cookies-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -546,11 +604,35 @@ let postRenderUserMediaError = null
 let postRenderWebSocketError = null
 let postRenderLocalStorageError = null
 let postRenderSessionStorageError = null
+let postRenderCookiesError = null
 let getUserMediaCalls = 0
 let webSocketConstructCalls = 0
 let localStorageGetItemCalls = 0
 let localStorageSetItemCalls = 0
 let localStorageRemoveItemCalls = 0
+const previousSetInterval = globalThis.setInterval
+globalThis.setInterval = function (...args) {
+  setIntervalCalls += 1
+  return previousSetInterval.apply(this, args)
+}
+const previousDocumentCookie =
+  typeof Document !== 'undefined'
+    ? Object.getOwnPropertyDescriptor(Document.prototype, 'cookie')
+    : undefined
+if (previousDocumentCookie?.get && previousDocumentCookie?.set) {
+  Object.defineProperty(Document.prototype, 'cookie', {
+    configurable: true,
+    enumerable: true,
+    get() {
+      documentCookieReads += 1
+      return previousDocumentCookie.get.call(this)
+    },
+    set(value) {
+      documentCookieWrites += 1
+      return previousDocumentCookie.set.call(this, value)
+    },
+  })
+}
 const previousGUM =
   typeof navigator !== 'undefined' && navigator.mediaDevices
     ? navigator.mediaDevices.getUserMedia
@@ -610,6 +692,7 @@ try {
   renderToString(createElement(CaptureWebSocketApi))
   renderToString(createElement(CaptureLocalStorageApi))
   renderToString(createElement(CaptureSessionStorageApi))
+  renderToString(createElement(CaptureCookiesApi))
   if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
     postRenderScrollLockError = 'useScrollLock controls missing'
   }
@@ -762,6 +845,51 @@ try {
       ' remove=' +
       localStorageRemoveItemCalls
   }
+  if (
+    typeof cookiesGet !== 'function' ||
+    typeof cookiesGetAll !== 'function' ||
+    typeof cookiesSet !== 'function' ||
+    typeof cookiesRemove !== 'function' ||
+    typeof cookiesRefresh !== 'function' ||
+    typeof cookiesAddChangeListener !== 'function' ||
+    typeof cookiesRemoveChangeListener !== 'function'
+  ) {
+    postRenderCookiesError = 'useCookies controls missing'
+  }
+  if (
+    cookiesValue !== undefined ||
+    cookiesIsReady !== false ||
+    cookiesIsSupported !== false ||
+    cookiesError != null ||
+    cookiesInitialValue !== 'en-US' ||
+    cookiesInitialReady !== true ||
+    cookiesNullDocumentSupported !== false
+  ) {
+    postRenderCookiesError = 'Unexpected useCookies SSR state'
+  }
+  try {
+    cookiesSet('ssr-capture-cookie', 'safe', { path: '/' })
+    cookiesRemove('ssr-capture-cookie', { path: '/' })
+    cookiesRefresh()
+    const unsub = cookiesAddChangeListener(() => {})
+    unsub()
+    cookiesRemoveChangeListener(() => {})
+    void cookiesGetAll()
+  } catch (error) {
+    postRenderCookiesError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
+  if (documentCookieReads !== 0 || documentCookieWrites !== 0) {
+    postRenderCookiesError =
+      'Expected zero document.cookie access during SSR, got reads=' +
+      documentCookieReads +
+      ' writes=' +
+      documentCookieWrites
+  }
+  if (setIntervalCalls !== 0) {
+    postRenderCookiesError =
+      'Expected zero setInterval calls during SSR, got ' + setIntervalCalls
+  }
   try {
     focusMethod()
   } catch (error) {
@@ -854,6 +982,13 @@ try {
   if (previousStorageRemoveItem) {
     Storage.prototype.removeItem = previousStorageRemoveItem
   }
+  globalThis.setInterval = previousSetInterval
+  if (
+    typeof Document !== 'undefined' &&
+    previousDocumentCookie != null
+  ) {
+    Object.defineProperty(Document.prototype, 'cookie', previousDocumentCookie)
+  }
 }
 
 console.log(
@@ -881,10 +1016,14 @@ console.log(
     postRenderWebSocketError,
     postRenderLocalStorageError,
     postRenderSessionStorageError,
+    postRenderCookiesError,
     webSocketConstructCalls,
     localStorageGetItemCalls,
     localStorageSetItemCalls,
     localStorageRemoveItemCalls,
+    setIntervalCalls,
+    documentCookieReads,
+    documentCookieWrites,
   }),
 )
 `,
@@ -984,6 +1123,24 @@ console.log(
   if (payload.postRenderSessionStorageError) {
     throw new Error(
       `useSessionStorage SSR check failed:\\n${payload.postRenderSessionStorageError}`,
+    )
+  }
+
+  if (payload.postRenderCookiesError) {
+    throw new Error(
+      `useCookies SSR check failed:\\n${payload.postRenderCookiesError}`,
+    )
+  }
+
+  if (payload.setIntervalCalls !== 0) {
+    throw new Error(
+      `Expected no setInterval calls during SSR, got ${payload.setIntervalCalls}`,
+    )
+  }
+
+  if (payload.documentCookieReads !== 0 || payload.documentCookieWrites !== 0) {
+    throw new Error(
+      `Expected no document.cookie access during SSR, got reads=${payload.documentCookieReads} writes=${payload.documentCookieWrites}`,
     )
   }
 

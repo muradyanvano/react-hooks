@@ -32,6 +32,7 @@ Current hooks:
 - `useWebSocket`
 - `useLocalStorage`
 - `useSessionStorage`
+- `useCookies`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

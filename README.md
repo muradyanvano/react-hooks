@@ -1930,6 +1930,88 @@ Options, serializers, `remove` vs `reset`, merge defaults, and error semantics m
 
 See Storybook (`Hooks/useSessionStorage`) for the checkout draft and related examples.
 
+### `useCookies`
+
+Reactive browser cookie manager with safe parsing, attribute formatting, same-document synchronization, Cookie Store observation when available, and shared polling fallback.
+
+```tsx
+import { useCookies } from '@muradyanvano/react-hooks'
+
+export function LocaleSelector() {
+  const cookies = useCookies(['locale'])
+
+  const locale = cookies.get<string>('locale') ?? 'en-US'
+
+  return (
+    <section>
+      <p>Current locale: {locale}</p>
+
+      <button
+        type="button"
+        onClick={() =>
+          cookies.set('locale', 'en-US', {
+            path: '/',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 365,
+          })
+        }
+      >
+        English
+      </button>
+
+      <button
+        type="button"
+        onClick={() =>
+          cookies.set('locale', 'hy-AM', {
+            path: '/',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 365,
+          })
+        }
+      >
+        Armenian
+      </button>
+
+      <button
+        type="button"
+        onClick={() => cookies.remove('locale', { path: '/' })}
+      >
+        Use default
+      </button>
+
+      {cookies.error && <p role="alert">{cookies.error.message}</p>}
+    </section>
+  )
+}
+```
+
+#### Defaults
+
+| Option                   | Default     | Notes                                                   |
+| ------------------------ | ----------- | ------------------------------------------------------- |
+| `dependencies`           | `undefined` | Rerender for any visible cookie change                  |
+| `doNotParse`             | `false`     | JSON-parse decoded values when possible                 |
+| `autoUpdateDependencies` | `false`     | When `true`, names passed to `get()` join the watch set |
+| `document`               | omitted     | Resolved after mount                                    |
+| `initialCookies`         | omitted     | SSR/request Cookie-header injection                     |
+| `watch`                  | `true`      | Cookie Store events or shared polling                   |
+| `pollingInterval`        | `1000`      | Shared per-document; smallest active interval wins      |
+
+Dependency rules: `undefined`/`null` watch all; `[]` never rerender for value changes; a non-empty list filters by name; auto-collected names union with explicit ones.
+
+#### Current limitations
+
+- JavaScript cannot read or create `HttpOnly` cookies
+- Do not store sensitive auth tokens in script-readable cookies without a security design
+- Assignment success does not guarantee browser acceptance
+- Deletion requires matching `path` / `domain`
+- `SameSite=None` generally requires `Secure`
+- Attributes cannot be reconstructed from `document.cookie`
+- External observation may use Cookie Store events or polling
+- SSR reads require explicit `initialCookies`; response `Set-Cookie` stays the server framework’s job
+
+See Storybook (`Hooks/useCookies`) for the locale preferences and related examples.
+
 ## Development
 
 ```bash

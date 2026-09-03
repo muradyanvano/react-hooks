@@ -1603,6 +1603,104 @@ Default-first return with safe no-op controls; no Storage method calls during re
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useCookies`
+
+Reactive `document.cookie` manager with SSR cookie-string injection, JSON-aware parsing, attribute formatting, same-document registry sync, Cookie Store observation when available, and a shared polling fallback.
+
+### Signature
+
+```ts
+export type UseCookiesSameSite = true | 'strict' | 'lax' | 'none'
+
+export interface UseCookiesGetOptions {
+  doNotParse?: boolean
+}
+
+export interface UseCookiesSetOptions {
+  path?: string
+  domain?: string
+  expires?: Date
+  maxAge?: number
+  secure?: boolean
+  sameSite?: UseCookiesSameSite
+  partitioned?: boolean
+}
+
+export interface UseCookiesChange {
+  name: string
+  value: unknown
+  previousValue: unknown
+  cause: 'set' | 'remove' | 'external'
+}
+
+export type UseCookiesChangeListener = (change: UseCookiesChange) => void
+
+export interface UseCookiesOptions {
+  doNotParse?: boolean
+  autoUpdateDependencies?: boolean
+  document?: Document | null
+  initialCookies?: string
+  watch?: boolean
+  pollingInterval?: number
+  onError?: (error: Error) => void
+}
+
+export interface UseCookiesReturn {
+  get: <T = unknown>(
+    name: string,
+    options?: UseCookiesGetOptions,
+  ) => T | undefined
+  getAll: <T extends Record<string, unknown> = Record<string, unknown>>(
+    options?: UseCookiesGetOptions,
+  ) => T
+  set: (name: string, value: unknown, options?: UseCookiesSetOptions) => boolean
+  remove: (
+    name: string,
+    options?: Pick<UseCookiesSetOptions, 'path' | 'domain'>,
+  ) => boolean
+  refresh: () => void
+  addChangeListener: (listener: UseCookiesChangeListener) => () => void
+  removeChangeListener: (listener: UseCookiesChangeListener) => void
+  isSupported: boolean
+  isReady: boolean
+  error: Error | null
+}
+
+export function useCookies(
+  dependencies?: readonly string[] | null,
+  options?: UseCookiesOptions,
+): UseCookiesReturn
+```
+
+### Defaults
+
+`dependencies = undefined` (watch all), `doNotParse = false`, `autoUpdateDependencies = false`, omitted `document`, omitted `initialCookies`, `watch = true`, `pollingInterval = 1000`, no-op `onError`.
+
+SSR without `initialCookies`: empty snapshot, `isReady = false`, `isSupported = false`. With `initialCookies`: parsed values available and `isReady = true` while still unsupported until a client document is bound.
+
+### Behavior notes
+
+- Cookies are not Web Storage; do not share the private browser-storage engine.
+- `set` returns whether assignment threw — not whether the browser accepted the cookie. Canonical reread drives React state.
+- Duplicate visible names: first occurrence wins.
+- With `doNotParse: false`, decoded values that are valid JSON become parsed primitives/objects (so `"true"` / `"42"` / `"null"` parse as JSON).
+- Registry is keyed by `Document`. Cookie Store change events are preferred; otherwise one shared poller per document uses the smallest active positive interval.
+- No `httpOnly` option — client JavaScript cannot create or read HttpOnly cookies.
+
+### Exported types
+
+- `UseCookiesSameSite`
+- `UseCookiesGetOptions`
+- `UseCookiesSetOptions`
+- `UseCookiesChange`
+- `UseCookiesChangeListener`
+- `UseCookiesOptions`
+- `UseCookiesReturn`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

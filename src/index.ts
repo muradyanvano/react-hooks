@@ -177,3 +177,14 @@ export {
   type UseSessionStorageReturn,
   type UseSessionStorageSerializer,
 } from './hooks/useSessionStorage/useSessionStorage'
+
+export {
+  useCookies,
+  type UseCookiesChange,
+  type UseCookiesChangeListener,
+  type UseCookiesGetOptions,
+  type UseCookiesOptions,
+  type UseCookiesReturn,
+  type UseCookiesSameSite,
+  type UseCookiesSetOptions,
+} from './hooks/useCookies/useCookies'
