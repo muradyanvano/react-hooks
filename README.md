@@ -2012,6 +2012,64 @@ Dependency rules: `undefined`/`null` watch all; `[]` never rerender for value ch
 
 See Storybook (`Hooks/useCookies`) for the locale preferences and related examples.
 
+### `useJwt`
+
+Decode compact JWS-style JWT header and payload contents synchronously. **Decoding a JWT does not verify its signature or prove that its claims are trustworthy.**
+
+```tsx
+import { useJwt, type UseJwtPayload } from '@muradyanvano/react-hooks'
+
+interface AccessTokenPayload extends UseJwtPayload {
+  name?: string
+  roles?: readonly string[]
+}
+
+export function TokenSummary({ token }: { token: string }) {
+  const { header, payload, errors } = useJwt<AccessTokenPayload>(token)
+
+  if (errors.length > 0) {
+    return <p role="alert">The token could not be decoded.</p>
+  }
+
+  return (
+    <section>
+      <p>Algorithm claim: {String(header?.alg ?? 'Unknown')}</p>
+      <p>Subject: {payload?.sub ?? 'Unknown'}</p>
+      <p>Name: {payload?.name ?? 'Unknown'}</p>
+
+      <strong>Decoded only — signature not verified</strong>
+    </section>
+  )
+}
+```
+
+Use only synthetic demonstration tokens in documentation and examples. Never paste production tokens into Storybook, screenshots, logs, support tickets, or public issue reports.
+
+#### Defaults
+
+| Option          | Default | Notes                                              |
+| --------------- | ------- | -------------------------------------------------- |
+| `fallbackValue` | `null`  | Returned for failed header and/or payload sections |
+| `onError`       | no-op   | Client-effect-only; not called during SSR          |
+
+Leading/trailing whitespace around the entire token is trimmed. Whitespace inside segments is not removed and causes a decode error. Supported tokens have exactly three segments (`header.payload.signature`). The signature segment is not decoded or validated. Encrypted five-part compact tokens are unsupported.
+
+#### Current limitations
+
+- Decoding is not signature verification, authentication, or authorization
+- Never authorize users based only on decoded client-side claims
+- Validate algorithm, issuer, audience, expiration, not-before, nonce, and required claims in a trusted verification layer
+- Do not trust `alg` from the token without an allowlist; `alg: "none"` is not proof of validity
+- `exp`, `nbf`, and `iat` are NumericDate seconds, not JavaScript milliseconds
+- This hook does not automatically reject expired or not-yet-valid tokens
+- Client clocks can be wrong
+- Header and payload are only encoded, not encrypted — tokens may contain sensitive information
+- TypeScript generics do not validate runtime claim shapes
+- `onError` runs after decode in a client effect for each newly supplied invalid token; unrelated rerenders and callback identity changes do not replay the same decoding errors; Strict Mode replay is deduplicated; synchronous `errors` are available during SSR
+- Token contents are not included in generated error messages
+
+See Storybook (`Hooks/useJwt`) for the JWT inspector and related examples.
+
 ## Development
 
 ```bash

@@ -161,13 +161,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useCookies</code> — reactive <code>document.cookie</code> manager
       with SSR injection, attributes, and observation
     </li>
+    <li>
+      <code>useJwt</code> — decode compact JWT header/payload contents only
+      (signature not verified)
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Twenty-four public hooks exist in this prerelease.</li>
+    <li>Twenty-five public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -282,6 +286,12 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useCookies</code> cannot read or create <code>HttpOnly</code>{' '}
       cookies. Deletion needs matching path/domain. Assignment success is not
       acceptance proof. SSR reads require explicit <code>initialCookies</code>.
+    </li>
+    <li>
+      <code>useJwt</code> decodes only. It does not verify signatures or prove
+      claims are trustworthy. Never authorize from client-side decoded claims
+      alone. <code>exp</code>/<code>nbf</code>/<code>iat</code> are NumericDate
+      seconds. Use only synthetic tokens in examples.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

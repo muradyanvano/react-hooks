@@ -1701,6 +1701,110 @@ SSR without `initialCookies`: empty snapshot, `isReady = false`, `isSupported = 
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useJwt`
+
+Decode compact JWS-style JWT header and payload contents synchronously.
+
+**Decoding a JWT does not verify its signature or prove that its claims are trustworthy.**
+
+### Signature
+
+```ts
+export interface UseJwtHeader {
+  alg?: string
+  typ?: string
+  cty?: string
+  kid?: string
+  [claim: string]: unknown
+}
+
+export interface UseJwtPayload {
+  iss?: string
+  sub?: string
+  aud?: string | readonly string[]
+  exp?: number
+  nbf?: number
+  iat?: number
+  jti?: string
+  [claim: string]: unknown
+}
+
+export type UseJwtErrorPart = 'token' | 'header' | 'payload'
+
+export interface UseJwtDecodeError {
+  part: UseJwtErrorPart
+  error: Error
+}
+
+export interface UseJwtOptions<Fallback = null> {
+  fallbackValue?: Fallback
+  onError?: (error: Error, part: UseJwtErrorPart) => void
+}
+
+export interface UseJwtReturn<
+  Payload extends object,
+  Header extends object,
+  Fallback,
+> {
+  header: Header | Fallback
+  payload: Payload | Fallback
+  errors: readonly UseJwtDecodeError[]
+}
+
+export function useJwt<
+  Payload extends object = UseJwtPayload,
+  Header extends object = UseJwtHeader,
+  Fallback = null,
+>(
+  encodedJwt: string | null | undefined,
+  options?: UseJwtOptions<Fallback>,
+): UseJwtReturn<Payload, Header, Fallback>
+```
+
+### Defaults
+
+`fallbackValue = null`, no-op `onError`.
+
+Leading/trailing whitespace around the entire token is trimmed. Whitespace inside segments is not removed.
+
+### Behavior notes
+
+- Supported tokens have exactly three dot-separated segments (`header.payload.signature`).
+- Signature may be empty for an unsecured compact token; this never implies trust.
+- Encrypted five-part compact tokens are unsupported.
+- Header and payload decode independently after structure succeeds.
+- Strict Base64URL and UTF-8 decoding is environment-independent (no exclusive `atob` / `Buffer` dependency).
+- Header and payload must be non-null, non-array JSON objects.
+- Decoding never throws from the hook; failures return `fallbackValue` and structured `errors`.
+- `onError` runs in a client effect after a new error result. Notifications are deduplicated by effective token input (outer-trimmed string identity; `null`/`undefined` remain distinct) together with semantic error shape, so Strict Mode replay and callback-identity changes do not duplicate while a newly supplied invalid token still notifies. It does not run during SSR.
+- Synchronous `errors` remain available during SSR.
+- Token contents are not included in generated error messages.
+- Generics document expected shapes; they do not validate runtime claim data.
+
+### Security notes
+
+- Never authorize users from client-side decoded claims alone.
+- Signature verification belongs on a trusted server or trusted cryptographic verification layer.
+- Do not trust `alg` without an allowlist; `alg: "none"` is not proof of validity.
+- `exp` / `nbf` / `iat` are NumericDate seconds, not JavaScript milliseconds.
+- This hook does not automatically reject expired or not-yet-valid tokens.
+- Tokens may contain sensitive information because header and payload are encoded, not encrypted.
+- Do not paste production tokens into Storybook, screenshots, logs, or public issues.
+- Prefer labels such as “decoded successfully”, “structurally decodable”, or “signature not verified” — never “verified”, “authenticated”, or “trusted claims” merely because decoding succeeded.
+
+### Exported types
+
+- `UseJwtHeader`
+- `UseJwtPayload`
+- `UseJwtErrorPart`
+- `UseJwtDecodeError`
+- `UseJwtOptions`
+- `UseJwtReturn`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

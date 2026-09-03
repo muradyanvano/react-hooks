@@ -99,6 +99,10 @@ describe('package entry', () => {
     expect(entry.useCookies).toBeTypeOf('function')
   })
 
+  it('exports useJwt and its public types', () => {
+    expect(entry.useJwt).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -111,6 +115,7 @@ describe('package entry', () => {
       'useFocus',
       'useFocusWithin',
       'useInfiniteScroll',
+      'useJwt',
       'useLocalStorage',
       'useMouse',
       'useMousePressed',
@@ -137,5 +142,9 @@ describe('package entry', () => {
     expect(entry).not.toHaveProperty('resolveBrowserStorage')
     expect(entry).not.toHaveProperty('parseCookieString')
     expect(entry).not.toHaveProperty('subscribeCookieDocument')
+    expect(entry).not.toHaveProperty('decodeBase64UrlToBytes')
+    expect(entry).not.toHaveProperty('decodeUtf8Strict')
+    expect(entry).not.toHaveProperty('decodeJwtWithFallback')
+    expect(entry).not.toHaveProperty('extractJwtSegments')
   })
 })

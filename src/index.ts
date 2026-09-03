@@ -188,3 +188,13 @@ export {
   type UseCookiesSameSite,
   type UseCookiesSetOptions,
 } from './hooks/useCookies/useCookies'
+
+export {
+  useJwt,
+  type UseJwtDecodeError,
+  type UseJwtErrorPart,
+  type UseJwtHeader,
+  type UseJwtOptions,
+  type UseJwtPayload,
+  type UseJwtReturn,
+} from './hooks/useJwt/useJwt'

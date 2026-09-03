@@ -183,7 +183,14 @@ import {
   useLocalStorage,
   useSessionStorage,
   useCookies,
+  useJwt,
 } from '@muradyanvano/react-hooks'
+
+const SSR_JWT_VALID =
+  'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJzc3ItZGVtbyIsIm5hbWUiOiJTU1IgVXNlciIsInJvbGUiOiJtZW1iZXIifQ.synthetic-sig'
+const SSR_JWT_TYPED =
+  'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJ0eXBlZCIsInJvbGUiOiJhZG1pbiJ9.synthetic-sig'
+const SSR_JWT_INVALID = 'not-a-jwt'
 
 const require = createRequire(import.meta.url)
 const reactPkg = require('react/package.json')
@@ -368,6 +375,21 @@ function TestComponent() {
   const cookiesNullDocument = useCookies(null, { document: null })
   void cookiesNullDocument.getAll()
   void cookiesNullDocument.isSupported
+  const jwtValid = useJwt(SSR_JWT_VALID)
+  void jwtValid.header
+  void jwtValid.payload
+  void jwtValid.errors
+  const jwtInvalid = useJwt(SSR_JWT_INVALID, {
+    fallbackValue: { guest: true },
+    onError: () => {
+      throw new Error('useJwt onError must not run during SSR')
+    },
+  })
+  void jwtInvalid.header
+  void jwtInvalid.payload
+  void jwtInvalid.errors
+  const jwtTyped = useJwt(SSR_JWT_TYPED)
+  void jwtTyped.payload
   return createElement(
     'div',
     { ref, 'data-focus-api': 'ready' },
@@ -378,7 +400,11 @@ function TestComponent() {
       ':' +
       sessionStoragePrimitive.value +
       ':' +
-      String(cookiesInitial.get('ssr-cookie-locale')),
+      String(cookiesInitial.get('ssr-cookie-locale')) +
+      ':' +
+      String(jwtValid.payload?.sub) +
+      ':' +
+      String(jwtInvalid.errors.length),
   )
 }
 
@@ -589,6 +615,37 @@ function CaptureCookiesApi() {
   return createElement('div', null, 'cookies-api')
 }
 
+let jwtValidHeaderAlg
+let jwtValidPayloadSub
+let jwtValidErrorsLength
+let jwtInvalidHeader
+let jwtInvalidPayload
+let jwtInvalidErrorsLength
+let jwtInvalidErrorPart
+let jwtTypedPayloadSub
+let jwtTypedPayloadRole
+let jwtOnErrorCalls = 0
+function CaptureJwtApi() {
+  const valid = useJwt(SSR_JWT_VALID)
+  const invalid = useJwt(SSR_JWT_INVALID, {
+    fallbackValue: { guest: true },
+    onError: () => {
+      jwtOnErrorCalls += 1
+    },
+  })
+  const typed = useJwt(SSR_JWT_TYPED)
+  jwtValidHeaderAlg = valid.header?.alg
+  jwtValidPayloadSub = valid.payload?.sub
+  jwtValidErrorsLength = valid.errors.length
+  jwtInvalidHeader = invalid.header
+  jwtInvalidPayload = invalid.payload
+  jwtInvalidErrorsLength = invalid.errors.length
+  jwtInvalidErrorPart = invalid.errors[0]?.part
+  jwtTypedPayloadSub = typed.payload?.sub
+  jwtTypedPayloadRole = typed.payload?.role
+  return createElement('div', null, 'jwt-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -605,6 +662,7 @@ let postRenderWebSocketError = null
 let postRenderLocalStorageError = null
 let postRenderSessionStorageError = null
 let postRenderCookiesError = null
+let postRenderJwtError = null
 let getUserMediaCalls = 0
 let webSocketConstructCalls = 0
 let localStorageGetItemCalls = 0
@@ -693,6 +751,7 @@ try {
   renderToString(createElement(CaptureLocalStorageApi))
   renderToString(createElement(CaptureSessionStorageApi))
   renderToString(createElement(CaptureCookiesApi))
+  renderToString(createElement(CaptureJwtApi))
   if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
     postRenderScrollLockError = 'useScrollLock controls missing'
   }
@@ -890,6 +949,33 @@ try {
     postRenderCookiesError =
       'Expected zero setInterval calls during SSR, got ' + setIntervalCalls
   }
+  if (
+    jwtValidHeaderAlg !== 'none' ||
+    jwtValidPayloadSub !== 'ssr-demo' ||
+    jwtValidErrorsLength !== 0 ||
+    jwtInvalidHeader?.guest !== true ||
+    jwtInvalidPayload?.guest !== true ||
+    jwtInvalidErrorsLength !== 1 ||
+    jwtInvalidErrorPart !== 'token' ||
+    jwtTypedPayloadSub !== 'typed' ||
+    jwtTypedPayloadRole !== 'admin' ||
+    jwtOnErrorCalls !== 0
+  ) {
+    postRenderJwtError =
+      'Unexpected useJwt SSR state: ' +
+      JSON.stringify({
+        jwtValidHeaderAlg,
+        jwtValidPayloadSub,
+        jwtValidErrorsLength,
+        jwtInvalidHeader,
+        jwtInvalidPayload,
+        jwtInvalidErrorsLength,
+        jwtInvalidErrorPart,
+        jwtTypedPayloadSub,
+        jwtTypedPayloadRole,
+        jwtOnErrorCalls,
+      })
+  }
   try {
     focusMethod()
   } catch (error) {
@@ -1017,6 +1103,7 @@ console.log(
     postRenderLocalStorageError,
     postRenderSessionStorageError,
     postRenderCookiesError,
+    postRenderJwtError,
     webSocketConstructCalls,
     localStorageGetItemCalls,
     localStorageSetItemCalls,
@@ -1130,6 +1217,10 @@ console.log(
     throw new Error(
       `useCookies SSR check failed:\\n${payload.postRenderCookiesError}`,
     )
+  }
+
+  if (payload.postRenderJwtError) {
+    throw new Error(`useJwt SSR check failed:\\n${payload.postRenderJwtError}`)
   }
 
   if (payload.setIntervalCalls !== 0) {
