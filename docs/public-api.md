@@ -1805,6 +1805,110 @@ Leading/trailing whitespace around the entire token is trimmed. Whitespace insid
 
 Unreleased beta API. May change before `0.1.0`.
 
+---
+
+## `useNProgress`
+
+Package-native top-of-page progress indicator with shared document-level ownership. Zero external dependencies.
+
+### Signature
+
+```ts
+export function useNProgress(
+  currentProgress?: number | null,
+  options?: UseNProgressOptions,
+): UseNProgressReturn
+```
+
+### `UseNProgressOptions`
+
+```ts
+export interface UseNProgressOptions {
+  minimum?: number // default: 0.08
+  easing?: string // default: 'ease'
+  speed?: number // default: 200
+  trickle?: boolean // default: true
+  trickleSpeed?: number // default: 200
+  showSpinner?: boolean // default: true
+  color?: string // default: '#4f46e5'
+  height?: number // default: 3
+  zIndex?: number // default: 1031
+  removeDelay?: number // default: 200
+  ariaLabel?: string // default: 'Page loading progress'
+  document?: Document | null // default: globalThis.document; null = disabled
+  parent?: HTMLElement | null // default: document.body; null = disabled
+}
+```
+
+### `UseNProgressReturn`
+
+```ts
+export interface UseNProgressReturn {
+  isLoading: boolean // true while this owner is active
+  progress: number | null // current progress (null when idle)
+  start: () => void // begin from minimum
+  set: (value: number) => void // set exact progress
+  increment: (amount?: number) => void // advance by auto or explicit amount
+  done: (force?: boolean) => void // complete with animation
+  remove: () => void // immediately release, no animation
+}
+```
+
+### `currentProgress` semantics
+
+| Value              | Behavior                                                               |
+| ------------------ | ---------------------------------------------------------------------- |
+| `undefined`        | Imperative mode; start/set/increment/done/remove control this instance |
+| `null`             | Declaratively complete (equivalent to `done()`)                        |
+| `number < 1`       | Activate and set to this normalized progress                           |
+| `number >= 1`      | Declaratively complete                                                 |
+| `NaN` / `Infinity` | Ignored; keeps previous coherent state                                 |
+
+### DOM structure
+
+```
+<style data-react-hooks-nprogress-style>   (in document.head)
+<div data-react-hooks-nprogress-root>
+  <div role="progressbar" aria-label="…" aria-valuemin="0" aria-valuemax="100">
+    <div data-react-hooks-nprogress-bar>
+      <div data-react-hooks-nprogress-peg aria-hidden="true">
+    </div>
+  </div>
+  <div data-react-hooks-nprogress-spinner aria-hidden="true">
+    <div data-react-hooks-nprogress-spinner-icon>
+  </div>
+</div>
+```
+
+### Shared ownership
+
+Multiple hook instances sharing the same `(document, parent)` pair share one visual channel:
+
+- Displayed progress = minimum active owner progress
+- Presentation options (color, height, etc.) = most recently updated active owner
+- DOM is removed only when the last active owner completes
+
+### SSR behavior
+
+During server-side rendering, `useNProgress` returns `{ isLoading: false, progress: null }`. No DOM, styles, or timers are created. Methods are safe no-ops. Effects and DOM work activate after the client mounts.
+
+### Limitations
+
+- No automatic fetch/router interception — you must call `start()`/`done()` manually.
+- No automatic routing-library coupling.
+- No global CSS imports required (styles are injected per channel via `<style>` element).
+- The spinner uses a CSS keyframe animation. On `prefers-reduced-motion: reduce`, the animation is disabled automatically.
+
+### Exported names
+
+- `useNProgress`
+- `UseNProgressOptions`
+- `UseNProgressReturn`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

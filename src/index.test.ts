@@ -103,6 +103,10 @@ describe('package entry', () => {
     expect(entry.useJwt).toBeTypeOf('function')
   })
 
+  it('exports useNProgress and its public types', () => {
+    expect(entry.useNProgress).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -119,6 +123,7 @@ describe('package entry', () => {
       'useLocalStorage',
       'useMouse',
       'useMousePressed',
+      'useNProgress',
       'useOnClickOutside',
       'useOnElementRemoval',
       'useOnKeyStroke',
@@ -146,5 +151,8 @@ describe('package entry', () => {
     expect(entry).not.toHaveProperty('decodeUtf8Strict')
     expect(entry).not.toHaveProperty('decodeJwtWithFallback')
     expect(entry).not.toHaveProperty('extractJwtSegments')
+    expect(entry).not.toHaveProperty('acquireOwner')
+    expect(entry).not.toHaveProperty('createOwnerToken')
+    expect(entry).not.toHaveProperty('getChannelOwnerCount')
   })
 })

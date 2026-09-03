@@ -2070,6 +2070,86 @@ Leading/trailing whitespace around the entire token is trimmed. Whitespace insid
 
 See Storybook (`Hooks/useJwt`) for the JWT inspector and related examples.
 
+---
+
+### `useNProgress`
+
+Package-native top-of-page progress indicator with shared document-level ownership. Zero external dependencies — all DOM work is handled by the hook itself.
+
+```tsx
+import { useNProgress } from '@muradyanvano/react-hooks'
+
+// Imperative usage
+function App() {
+  const { isLoading, progress, start, done } = useNProgress()
+
+  const loadData = async () => {
+    start()
+    try {
+      await fetchSomeData()
+    } finally {
+      done()
+    }
+  }
+
+  return (
+    <main>
+      {isLoading ? <p>Loading {Math.round((progress ?? 0) * 100)}%</p> : null}
+      <button type="button" onClick={loadData}>
+        Load
+      </button>
+    </main>
+  )
+}
+
+// Declarative usage (pass progress value directly)
+function Upload({ progress }: { progress: number | null }) {
+  // null → complete, number < 1 → set progress, number >= 1 → complete
+  const { isLoading } = useNProgress(progress)
+  return <p>{isLoading ? 'Uploading…' : 'Done'}</p>
+}
+```
+
+**Options** (all optional):
+
+| Option         | Type                  | Default                   | Description                               |
+| -------------- | --------------------- | ------------------------- | ----------------------------------------- |
+| `minimum`      | `number`              | `0.08`                    | Minimum starting progress (0–1)           |
+| `easing`       | `string`              | `'ease'`                  | CSS easing for the bar transition         |
+| `speed`        | `number`              | `200`                     | Transition duration in ms                 |
+| `trickle`      | `boolean`             | `true`                    | Auto-advance progress over time           |
+| `trickleSpeed` | `number`              | `200`                     | Trickle tick interval in ms               |
+| `showSpinner`  | `boolean`             | `true`                    | Show corner spinner                       |
+| `color`        | `string`              | `'#4f46e5'`               | Progress bar color                        |
+| `height`       | `number`              | `3`                       | Bar height in pixels                      |
+| `zIndex`       | `number`              | `1031`                    | CSS z-index of the root element           |
+| `removeDelay`  | `number`              | `200`                     | Delay after transition before DOM removal |
+| `ariaLabel`    | `string`              | `'Page loading progress'` | ARIA label for the progress bar           |
+| `document`     | `Document \| null`    | globalThis.document       | Target document (`null` = disabled)       |
+| `parent`       | `HTMLElement \| null` | `document.body`           | Parent element (`null` = disabled)        |
+
+**Return values:**
+
+| Field                | Type                    | Description                           |
+| -------------------- | ----------------------- | ------------------------------------- |
+| `isLoading`          | `boolean`               | True while this owner is active       |
+| `progress`           | `number \| null`        | Current progress (null when idle)     |
+| `start()`            | `() => void`            | Begin loading from minimum            |
+| `set(value)`         | `(n: number) => void`   | Set exact progress (≥1 triggers done) |
+| `increment(amount?)` | `(n?: number) => void`  | Advance by auto or explicit amount    |
+| `done(force?)`       | `(b?: boolean) => void` | Complete with transition animation    |
+| `remove()`           | `() => void`            | Immediately release with no animation |
+
+**Key behaviors:**
+
+- Multiple hook instances sharing `(document, parent)` share one visual bar. The bar shows the minimum active progress.
+- SSR-safe: idle state on the server, no DOM work, no `useLayoutEffect`.
+- StrictMode-safe: effect cleanup ensures exactly one active owner.
+- Reduced motion: injected stylesheet includes `prefers-reduced-motion` media query.
+- Custom parent: progress is `position: absolute` inside the parent element.
+
+See Storybook (`Hooks/useNProgress`) for 20 interactive examples.
+
 ## Development
 
 ```bash

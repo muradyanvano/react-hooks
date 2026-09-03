@@ -198,3 +198,9 @@ export {
   type UseJwtPayload,
   type UseJwtReturn,
 } from './hooks/useJwt/useJwt'
+
+export {
+  useNProgress,
+  type UseNProgressOptions,
+  type UseNProgressReturn,
+} from './hooks/useNProgress/useNProgress'

@@ -34,6 +34,7 @@ Current hooks:
 - `useSessionStorage`
 - `useCookies`
 - `useJwt`
+- `useNProgress`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

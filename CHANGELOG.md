@@ -166,11 +166,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `UseJwtOptions`
   - `UseJwtReturn`
 - Runtime, type, helper, and SSR coverage for `useJwt`
+- `useNProgress` hook with public types:
+  - `UseNProgressOptions`
+  - `UseNProgressReturn`
+- Package-native progress indicator with zero external dependencies
+- Shared document-level ownership via `WeakMap<Document, Map<HTMLElement, ProgressChannel>>`
+- Multiple active owners aggregate progress (minimum-wins policy)
+- SSR-safe (idle state on server, no DOM/timers/styles during render)
+- StrictMode-safe with exact cleanup and generation guards
+- Reduced motion support via injected `prefers-reduced-motion` stylesheet
+- Custom parent/document support for embedded progress bars
+- Declarative `currentProgress` parameter for React-state-driven progress
+- Runtime, type, helper, and SSR coverage for `useNProgress`
 - React 18 packed-consumer SSR check (`npm run test:ssr:react18`) integrated into `verify:ci`
 - Public API notes in `docs/public-api.md`
 - Storybook documentation environment (local only; not deployed):
   - Introduction and Getting Started pages
-  - Interactive examples for `useOnClickOutside`, `useOnElementRemoval`, `useOnKeyStroke`, `useEventListener`, `useOnLongPress`, `useOnStartTyping`, `useDevicesList`, `useDisplayMedia`, `useElementByPoint`, `useElementHover`, `useFocus`, `useFocusWithin`, `useInfiniteScroll`, `useMouse`, `useMousePressed`, `useParallax`, `useScroll`, `useScrollLock`, `useUserMedia`, `useWebSocket`, `useLocalStorage`, `useSessionStorage`, `useCookies`, and `useJwt`
+  - Interactive examples for `useOnClickOutside`, `useOnElementRemoval`, `useOnKeyStroke`, `useEventListener`, `useOnLongPress`, `useOnStartTyping`, `useDevicesList`, `useDisplayMedia`, `useElementByPoint`, `useElementHover`, `useFocus`, `useFocusWithin`, `useInfiniteScroll`, `useMouse`, `useMousePressed`, `useParallax`, `useScroll`, `useScrollLock`, `useUserMedia`, `useWebSocket`, `useLocalStorage`, `useSessionStorage`, `useCookies`, `useJwt`, and `useNProgress`
   - Accessibility addon checks and browser interaction tests
   - Tailwind CSS v4 styling limited to Storybook
   - Shared example showcase with Show/Hide code, Copy code, and Shiki TSX highlighting (`github-light-high-contrast`)

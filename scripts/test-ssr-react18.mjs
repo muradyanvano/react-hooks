@@ -184,6 +184,7 @@ import {
   useSessionStorage,
   useCookies,
   useJwt,
+  useNProgress,
 } from '@muradyanvano/react-hooks'
 
 const SSR_JWT_VALID =
@@ -390,6 +391,27 @@ function TestComponent() {
   void jwtInvalid.errors
   const jwtTyped = useJwt(SSR_JWT_TYPED)
   void jwtTyped.payload
+  // useNProgress SSR check: must return idle state with no DOM work
+  const npProgress = useNProgress()
+  if (npProgress.isLoading) throw new Error('useNProgress.isLoading must be false during SSR')
+  if (npProgress.progress !== null) throw new Error('useNProgress.progress must be null during SSR')
+  // Methods must exist and not throw when called in SSR context (they are no-ops)
+  void npProgress.start
+  void npProgress.set
+  void npProgress.increment
+  void npProgress.done
+  void npProgress.remove
+  // Declarative progress with number: server should be idle
+  const npDeclarative = useNProgress(0.5)
+  if (npDeclarative.isLoading) throw new Error('useNProgress (declarative) isLoading must be false during SSR')
+  if (npDeclarative.progress !== null) throw new Error('useNProgress (declarative) progress must be null during SSR')
+  // Declarative null: no-op on server
+  const npNull = useNProgress(null)
+  if (npNull.isLoading) throw new Error('useNProgress (null) isLoading must be false during SSR')
+  // document:null: explicitly disabled channel
+  const npNoDoc = useNProgress(undefined, { document: null })
+  void npNoDoc.isLoading
+  void npNoDoc.progress
   return createElement(
     'div',
     { ref, 'data-focus-api': 'ready' },
