@@ -10,6 +10,9 @@ const reactExternals = [
   'react/jsx-dev-runtime',
 ]
 
+/** Runtime encoder — keep external so Node/browser resolution stays with the consumer. */
+const packageExternals = [...reactExternals, 'qrcode']
+
 const isStorybook = process.argv.some((argument) =>
   argument.toLowerCase().includes('storybook'),
 )
@@ -45,7 +48,7 @@ export default defineConfig({
             fileName: 'index',
           },
           rollupOptions: {
-            external: reactExternals,
+            external: packageExternals,
           },
           sourcemap: true,
           emptyOutDir: true,

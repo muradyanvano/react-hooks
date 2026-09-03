@@ -35,6 +35,7 @@ Current hooks:
 - `useCookies`
 - `useJwt`
 - `useNProgress`
+- `useQRCode`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

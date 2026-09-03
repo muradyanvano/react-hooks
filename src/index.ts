@@ -204,3 +204,13 @@ export {
   type UseNProgressOptions,
   type UseNProgressReturn,
 } from './hooks/useNProgress/useNProgress'
+
+export {
+  useQRCode,
+  type UseQRCodeColorOptions,
+  type UseQRCodeErrorCorrectionLevel,
+  type UseQRCodeImageType,
+  type UseQRCodeMaskPattern,
+  type UseQRCodeOptions,
+  type UseQRCodeReturn,
+} from './hooks/useQRCode/useQRCode'

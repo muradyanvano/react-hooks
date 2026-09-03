@@ -107,6 +107,10 @@ describe('package entry', () => {
     expect(entry.useNProgress).toBeTypeOf('function')
   })
 
+  it('exports useQRCode and its public types', () => {
+    expect(entry.useQRCode).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -130,6 +134,7 @@ describe('package entry', () => {
       'useOnLongPress',
       'useOnStartTyping',
       'useParallax',
+      'useQRCode',
       'useScroll',
       'useScrollLock',
       'useSessionStorage',
@@ -154,5 +159,9 @@ describe('package entry', () => {
     expect(entry).not.toHaveProperty('acquireOwner')
     expect(entry).not.toHaveProperty('createOwnerToken')
     expect(entry).not.toHaveProperty('getChannelOwnerCount')
+    expect(entry).not.toHaveProperty('encodeQrDataUrl')
+    expect(entry).not.toHaveProperty('validateAndNormalizeOptions')
+    expect(entry).not.toHaveProperty('toEncoderOptions')
+    expect(entry).not.toHaveProperty('createQRCodeOptionsSignature')
   })
 })

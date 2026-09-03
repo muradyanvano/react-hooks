@@ -1915,6 +1915,107 @@ During server-side rendering, `useNProgress` returns `{ isLoading: false, progre
 
 Unreleased beta API. May change before `0.1.0`.
 
+---
+
+## `useQRCode`
+
+Generates QR code image data URLs from text via the MIT-licensed `qrcode` runtime dependency.
+
+### Signature
+
+```ts
+export function useQRCode(
+  text: string,
+  options?: UseQRCodeOptions,
+): UseQRCodeReturn
+```
+
+### Types
+
+```ts
+export type UseQRCodeErrorCorrectionLevel =
+  'L' | 'M' | 'Q' | 'H' | 'low' | 'medium' | 'quartile' | 'high'
+
+export type UseQRCodeMaskPattern = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
+
+export type UseQRCodeImageType = 'image/png' | 'image/jpeg' | 'image/webp'
+
+export interface UseQRCodeColorOptions {
+  dark?: string
+  light?: string
+}
+
+export interface UseQRCodeOptions {
+  enabled?: boolean
+  version?: number
+  errorCorrectionLevel?: UseQRCodeErrorCorrectionLevel
+  maskPattern?: UseQRCodeMaskPattern
+  margin?: number
+  scale?: number
+  width?: number
+  color?: UseQRCodeColorOptions
+  type?: UseQRCodeImageType
+  quality?: number
+  onError?: (error: Error) => void
+}
+
+export interface UseQRCodeReturn {
+  dataUrl: string
+  isLoading: boolean
+  error: Error | null
+  generate: () => Promise<string | null>
+}
+```
+
+### Defaults
+
+- `enabled: true`
+- `errorCorrectionLevel: 'M'`
+- `margin: 4`
+- Other encoder options keep the underlying `qrcode` defaults when omitted
+
+### Behavior
+
+- Initial and SSR state: `{ dataUrl: '', isLoading: false, error: null }`
+- Automatic generation after mount for non-empty `text` when `enabled` is true
+- Empty text clears `dataUrl` / `isLoading` / `error` and does not call the encoder
+- Text is encoded exactly (Unicode, emoji, newlines, whitespace, URL queries)
+- `enabled: false` clears automatic output; `generate()` remains usable
+- Newest generation ID wins; stale successes/failures cannot update state or call `onError`
+- Starting a request clears prior `error` and previous `dataUrl` for the owned request
+- Invalid options fail closed without calling the encoder
+- `generate()` returns the produced data URL or `null` on failure; identity is stable
+- Changing only `onError` identity does not regenerate
+- Equivalent option values (including equivalent `color` object values) do not regenerate
+
+### SSR behavior
+
+`renderToString` returns the idle state and does not invoke the encoder. Importing the packed package in Node is safe. Effects perform generation after client mount.
+
+### Limitations
+
+- Runtime dependency on `qrcode` (intentional; not a zero-runtime-dependency package overall)
+- No built-in scanner, camera reader, download manager, URL validator, logo overlay, or content security verification
+- Scanning does not validate or trust QR content; consumers own display/validation and `<img alt>` text
+- Capacity depends on content, version, encoding mode, and error-correction level
+- Quiet-zone (`margin`) and contrast strongly affect scan reliability
+- Generated data URLs may be large
+- JPEG/WebP `quality` applies through the encoder’s renderer options; PNG ignores quality
+
+### Exported names
+
+- `useQRCode`
+- `UseQRCodeErrorCorrectionLevel`
+- `UseQRCodeMaskPattern`
+- `UseQRCodeImageType`
+- `UseQRCodeColorOptions`
+- `UseQRCodeOptions`
+- `UseQRCodeReturn`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

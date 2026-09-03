@@ -9,6 +9,7 @@ This package is **not published to npm yet**. Consume it from this repository on
 - Version: `0.1.0-beta.1` (unreleased)
 - Module format: ESM-only
 - React peer range: `^18.0.0 || ^19.0.0`
+- Runtime dependency: `qrcode` (used by `useQRCode` only; other hooks stay dependency-free at the package API surface)
 - Goal: SSR-safe imports with no browser globals required at module evaluation time
 - Publishing has not been authorized
 
@@ -2152,6 +2153,84 @@ function Upload({ progress }: { progress: number | null }) {
 - CSP: one shared namespaced `<style>` per document (keyframes / reduced-motion). Color and easing use element styles; allow style injection via your CSP policy.
 
 See Storybook (`Hooks/useNProgress`) for 20 interactive examples.
+
+---
+
+### `useQRCode`
+
+Generates QR code image data URLs from text using the MIT-licensed [`qrcode`](https://www.npmjs.com/package/qrcode) encoder (runtime dependency).
+
+```tsx
+import { useQRCode } from '@muradyanvano/react-hooks'
+
+function ShareLink() {
+  const { dataUrl, isLoading, error } = useQRCode('https://example.test/demo', {
+    width: 256,
+    margin: 4,
+    errorCorrectionLevel: 'M',
+  })
+
+  if (isLoading) return <p>Generating QR code…</p>
+  if (error)
+    return <p role="alert">Could not generate QR code: {error.message}</p>
+  if (!dataUrl) return <p>Enter text to generate a QR code.</p>
+
+  return (
+    <img
+      src={dataUrl}
+      width={256}
+      height={256}
+      alt="QR code for https://example.test/demo"
+    />
+  )
+}
+```
+
+#### Signature
+
+```ts
+useQRCode(text: string, options?: UseQRCodeOptions): UseQRCodeReturn
+```
+
+#### Options
+
+| Option                  | Default | Notes                                                        |
+| ----------------------- | ------- | ------------------------------------------------------------ |
+| `enabled`               | `true`  | Automatic generation when text is non-empty                  |
+| `errorCorrectionLevel`  | `'M'`   | `L`/`M`/`Q`/`H` or `low`/`medium`/`quartile`/`high`          |
+| `margin`                | `4`     | Quiet-zone modules                                           |
+| `version`               | —       | Integer `1…40` when forced                                   |
+| `maskPattern`           | —       | Integer `0…7` when forced                                    |
+| `scale`                 | —       | Positive scale factor (encoder default when omitted)         |
+| `width`                 | —       | Positive output width in pixels                              |
+| `color.dark` / `.light` | —       | Hex colors (`#RGB`, `#RGBA`, `#RRGGBB`, `#RRGGBBAA`)         |
+| `type`                  | —       | `image/png`, `image/jpeg`, or `image/webp`                   |
+| `quality`               | —       | `0…1` for JPEG/WebP via the encoder’s `rendererOpts.quality` |
+| `onError`               | —       | Latest-callback failure notifier (owned request only)        |
+
+#### Return value
+
+| Field       | Type                            | Notes                                                   |
+| ----------- | ------------------------------- | ------------------------------------------------------- |
+| `dataUrl`   | `string`                        | Empty string when idle, empty text, disabled, or failed |
+| `isLoading` | `boolean`                       | True only while the currently owned request is running  |
+| `error`     | `Error \| null`                 | Normalized failure for the owned request                |
+| `generate`  | `() => Promise<string \| null>` | Stable; usable while `enabled: false`                   |
+
+#### Behavior notes
+
+- Initial / SSR state is `{ dataUrl: '', isLoading: false, error: null }` with no encoder work during render.
+- Non-empty `text` with `enabled: true` generates after mount. Empty text clears output. Whitespace is preserved exactly (no trim).
+- `enabled: false` skips automatic generation and clears automatic output; `generate()` still works with the latest text/options.
+- Asynchronous requests use monotonically increasing generation IDs (newest wins). Stale successes/failures cannot update state or call `onError`.
+- Changing configuration clears the previous `dataUrl` before showing a new result so old images are not shown beside new input.
+- Invalid options never call the encoder; they produce a normalized `Error`, clear output, and invoke `onError` once for the owned request.
+- Consumers own `<img alt="…">` accessibility text. Scanning a QR code does **not** validate or trust its content.
+- Payload capacity depends on version, encoding mode, and error-correction level. Dense payloads, low contrast, tiny quiet zones, and aggressive resizing reduce scan reliability.
+- Generated data URLs can be large. There is no logo overlay, scanner, camera reader, download manager, URL validator, or security verifier in this hook.
+- This package intentionally depends on `qrcode` at runtime (plus its transitive dependencies). React remains a peer dependency.
+
+See Storybook (`Hooks/useQRCode`) for the QR code generator and related examples.
 
 ## Development
 

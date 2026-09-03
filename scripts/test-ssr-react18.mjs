@@ -185,6 +185,7 @@ import {
   useCookies,
   useJwt,
   useNProgress,
+  useQRCode,
 } from '@muradyanvano/react-hooks'
 
 const SSR_JWT_VALID =
@@ -412,6 +413,20 @@ function TestComponent() {
   const npNoDoc = useNProgress(undefined, { document: null })
   void npNoDoc.isLoading
   void npNoDoc.progress
+  // useQRCode SSR check: idle state, generate exists, no automatic encoder work
+  const qr = useQRCode('ssr-should-not-encode', {
+    onError: () => {
+      throw new Error('useQRCode onError must not run during SSR')
+    },
+  })
+  if (qr.dataUrl !== '') throw new Error('useQRCode.dataUrl must be empty during SSR')
+  if (qr.isLoading) throw new Error('useQRCode.isLoading must be false during SSR')
+  if (qr.error !== null) throw new Error('useQRCode.error must be null during SSR')
+  if (typeof qr.generate !== 'function') throw new Error('useQRCode.generate must exist during SSR')
+  const qrEmpty = useQRCode('')
+  if (qrEmpty.dataUrl !== '') throw new Error('useQRCode empty text must stay idle during SSR')
+  const qrDisabled = useQRCode('disabled', { enabled: false })
+  if (qrDisabled.dataUrl !== '') throw new Error('useQRCode disabled must stay idle during SSR')
   return createElement(
     'div',
     { ref, 'data-focus-api': 'ready' },
@@ -668,6 +683,23 @@ function CaptureJwtApi() {
   return createElement('div', null, 'jwt-api')
 }
 
+let qrGenerate
+let qrDataUrl
+let qrIsLoading
+let qrError
+function CaptureQRCodeApi() {
+  const qr = useQRCode('ssr-capture', {
+    onError: () => {
+      throw new Error('useQRCode onError must not run during SSR capture')
+    },
+  })
+  qrGenerate = qr.generate
+  qrDataUrl = qr.dataUrl
+  qrIsLoading = qr.isLoading
+  qrError = qr.error
+  return createElement('div', null, 'qr-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -685,6 +717,7 @@ let postRenderLocalStorageError = null
 let postRenderSessionStorageError = null
 let postRenderCookiesError = null
 let postRenderJwtError = null
+let postRenderQRCodeError = null
 let getUserMediaCalls = 0
 let webSocketConstructCalls = 0
 let localStorageGetItemCalls = 0
@@ -774,6 +807,7 @@ try {
   renderToString(createElement(CaptureSessionStorageApi))
   renderToString(createElement(CaptureCookiesApi))
   renderToString(createElement(CaptureJwtApi))
+  renderToString(createElement(CaptureQRCodeApi))
   if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
     postRenderScrollLockError = 'useScrollLock controls missing'
   }
@@ -998,6 +1032,21 @@ try {
         jwtOnErrorCalls,
       })
   }
+  if (
+    typeof qrGenerate !== 'function' ||
+    qrDataUrl !== '' ||
+    qrIsLoading !== false ||
+    qrError !== null
+  ) {
+    postRenderQRCodeError =
+      'Unexpected useQRCode SSR state: ' +
+      JSON.stringify({
+        hasGenerate: typeof qrGenerate === 'function',
+        qrDataUrl,
+        qrIsLoading,
+        qrError,
+      })
+  }
   try {
     focusMethod()
   } catch (error) {
@@ -1126,6 +1175,7 @@ console.log(
     postRenderSessionStorageError,
     postRenderCookiesError,
     postRenderJwtError,
+    postRenderQRCodeError,
     webSocketConstructCalls,
     localStorageGetItemCalls,
     localStorageSetItemCalls,
@@ -1243,6 +1293,12 @@ console.log(
 
   if (payload.postRenderJwtError) {
     throw new Error(`useJwt SSR check failed:\\n${payload.postRenderJwtError}`)
+  }
+
+  if (payload.postRenderQRCodeError) {
+    throw new Error(
+      `useQRCode SSR check failed:\\n${payload.postRenderQRCodeError}`,
+    )
   }
 
   if (payload.setIntervalCalls !== 0) {

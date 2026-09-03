@@ -17,6 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `useQRCode` hook with public types:
+  - `UseQRCodeErrorCorrectionLevel`
+  - `UseQRCodeMaskPattern`
+  - `UseQRCodeImageType`
+  - `UseQRCodeColorOptions`
+  - `UseQRCodeOptions`
+  - `UseQRCodeReturn`
+- Runtime dependency on `qrcode@^1.5.4` (MIT) for standards-compliant QR encoding; `@types/qrcode` as a development dependency
+- Runtime, type, helper, Storybook, and SSR coverage for `useQRCode`
 - Package foundation for `@muradyanvano/react-hooks`
 - ESM-only Vite library build with TypeScript declarations
 - Strict TypeScript, ESLint, Prettier, and Vitest tooling
@@ -190,7 +199,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Public API notes in `docs/public-api.md`
 - Storybook documentation environment (local only; not deployed):
   - Introduction and Getting Started pages
-  - Interactive examples for `useOnClickOutside`, `useOnElementRemoval`, `useOnKeyStroke`, `useEventListener`, `useOnLongPress`, `useOnStartTyping`, `useDevicesList`, `useDisplayMedia`, `useElementByPoint`, `useElementHover`, `useFocus`, `useFocusWithin`, `useInfiniteScroll`, `useMouse`, `useMousePressed`, `useParallax`, `useScroll`, `useScrollLock`, `useUserMedia`, `useWebSocket`, `useLocalStorage`, `useSessionStorage`, `useCookies`, `useJwt`, and `useNProgress`
+  - Interactive examples for `useOnClickOutside`, `useOnElementRemoval`, `useOnKeyStroke`, `useEventListener`, `useOnLongPress`, `useOnStartTyping`, `useDevicesList`, `useDisplayMedia`, `useElementByPoint`, `useElementHover`, `useFocus`, `useFocusWithin`, `useInfiniteScroll`, `useMouse`, `useMousePressed`, `useParallax`, `useScroll`, `useScrollLock`, `useUserMedia`, `useWebSocket`, `useLocalStorage`, `useSessionStorage`, `useCookies`, `useJwt`, `useNProgress`, and `useQRCode`
   - Accessibility addon checks and browser interaction tests
   - Tailwind CSS v4 styling limited to Storybook
   - Shared example showcase with Show/Hide code, Copy code, and Shiki TSX highlighting (`github-light-high-contrast`)

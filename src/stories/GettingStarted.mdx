@@ -165,13 +165,20 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useJwt</code> — decode compact JWT header/payload contents only
       (signature not verified)
     </li>
+    <li>
+      <code>useNProgress</code> — package-native top-of-page progress indicator
+    </li>
+    <li>
+      <code>useQRCode</code> — QR image data URLs via the <code>qrcode</code>{' '}
+      runtime dependency (scanning does not validate content)
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Twenty-five public hooks exist in this prerelease.</li>
+    <li>Twenty-six public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -292,6 +299,13 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       claims are trustworthy. Never authorize from client-side decoded claims
       alone. <code>exp</code>/<code>nbf</code>/<code>iat</code> are NumericDate
       seconds. Use only synthetic tokens in examples.
+    </li>
+    <li>
+      <code>useQRCode</code> generates image data URLs only. Scanning does not
+      validate or trust destinations. Capacity depends on version, encoding, and
+      error-correction. Quiet zone and contrast matter for scan reliability. The
+      package depends on <code>qrcode</code> for encoding. Use only synthetic
+      payloads in examples.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.
