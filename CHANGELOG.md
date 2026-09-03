@@ -142,11 +142,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `UseLocalStorageOptions`
   - `UseLocalStorageReturn`
 - Runtime, type, helper, and SSR coverage for `useLocalStorage`
+- `useSessionStorage` hook with public types:
+  - `UseSessionStorageSerializer`
+  - `UseSessionStorageMergeDefaults`
+  - `UseSessionStorageOptions`
+  - `UseSessionStorageReturn`
+- Shared private browser-storage engine for local/session hooks (serializers, registry, pre-ready mutation ownership)
+- Runtime, type, helper, regression, and SSR coverage for `useSessionStorage`
 - React 18 packed-consumer SSR check (`npm run test:ssr:react18`) integrated into `verify:ci`
 - Public API notes in `docs/public-api.md`
 - Storybook documentation environment (local only; not deployed):
   - Introduction and Getting Started pages
-  - Interactive examples for `useOnClickOutside`, `useOnElementRemoval`, `useOnKeyStroke`, `useEventListener`, `useOnLongPress`, `useOnStartTyping`, `useDevicesList`, `useDisplayMedia`, `useElementByPoint`, `useElementHover`, `useFocus`, `useFocusWithin`, `useInfiniteScroll`, `useMouse`, `useMousePressed`, `useParallax`, `useScroll`, `useScrollLock`, `useUserMedia`, `useWebSocket`, and `useLocalStorage`
+  - Interactive examples for `useOnClickOutside`, `useOnElementRemoval`, `useOnKeyStroke`, `useEventListener`, `useOnLongPress`, `useOnStartTyping`, `useDevicesList`, `useDisplayMedia`, `useElementByPoint`, `useElementHover`, `useFocus`, `useFocusWithin`, `useInfiniteScroll`, `useMouse`, `useMousePressed`, `useParallax`, `useScroll`, `useScrollLock`, `useUserMedia`, `useWebSocket`, `useLocalStorage`, and `useSessionStorage`
   - Accessibility addon checks and browser interaction tests
   - Tailwind CSS v4 styling limited to Storybook
   - Shared example showcase with Show/Hide code, Copy code, and Shiki TSX highlighting (`github-light-high-contrast`)

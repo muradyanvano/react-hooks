@@ -1524,6 +1524,85 @@ Default-first return with safe no-op controls; no Storage method calls, listener
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useSessionStorage`
+
+Persists a value in `window.sessionStorage` with the same SSR-safe hydration, automatic serializers, same-document registry synchronization, and optional native `storage` events as `useLocalStorage`.
+
+Session storage survives reloads in the same browsing context and is cleared when that top-level session ends. It is not a durable cross-tab global store.
+
+### Signature
+
+```ts
+import type { Dispatch, SetStateAction } from 'react'
+
+export interface UseSessionStorageSerializer<T> {
+  read: (raw: string) => T
+  write: (value: T) => string
+}
+
+export type UseSessionStorageMergeDefaults<T> =
+  boolean | ((storedValue: T, defaultValue: T) => T)
+
+export interface UseSessionStorageOptions<T> {
+  serializer?: UseSessionStorageSerializer<T>
+  mergeDefaults?: UseSessionStorageMergeDefaults<T>
+  writeDefaults?: boolean
+  listenToStorageChanges?: boolean
+  window?: Window | null
+  onError?: (error: Error) => void
+}
+
+export interface UseSessionStorageReturn<T> {
+  value: T
+  setValue: Dispatch<SetStateAction<T>>
+  remove: () => void
+  reset: () => void
+  isSupported: boolean
+  isReady: boolean
+  error: Error | null
+}
+
+export function useSessionStorage<T>(
+  key: string,
+  defaultValue: T,
+  options?: UseSessionStorageOptions<T>,
+): UseSessionStorageReturn<T>
+```
+
+### Defaults
+
+Same as `useLocalStorage`: `mergeDefaults = false`, `writeDefaults = true`, `listenToStorageChanges = true`, omitted `window` resolves after mount, `onError` is a no-op.
+
+Initial / SSR return: `value = defaultValue`, `isSupported = false`, `isReady = false`, `error = null`.
+
+### Behavior
+
+- Effect-only access to `sessionStorage` via the shared private browser-storage engine.
+- Serializer, merge, remove/reset, error, registry, and pre-ready mutation ownership semantics match `useLocalStorage`.
+- Local and session values with the same textual key remain independent (different Storage objects).
+- Native session-storage events apply only to eligible related browsing contexts, not ordinary separate tabs.
+
+### Exported types
+
+- `UseSessionStorageSerializer`
+- `UseSessionStorageMergeDefaults`
+- `UseSessionStorageOptions`
+- `UseSessionStorageReturn`
+
+### SSR
+
+Default-first return with safe no-op controls; no Storage method calls during render.
+
+### Limitations
+
+- Not durable across separate top-level tabs/windows
+- Synchronous storage, quotas, privacy modes, and JSON type gaps still apply
+- Not encryption
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

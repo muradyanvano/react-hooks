@@ -1839,6 +1839,97 @@ export function PreferencesPanel() {
 
 See Storybook (`Hooks/useLocalStorage`) for the fruit editor and related examples.
 
+### `useSessionStorage`
+
+Persists a value in `sessionStorage` with the same SSR-safe hydration, serializers, controls, and same-document sync as `useLocalStorage`.
+
+Session storage survives reloads in the same browsing context and is cleared when that top-level session ends. It is **not** a durable cross-tab store—ordinary separate tabs generally have separate session-storage areas.
+
+```tsx
+import { useSessionStorage } from '@muradyanvano/react-hooks'
+
+interface CheckoutDraft {
+  step: number
+  email: string
+  deliveryMethod: 'delivery' | 'pickup'
+}
+
+const emptyDraft: CheckoutDraft = {
+  step: 1,
+  email: '',
+  deliveryMethod: 'delivery',
+}
+
+export function CheckoutProgress() {
+  const {
+    value: draft,
+    setValue: setDraft,
+    reset,
+    remove,
+    isReady,
+    error,
+  } = useSessionStorage('checkout-draft', emptyDraft, {
+    mergeDefaults: true,
+  })
+
+  if (!isReady) {
+    return <p>Loading checkout…</p>
+  }
+
+  return (
+    <section>
+      <p>Step {draft.step}</p>
+
+      <input
+        value={draft.email}
+        onChange={(event) =>
+          setDraft((current) => ({
+            ...current,
+            email: event.target.value,
+          }))
+        }
+      />
+
+      <button
+        type="button"
+        onClick={() =>
+          setDraft((current) => ({
+            ...current,
+            step: current.step + 1,
+          }))
+        }
+      >
+        Continue
+      </button>
+
+      <button type="button" onClick={reset}>
+        Reset draft
+      </button>
+
+      <button type="button" onClick={remove}>
+        Discard draft
+      </button>
+
+      {error && <p role="alert">{error.message}</p>}
+    </section>
+  )
+}
+```
+
+Options, serializers, `remove` vs `reset`, merge defaults, and error semantics match `useLocalStorage`. Native `storage` events for session storage apply only to eligible related same-origin browsing contexts (for example some iframes), not ordinary separate tabs.
+
+#### Current limitations
+
+- Scoped to origin and top-level browsing session; usually does not sync across separate tabs
+- Reloading the same tab preserves it; closing the tab/window ends the session
+- Opener behavior may create an initial copied storage area
+- Synchronous storage, quotas, and privacy restrictions still apply
+- Not encryption — never store secrets without a security design
+- Same-document sync is limited to one package copy and the same Storage object
+- SSR returns defaults until client initialization
+
+See Storybook (`Hooks/useSessionStorage`) for the checkout draft and related examples.
+
 ## Development
 
 ```bash

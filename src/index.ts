@@ -169,3 +169,11 @@ export {
   type UseLocalStorageReturn,
   type UseLocalStorageSerializer,
 } from './hooks/useLocalStorage/useLocalStorage'
+
+export {
+  useSessionStorage,
+  type UseSessionStorageMergeDefaults,
+  type UseSessionStorageOptions,
+  type UseSessionStorageReturn,
+  type UseSessionStorageSerializer,
+} from './hooks/useSessionStorage/useSessionStorage'

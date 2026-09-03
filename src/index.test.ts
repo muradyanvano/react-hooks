@@ -91,6 +91,10 @@ describe('package entry', () => {
     expect(entry.useLocalStorage).toBeTypeOf('function')
   })
 
+  it('exports useSessionStorage and its public types', () => {
+    expect(entry.useSessionStorage).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -113,6 +117,7 @@ describe('package entry', () => {
       'useParallax',
       'useScroll',
       'useScrollLock',
+      'useSessionStorage',
       'useUserMedia',
       'useWebSocket',
     ])
@@ -123,5 +128,7 @@ describe('package entry', () => {
     expect(entry).not.toHaveProperty('createDefaultSerializer')
     expect(entry).not.toHaveProperty('subscribeSameDocument')
     expect(entry).not.toHaveProperty('notifySameDocument')
+    expect(entry).not.toHaveProperty('useBrowserStorage')
+    expect(entry).not.toHaveProperty('resolveBrowserStorage')
   })
 })

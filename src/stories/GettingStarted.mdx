@@ -153,13 +153,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       with SSR-safe hydration, automatic serializers, same-document sync, and
       optional cross-tab events
     </li>
+    <li>
+      <code>useSessionStorage</code> — tab-scoped persistence in{' '}
+      <code>sessionStorage</code> with the same hydration-safe control surface
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Twenty-two public hooks exist in this prerelease.</li>
+    <li>Twenty-three public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -264,6 +268,11 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       payloads fall back locally without auto-deletion. <code>remove()</code>{' '}
       deletes; <code>reset()</code> writes defaults. Do not store secrets — this
       is persistence, not encryption.
+    </li>
+    <li>
+      <code>useSessionStorage</code> matches that control surface for{' '}
+      <code>sessionStorage</code>. It survives reloads in the same browsing
+      context but is not a durable cross-tab store.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

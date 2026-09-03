@@ -181,6 +181,7 @@ import {
   useUserMedia,
   useWebSocket,
   useLocalStorage,
+  useSessionStorage,
 } from '@muradyanvano/react-hooks'
 
 const require = createRequire(import.meta.url)
@@ -334,10 +335,35 @@ function TestComponent() {
     },
   })
   void localStorageCustom.value
+  const sessionStoragePrimitive = useSessionStorage(
+    'ssr-session-storage',
+    'ssr-session-default',
+  )
+  void sessionStoragePrimitive.value
+  void sessionStoragePrimitive.isReady
+  void sessionStoragePrimitive.isSupported
+  const sessionStorageObject = useSessionStorage('ssr-session-storage-object', {
+    step: 1,
+  })
+  void sessionStorageObject.value.step
+  const sessionStorageCustom = useSessionStorage('ssr-session-storage-custom', 0, {
+    serializer: {
+      read: (raw) => Number(raw),
+      write: (value) => String(value),
+    },
+    window: null,
+  })
+  void sessionStorageCustom.value
+  void sessionStorageCustom.isSupported
   return createElement(
     'div',
     { ref, 'data-focus-api': 'ready' },
-    'ssr-ok:' + localStoragePrimitive.value + ':' + localStorageObject.value.theme,
+    'ssr-ok:' +
+      localStoragePrimitive.value +
+      ':' +
+      localStorageObject.value.theme +
+      ':' +
+      sessionStoragePrimitive.value,
   )
 }
 
@@ -467,6 +493,44 @@ function CaptureLocalStorageApi() {
   return createElement('div', null, 'local-storage-api')
 }
 
+let sessionStorageSetValue
+let sessionStorageRemove
+let sessionStorageReset
+let sessionStorageValue
+let sessionStorageIsReady
+let sessionStorageIsSupported
+let sessionStorageError
+let sessionStorageObjectStep
+let sessionStorageCustomValue
+let sessionStorageNullWindowSupported
+function CaptureSessionStorageApi() {
+  const primitive = useSessionStorage(
+    'ssr-capture-session-primitive',
+    'ssr-session-default',
+  )
+  const objectValue = useSessionStorage('ssr-capture-session-object', { step: 1 })
+  const custom = useSessionStorage('ssr-capture-session-custom', 0, {
+    serializer: {
+      read: (raw) => Number(raw),
+      write: (value) => String(value),
+    },
+  })
+  const nullWindow = useSessionStorage('ssr-capture-session-null-window', 'x', {
+    window: null,
+  })
+  sessionStorageSetValue = primitive.setValue
+  sessionStorageRemove = primitive.remove
+  sessionStorageReset = primitive.reset
+  sessionStorageValue = primitive.value
+  sessionStorageIsReady = primitive.isReady
+  sessionStorageIsSupported = primitive.isSupported
+  sessionStorageError = primitive.error
+  sessionStorageObjectStep = objectValue.value.step
+  sessionStorageCustomValue = custom.value
+  sessionStorageNullWindowSupported = nullWindow.isSupported
+  return createElement('div', null, 'session-storage-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -481,6 +545,7 @@ let postRenderScrollLockError = null
 let postRenderUserMediaError = null
 let postRenderWebSocketError = null
 let postRenderLocalStorageError = null
+let postRenderSessionStorageError = null
 let getUserMediaCalls = 0
 let webSocketConstructCalls = 0
 let localStorageGetItemCalls = 0
@@ -544,6 +609,7 @@ try {
   renderToString(createElement(CaptureUserMediaApi))
   renderToString(createElement(CaptureWebSocketApi))
   renderToString(createElement(CaptureLocalStorageApi))
+  renderToString(createElement(CaptureSessionStorageApi))
   if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
     postRenderScrollLockError = 'useScrollLock controls missing'
   }
@@ -651,6 +717,45 @@ try {
   ) {
     postRenderLocalStorageError =
       'Expected zero Storage method calls after safe controls, got get=' +
+      localStorageGetItemCalls +
+      ' set=' +
+      localStorageSetItemCalls +
+      ' remove=' +
+      localStorageRemoveItemCalls
+  }
+  if (
+    typeof sessionStorageSetValue !== 'function' ||
+    typeof sessionStorageRemove !== 'function' ||
+    typeof sessionStorageReset !== 'function'
+  ) {
+    postRenderSessionStorageError = 'useSessionStorage controls missing'
+  }
+  if (
+    sessionStorageValue !== 'ssr-session-default' ||
+    sessionStorageIsReady !== false ||
+    sessionStorageIsSupported !== false ||
+    sessionStorageError != null ||
+    sessionStorageObjectStep !== 1 ||
+    sessionStorageCustomValue !== 0 ||
+    sessionStorageNullWindowSupported !== false
+  ) {
+    postRenderSessionStorageError = 'Unexpected useSessionStorage SSR state'
+  }
+  try {
+    sessionStorageSetValue('safe')
+    sessionStorageRemove()
+    sessionStorageReset()
+  } catch (error) {
+    postRenderSessionStorageError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
+  if (
+    localStorageGetItemCalls !== 0 ||
+    localStorageSetItemCalls !== 0 ||
+    localStorageRemoveItemCalls !== 0
+  ) {
+    postRenderSessionStorageError =
+      'Expected zero Storage method calls after session controls, got get=' +
       localStorageGetItemCalls +
       ' set=' +
       localStorageSetItemCalls +
@@ -775,6 +880,7 @@ console.log(
     postRenderUserMediaError,
     postRenderWebSocketError,
     postRenderLocalStorageError,
+    postRenderSessionStorageError,
     webSocketConstructCalls,
     localStorageGetItemCalls,
     localStorageSetItemCalls,
@@ -872,6 +978,12 @@ console.log(
   if (payload.postRenderLocalStorageError) {
     throw new Error(
       `useLocalStorage SSR check failed:\\n${payload.postRenderLocalStorageError}`,
+    )
+  }
+
+  if (payload.postRenderSessionStorageError) {
+    throw new Error(
+      `useSessionStorage SSR check failed:\\n${payload.postRenderSessionStorageError}`,
     )
   }
 

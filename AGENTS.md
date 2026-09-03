@@ -31,6 +31,7 @@ Current hooks:
 - `useUserMedia`
 - `useWebSocket`
 - `useLocalStorage`
+- `useSessionStorage`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 
