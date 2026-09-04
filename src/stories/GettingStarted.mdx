@@ -172,13 +172,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useQRCode</code> — QR image data URLs via the <code>qrcode</code>{' '}
       runtime dependency (scanning does not validate content)
     </li>
+    <li>
+      <code>useFavicon</code> — controlled document favicon{' '}
+      <code>&lt;link&gt;</code> management with shared ownership
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Twenty-six public hooks exist in this prerelease.</li>
+    <li>Twenty-seven public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -306,6 +310,13 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       error-correction. Quiet zone and contrast matter for scan reliability. The
       package depends on <code>qrcode</code> for encoding. Use only synthetic
       payloads in examples.
+    </li>
+    <li>
+      <code>useFavicon</code> updates document head metadata only. Browser tab
+      icons may cache or delay. It does not generate badges, resize images,
+      manage manifests, or guarantee immediate UI refresh. Prefer isolated
+      iframe documents in Storybook demos. Consumers own accessible in-page
+      status text.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

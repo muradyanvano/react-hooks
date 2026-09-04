@@ -214,3 +214,9 @@ export {
   type UseQRCodeOptions,
   type UseQRCodeReturn,
 } from './hooks/useQRCode/useQRCode'
+
+export {
+  useFavicon,
+  type UseFaviconOptions,
+  type UseFaviconReturn,
+} from './hooks/useFavicon/useFavicon'

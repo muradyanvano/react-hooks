@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `useFavicon` hook with public types:
+  - `UseFaviconOptions`
+  - `UseFaviconReturn`
+- Runtime, helper, registry, type, Storybook, and SSR coverage for `useFavicon`
 - `useQRCode` hook with public types:
   - `UseQRCodeErrorCorrectionLevel`
   - `UseQRCodeMaskPattern`

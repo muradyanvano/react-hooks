@@ -186,6 +186,7 @@ import {
   useJwt,
   useNProgress,
   useQRCode,
+  useFavicon,
 } from '@muradyanvano/react-hooks'
 
 const SSR_JWT_VALID =
@@ -427,6 +428,25 @@ function TestComponent() {
   if (qrEmpty.dataUrl !== '') throw new Error('useQRCode empty text must stay idle during SSR')
   const qrDisabled = useQRCode('disabled', { enabled: false })
   if (qrDisabled.dataUrl !== '') throw new Error('useQRCode disabled must stay idle during SSR')
+  // useFavicon SSR check: idle unsupported state, no head mutation
+  const fav = useFavicon('https://example.com/icon.svg', {
+    onError: () => {
+      throw new Error('useFavicon onError must not run during SSR')
+    },
+  })
+  if (fav.href !== null) throw new Error('useFavicon.href must be null during SSR')
+  if (fav.isSupported !== false) throw new Error('useFavicon.isSupported must be false during SSR')
+  if (fav.error !== null) throw new Error('useFavicon.error must be null during SSR')
+  const favRelative = useFavicon('icon.svg', { baseUrl: 'https://example.com/' })
+  if (favRelative.href !== null) throw new Error('useFavicon relative must stay idle during SSR')
+  const favNull = useFavicon(null)
+  if (favNull.href !== null) throw new Error('useFavicon null must stay idle during SSR')
+  const favNoDoc = useFavicon('/x.svg', { document: null })
+  if (favNoDoc.href !== null || favNoDoc.isSupported !== false) {
+    throw new Error('useFavicon document:null must stay idle/unsupported during SSR')
+  }
+  const favDisabled = useFavicon('/x.svg', { enabled: false })
+  if (favDisabled.href !== null) throw new Error('useFavicon disabled must stay idle during SSR')
   return createElement(
     'div',
     { ref, 'data-focus-api': 'ready' },
@@ -700,6 +720,21 @@ function CaptureQRCodeApi() {
   return createElement('div', null, 'qr-api')
 }
 
+let favHref
+let favIsSupported
+let favError
+function CaptureFaviconApi() {
+  const fav = useFavicon('https://example.com/ssr-favicon.svg', {
+    onError: () => {
+      throw new Error('useFavicon onError must not run during SSR capture')
+    },
+  })
+  favHref = fav.href
+  favIsSupported = fav.isSupported
+  favError = fav.error
+  return createElement('div', null, 'favicon-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -718,6 +753,7 @@ let postRenderSessionStorageError = null
 let postRenderCookiesError = null
 let postRenderJwtError = null
 let postRenderQRCodeError = null
+let postRenderFaviconError = null
 let getUserMediaCalls = 0
 let webSocketConstructCalls = 0
 let localStorageGetItemCalls = 0
@@ -808,6 +844,7 @@ try {
   renderToString(createElement(CaptureCookiesApi))
   renderToString(createElement(CaptureJwtApi))
   renderToString(createElement(CaptureQRCodeApi))
+  renderToString(createElement(CaptureFaviconApi))
   if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
     postRenderScrollLockError = 'useScrollLock controls missing'
   }
@@ -1047,6 +1084,15 @@ try {
         qrError,
       })
   }
+  if (favHref !== null || favIsSupported !== false || favError !== null) {
+    postRenderFaviconError =
+      'Unexpected useFavicon SSR state: ' +
+      JSON.stringify({
+        favHref,
+        favIsSupported,
+        favError,
+      })
+  }
   try {
     focusMethod()
   } catch (error) {
@@ -1176,6 +1222,7 @@ console.log(
     postRenderCookiesError,
     postRenderJwtError,
     postRenderQRCodeError,
+    postRenderFaviconError,
     webSocketConstructCalls,
     localStorageGetItemCalls,
     localStorageSetItemCalls,
@@ -1298,6 +1345,12 @@ console.log(
   if (payload.postRenderQRCodeError) {
     throw new Error(
       `useQRCode SSR check failed:\\n${payload.postRenderQRCodeError}`,
+    )
+  }
+
+  if (payload.postRenderFaviconError) {
+    throw new Error(
+      `useFavicon SSR check failed:\\n${payload.postRenderFaviconError}`,
     )
   }
 

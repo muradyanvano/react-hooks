@@ -2017,6 +2017,87 @@ export interface UseQRCodeReturn {
 
 Unreleased beta API. May change before `0.1.0`.
 
+---
+
+## `useFavicon`
+
+Controls a document favicon `<link>` through shared private ownership. `icon` is controlled by React state or props.
+
+### Signature
+
+```ts
+export function useFavicon(
+  icon: string | null | undefined,
+  options?: UseFaviconOptions,
+): UseFaviconReturn
+```
+
+### Types
+
+```ts
+export interface UseFaviconOptions {
+  enabled?: boolean
+  document?: Document | null
+  baseUrl?: string
+  rel?: string
+  restoreOnUnmount?: boolean
+  onError?: (error: Error) => void
+}
+
+export interface UseFaviconReturn {
+  href: string | null
+  isSupported: boolean
+  error: Error | null
+}
+```
+
+### Defaults
+
+- `enabled: true`
+- `rel: 'icon'`
+- `restoreOnUnmount: true`
+
+### Behavior
+
+- Non-empty `icon` applies or updates the managed favicon after commit
+- `null` / `undefined` / `''` release ownership and clear returned `href` (empty string is an intentional release; whitespace-only strings go through URL resolution / errors)
+- URL resolution: `new URL(icon, baseUrl ?? document.baseURI).href` (no trim of `icon`)
+- Relation matching inspects `<link>` elements safely (normalized case-insensitive token sets; sorted keys make token order equivalent for ownership); prefers the last matching link
+- Creates a link when none matches; never builds a CSS selector from consumer `rel`
+- Snapshot + exact restore of managed attributes; preserves unrelated attributes (`type`, `sizes`, `media`, custom attributes)
+- Private `WeakMap` registry: most recently updated owner wins; equivalent same-URL updates do not reorder or rewrite; document/`rel` isolation; empty channels prune
+- `restoreOnUnmount` affects unmount only (generation-guarded deferred persist); explicit disable/null/document/`rel` changes restore normally
+- Omitted document → global document after mount; explicit `document: null` never falls back
+- Errors never throw during render; latest `onError` is called; success clears `error`; failed acquires roll back registry owners
+- No `MutationObserver`; reconcile on next update if external code mutates the managed link; never resurrect externally removed originals; equivalent updates do not fight external href/rel edits
+- `isSupported` is structural capability; operational failures live in `error`
+- No `useLayoutEffect`
+
+### SSR behavior
+
+`renderToString` returns `{ href: null, isSupported: false, error: null }`. No document access, link creation, listeners, observers, timers, or layout-effect warnings.
+
+### Limitations
+
+- Does not guarantee every browser immediately displays an updated favicon (caching / delay)
+- No badge generation, image resizing, format conversion, or cache-busting unless the consumer changes the URL
+- No manifest-icon management and no automatic Apple/Android icon generation
+- Blob URL ownership belongs to the consumer
+- Cross-origin iframe documents are unsupported
+- `document.baseURI` changes are not observed without a React render
+- Consumers own in-page accessible status text for favicon changes
+- Unmount cleanup DOM failures are not reported into React state after unmount (registry bookkeeping is still cleared)
+
+### Exported names
+
+- `useFavicon`
+- `UseFaviconOptions`
+- `UseFaviconReturn`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

@@ -2234,6 +2234,85 @@ useQRCode(text: string, options?: UseQRCodeOptions): UseQRCodeReturn
 
 See Storybook (`Hooks/useQRCode`) for the QR code generator and related examples.
 
+---
+
+### `useFavicon`
+
+Controls a document favicon `<link>` through shared private ownership. `icon` is controlled by React state or props — there is no internal setter.
+
+```tsx
+import { useState } from 'react'
+import { useFavicon } from '@muradyanvano/react-hooks'
+
+function AppFavicon() {
+  const [icon, setIcon] = useState<string | null>('/favicon.svg')
+  const { href, isSupported, error } = useFavicon(icon, {
+    rel: 'icon',
+    restoreOnUnmount: true,
+  })
+
+  return (
+    <div>
+      <button type="button" onClick={() => setIcon('/alternate.svg')}>
+        Alternate
+      </button>
+      <button type="button" onClick={() => setIcon(null)}>
+        Reset
+      </button>
+      <p>Applied: {href ?? 'none'}</p>
+      <p>Supported: {String(isSupported)}</p>
+      {error ? <p role="alert">{error.message}</p> : null}
+    </div>
+  )
+}
+```
+
+#### Signature
+
+```ts
+useFavicon(
+  icon: string | null | undefined,
+  options?: UseFaviconOptions,
+): UseFaviconReturn
+```
+
+#### Options
+
+| Option             | Default  | Notes                                                                             |
+| ------------------ | -------- | --------------------------------------------------------------------------------- |
+| `enabled`          | `true`   | When `false`, this instance does not control the favicon                          |
+| `document`         | omitted  | Omitted → global document after mount; explicit `null` never falls back           |
+| `baseUrl`          | —        | Resolution base for relative icons (`new URL(icon, baseUrl ?? document.baseURI)`) |
+| `rel`              | `'icon'` | Favicon relation; whitespace-normalized; matched by token set                     |
+| `restoreOnUnmount` | `true`   | Unmount-only; when `false`, the applied favicon may remain in the DOM             |
+| `onError`          | —        | Latest-callback failure notifier                                                  |
+
+#### Return value
+
+| Field         | Type             | Notes                                                             |
+| ------------- | ---------------- | ----------------------------------------------------------------- |
+| `href`        | `string \| null` | Normalized URL successfully applied by this instance, else `null` |
+| `isSupported` | `boolean`        | Selected document provides a usable head/link environment         |
+| `error`       | `Error \| null`  | Latest owned failure                                              |
+
+#### Behavior notes
+
+- Non-empty `icon` applies/updates the favicon. Do not trim before resolution; whitespace-only strings go through the normal URL error path.
+- `null` / `undefined` / `''` release this instance’s ownership and clear returned `href`. Empty string is an intentional release (unlike whitespace-only strings, which attempt URL resolution and typically error).
+- Absolute, relative, root-relative, `data:`, and valid `blob:` URLs are supported. The hook does not create or revoke object URLs.
+- Matching uses safe `<link>` inspection (case-insensitive relation tokens; token order is sorted for registry keys so `shortcut icon` and `icon shortcut` share a channel). Prefer the last matching link in document order. Unrelated links are never mutated. Displayed `rel` keeps normalized token order from the consumer string (not the sorted key).
+- When no matching link exists, the hook creates one with `document.createElement` and appends it to the selected document’s head.
+- First acquisition snapshots the managed link for exact restoration (href presence/value, rel, unrelated attributes preserved). Hook-created links are removed on final restore.
+- Multiple instances share a private registry keyed by `Document` + normalized `rel`. Most recently updated owner wins. An equivalent re-apply of the same normalized URL + relation does **not** reorder ownership or rewrite the DOM. Different documents and relations are independent.
+- `restoreOnUnmount: false` affects unmount cleanup only. Explicit `enabled: false`, `icon: null` / `undefined` / `''`, document/`rel` changes still release and restore normally. Deferred persistence is generation-owned so Strict Mode remount does not mistake replay cleanup for a final unmount.
+- External DOM mutation is not continuously fought with a `MutationObserver`; the next relevant hook update reconciles (including re-binding after the managed node was removed). Equivalent React updates do not overwrite an externally edited `href`/`rel` on a still-connected managed node. Cleanup never resurrects an externally removed original node. Cross-origin iframe documents are unsupported.
+- Changing `document.baseURI` without a React render is not observed automatically.
+- SSR / initial client render: `{ href: null, isSupported: false, error: null }`. No DOM work during render. No `useLayoutEffect`.
+- `isSupported` reports structural head/`createElement` capability for the selected document, not whether the last write succeeded (`error` covers operational failures).
+- The hook updates document metadata only. Consumers own in-page accessible status. Browsers may cache or delay favicon display. There is no badge generation, image resizing, format conversion, cache-busting, or Apple/Android icon generation in the hook.
+
+See Storybook (`Hooks/useFavicon`) for the favicon switcher and related examples.
+
 ## Development
 
 ```bash

@@ -111,6 +111,10 @@ describe('package entry', () => {
     expect(entry.useQRCode).toBeTypeOf('function')
   })
 
+  it('exports useFavicon and its public types', () => {
+    expect(entry.useFavicon).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -120,6 +124,7 @@ describe('package entry', () => {
       'useElementByPoint',
       'useElementHover',
       'useEventListener',
+      'useFavicon',
       'useFocus',
       'useFocusWithin',
       'useInfiniteScroll',
@@ -163,5 +168,8 @@ describe('package entry', () => {
     expect(entry).not.toHaveProperty('validateAndNormalizeOptions')
     expect(entry).not.toHaveProperty('toEncoderOptions')
     expect(entry).not.toHaveProperty('createQRCodeOptionsSignature')
+    expect(entry).not.toHaveProperty('createFaviconOwnerToken')
+    expect(entry).not.toHaveProperty('acquireOrUpdateFavicon')
+    expect(entry).not.toHaveProperty('normalizeRelKey')
   })
 })

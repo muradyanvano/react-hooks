@@ -36,6 +36,7 @@ Current hooks:
 - `useJwt`
 - `useNProgress`
 - `useQRCode`
+- `useFavicon`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 
