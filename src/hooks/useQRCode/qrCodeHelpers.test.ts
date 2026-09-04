@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   createQRCodeOptionsError,
@@ -10,6 +10,7 @@ import {
   isSupportedErrorCorrectionLevel,
   isSupportedImageType,
   normalizeError,
+  resolveQrToDataURL,
   toEncoderOptions,
   validateAndNormalizeOptions,
 } from './qrCodeHelpers'
@@ -17,12 +18,19 @@ import {
 describe('qrCodeHelpers', () => {
   it('preserves exact text when encoding (whitespace, unicode, emoji)', async () => {
     const samples = [
+      ' ',
       '  padded  ',
+      '\tkeep-tabs\t',
       'line1\nline2',
+      'a\r\nb',
       'հայերեն 🙂',
+      'cafe\u0301',
       'https://example.test/path?q=1&x=2#frag',
+      'WIFI:T:WPA;S:Demo-Net;P:example-only;;',
+      'BEGIN:VCARD\nFN:Demo User\nEND:VCARD',
     ]
 
+    const urls = new Set<string>()
     for (const text of samples) {
       const dataUrl = await encodeQrDataUrl(text, {
         errorCorrectionLevel: 'M',
@@ -30,7 +38,52 @@ describe('qrCodeHelpers', () => {
       })
       expect(isImageDataUrl(dataUrl)).toBe(true)
       expect(dataUrl.startsWith('data:image/png;base64,')).toBe(true)
+      expect(dataUrl.length).toBeGreaterThan('data:image/png;base64,'.length)
+      urls.add(dataUrl)
     }
+    expect(urls.size).toBe(samples.length)
+  })
+
+  it('accepts margin/color/width options and rejects impossible capacity', async () => {
+    const ok = await encodeQrDataUrl('capacity-ok', {
+      errorCorrectionLevel: 'M',
+      margin: 4.5,
+      width: 180,
+      color: { dark: '#000000', light: '#ffffff' },
+    })
+    expect(ok.startsWith('data:image/png;base64,')).toBe(true)
+
+    await expect(
+      encodeQrDataUrl('x'.repeat(3000), {
+        errorCorrectionLevel: 'L',
+        margin: 4,
+        version: 1,
+      }),
+    ).rejects.toBeInstanceOf(Error)
+  })
+
+  it('resolves named and default-wrapped encoder module shapes', async () => {
+    const named = vi.fn(async () => 'data:image/png;base64,named')
+    expect(
+      await resolveQrToDataURL({ toDataURL: named })('a', {} as never),
+    ).toBe('data:image/png;base64,named')
+    expect(named).toHaveBeenCalled()
+
+    const wrapped = vi.fn(async () => 'data:image/png;base64,default')
+    expect(
+      await resolveQrToDataURL({ default: { toDataURL: wrapped } })(
+        'b',
+        {} as never,
+      ),
+    ).toBe('data:image/png;base64,default')
+
+    expect(() => resolveQrToDataURL(null)).toThrow(/unavailable/i)
+    expect(() => resolveQrToDataURL(42)).toThrow(/unavailable/i)
+    expect(() => resolveQrToDataURL({})).toThrow(/toDataURL/i)
+    expect(() => resolveQrToDataURL({ default: {} })).toThrow(/toDataURL/i)
+    expect(() => resolveQrToDataURL({ toDataURL: 'nope' })).toThrow(
+      /toDataURL/i,
+    )
   })
 
   it('validates and normalizes default options', () => {
@@ -81,13 +134,24 @@ describe('qrCodeHelpers', () => {
     expect(validateAndNormalizeOptions({ version: 0 }).ok).toBe(false)
     expect(validateAndNormalizeOptions({ version: 41 }).ok).toBe(false)
     expect(validateAndNormalizeOptions({ version: 1.5 }).ok).toBe(false)
+    expect(validateAndNormalizeOptions({ version: Number.NaN }).ok).toBe(false)
+    expect(
+      validateAndNormalizeOptions({ version: Number.POSITIVE_INFINITY }).ok,
+    ).toBe(false)
     expect(validateAndNormalizeOptions({ maskPattern: 8 as never }).ok).toBe(
       false,
     )
+    expect(validateAndNormalizeOptions({ maskPattern: 1.2 as never }).ok).toBe(
+      false,
+    )
     expect(validateAndNormalizeOptions({ margin: -1 }).ok).toBe(false)
+    expect(
+      validateAndNormalizeOptions({ margin: Number.NEGATIVE_INFINITY }).ok,
+    ).toBe(false)
     expect(validateAndNormalizeOptions({ scale: 0 }).ok).toBe(false)
     expect(validateAndNormalizeOptions({ width: -10 }).ok).toBe(false)
     expect(validateAndNormalizeOptions({ quality: 1.1 }).ok).toBe(false)
+    expect(validateAndNormalizeOptions({ quality: -0.1 }).ok).toBe(false)
     expect(validateAndNormalizeOptions({ type: 'image/gif' as never }).ok).toBe(
       false,
     )
@@ -96,6 +160,54 @@ describe('qrCodeHelpers', () => {
         errorCorrectionLevel: 'X' as never,
       }).ok,
     ).toBe(false)
+  })
+
+  it('accepts boundary numeric values and decimal margin/scale/width', () => {
+    expect(validateAndNormalizeOptions({ version: 1 }).ok).toBe(true)
+    expect(validateAndNormalizeOptions({ version: 40 }).ok).toBe(true)
+    expect(validateAndNormalizeOptions({ maskPattern: 0 }).ok).toBe(true)
+    expect(validateAndNormalizeOptions({ maskPattern: 7 }).ok).toBe(true)
+    expect(validateAndNormalizeOptions({ margin: 0 }).ok).toBe(true)
+    expect(validateAndNormalizeOptions({ margin: 4.25 }).ok).toBe(true)
+    expect(validateAndNormalizeOptions({ scale: 0.5 }).ok).toBe(true)
+    expect(validateAndNormalizeOptions({ width: 1.5 }).ok).toBe(true)
+    expect(validateAndNormalizeOptions({ quality: 0 }).ok).toBe(true)
+    expect(validateAndNormalizeOptions({ quality: 1 }).ok).toBe(true)
+    expect(validateAndNormalizeOptions({ margin: -0 }).ok).toBe(true)
+  })
+
+  it('ignores inherited option and color properties', () => {
+    const inheritedOptions = Object.create({ version: 99 }) as {
+      version?: number
+    }
+    expect(validateAndNormalizeOptions(inheritedOptions).ok).toBe(true)
+
+    const inheritedColor = Object.create({ dark: 'navy' }) as {
+      dark?: string
+      light?: string
+    }
+    const result = validateAndNormalizeOptions({ color: inheritedColor })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.options.color).toBeUndefined()
+  })
+
+  it('does not mutate frozen consumer option objects', () => {
+    const color = Object.freeze({ dark: '#000000', light: '#ffffff' })
+    const options = Object.freeze({
+      margin: 4,
+      width: 128,
+      color,
+      quality: 0.9,
+      type: 'image/jpeg' as const,
+    })
+    const validation = validateAndNormalizeOptions(options)
+    expect(validation.ok).toBe(true)
+    if (!validation.ok) return
+    const encoder = toEncoderOptions(validation.options)
+    expect(encoder.rendererOpts).toEqual({ quality: 0.9 })
+    expect(encoder.color).not.toBe(color)
+    expect(options.color).toBe(color)
   })
 
   it('accepts only encoder hex color formats', () => {
@@ -147,9 +259,23 @@ describe('qrCodeHelpers', () => {
       },
     })
     expect(a).toBe(b)
+    expect(createQRCodeOptionsSignature()).toBe(
+      createQRCodeOptionsSignature({
+        errorCorrectionLevel: 'M',
+        margin: 4,
+      }),
+    )
     expect(createQRCodeOptionsSignature({ width: 128 })).not.toBe(
       createQRCodeOptionsSignature({ width: 256 }),
     )
+  })
+
+  it('distinguishes invalid option signatures that share an error message', () => {
+    const a = createQRCodeOptionsSignature({ version: 99 })
+    const b = createQRCodeOptionsSignature({ version: 100 })
+    expect(a).not.toBe(b)
+    expect(a).toContain('version must be an integer between 1 and 40')
+    expect(createQRCodeOptionsSignature({ version: 99 })).toBe(a)
   })
 
   it('normalizes errors and creates option errors', () => {

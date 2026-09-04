@@ -36,8 +36,14 @@ const IDLE_STATE: QRCodeViewState = {
  * Generates QR code image data URLs from text using the `qrcode` encoder.
  *
  * Automatic generation runs after mount when `text` is non-empty and
- * `enabled` is true. Empty text and `enabled: false` clear automatic output.
- * Manual `generate()` remains available while disabled.
+ * `enabled` is true. Empty string (`''`) clears automatic output; a single
+ * space (`' '`) is valid content and generates. Manual `generate()` remains
+ * available while disabled.
+ *
+ * `generate()` returns the produced data URL when its encoder call succeeds,
+ * even if a newer request made that work stale for React state. Stale work
+ * never updates state or calls `onError`. Failures and empty text return
+ * `null`.
  *
  * Scanning a QR code does not validate or trust its content.
  */

@@ -2220,11 +2220,13 @@ useQRCode(text: string, options?: UseQRCodeOptions): UseQRCodeReturn
 #### Behavior notes
 
 - Initial / SSR state is `{ dataUrl: '', isLoading: false, error: null }` with no encoder work during render.
-- Non-empty `text` with `enabled: true` generates after mount. Empty text clears output. Whitespace is preserved exactly (no trim).
+- Non-empty `text` with `enabled: true` generates after mount. `''` clears output; `' '` generates. Whitespace/Unicode are preserved exactly (no trim).
 - `enabled: false` skips automatic generation and clears automatic output; `generate()` still works with the latest text/options.
 - Asynchronous requests use monotonically increasing generation IDs (newest wins). Stale successes/failures cannot update state or call `onError`.
+- `generate()` still resolves to its own produced data URL if the encoder succeeded after becoming stale; failures and empty text resolve to `null`.
 - Changing configuration clears the previous `dataUrl` before showing a new result so old images are not shown beside new input.
-- Invalid options never call the encoder; they produce a normalized `Error`, clear output, and invoke `onError` once for the owned request.
+- Invalid options never call the encoder; they produce a normalized `Error`, clear output, and invoke `onError` for the owned request (including when a new invalid config shares the previous error message).
+- Dynamic `import('qrcode')` accepts named or `default`-wrapped `toDataURL` exports.
 - Consumers own `<img alt="…">` accessibility text. Scanning a QR code does **not** validate or trust its content.
 - Payload capacity depends on version, encoding mode, and error-correction level. Dense payloads, low contrast, tiny quiet zones, and aggressive resizing reduce scan reliability.
 - Generated data URLs can be large. There is no logo overlay, scanner, camera reader, download manager, URL validator, or security verifier in this hook.

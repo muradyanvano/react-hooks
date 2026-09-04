@@ -10,6 +10,9 @@ const { toDataURLMock } = vi.hoisted(() => ({
 
 vi.mock('qrcode', () => ({
   toDataURL: toDataURLMock,
+  default: {
+    toDataURL: toDataURLMock,
+  },
 }))
 
 function fakeDataUrl(text: string): string {
@@ -516,5 +519,207 @@ describe('useQRCode', () => {
       error: null,
     })
     expect(toDataURLMock).not.toHaveBeenCalled()
+  })
+
+  it('treats a single space as valid content while empty string stays idle', async () => {
+    const empty = renderHook(() => useQRCode(''))
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(toDataURLMock).not.toHaveBeenCalled()
+    empty.unmount()
+
+    const { result } = renderHook(() => useQRCode(' '))
+    await waitFor(() => expect(result.current.dataUrl).toBe(fakeDataUrl(' ')))
+    expect(toDataURLMock).toHaveBeenCalledWith(' ', expect.any(Object))
+  })
+
+  it('notifies again when invalid configs share a message but change values', async () => {
+    const onError = vi.fn()
+    const { rerender } = renderHook(
+      ({ version }) =>
+        useQRCode('payload', {
+          onError,
+          version: version as never,
+        }),
+      { initialProps: { version: 99 } },
+    )
+
+    await waitFor(() => expect(onError).toHaveBeenCalledTimes(1))
+    rerender({ version: 100 })
+    await waitFor(() => expect(onError).toHaveBeenCalledTimes(2))
+    expect(toDataURLMock).not.toHaveBeenCalled()
+  })
+
+  it('returns stale successful generate results without updating state', async () => {
+    const first = deferred<string>()
+    const second = deferred<string>()
+    const queue = [first.promise, second.promise]
+    toDataURLMock.mockImplementation(() => {
+      const next = queue.shift()
+      if (!next) {
+        throw new Error('unexpected extra encoder call')
+      }
+      return next
+    })
+
+    const { result } = renderHook(() =>
+      useQRCode('payload', { enabled: false }),
+    )
+
+    let firstPending!: Promise<string | null>
+    await act(async () => {
+      firstPending = result.current.generate()
+    })
+    await waitFor(() => expect(toDataURLMock).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(result.current.isLoading).toBe(true))
+
+    let secondPending!: Promise<string | null>
+    await act(async () => {
+      secondPending = result.current.generate()
+    })
+    await waitFor(() => expect(toDataURLMock).toHaveBeenCalledTimes(2))
+
+    let firstResult: string | null = null
+    let secondResult: string | null = null
+
+    await act(async () => {
+      second.resolve(fakeDataUrl('second'))
+      secondResult = await secondPending
+    })
+    await waitFor(() =>
+      expect(result.current.dataUrl).toBe(fakeDataUrl('second')),
+    )
+
+    await act(async () => {
+      first.resolve(fakeDataUrl('first'))
+      firstResult = await firstPending
+    })
+
+    expect(firstResult).toBe(fakeDataUrl('first'))
+    expect(secondResult).toBe(fakeDataUrl('second'))
+    expect(result.current.dataUrl).toBe(fakeDataUrl('second'))
+    expect(result.current.error).toBeNull()
+  })
+
+  it('keeps newest ownership across manual-then-automatic races', async () => {
+    const manual = deferred<string>()
+    const auto = deferred<string>()
+    const queue = [manual.promise, auto.promise]
+    toDataURLMock.mockImplementation(() => {
+      const next = queue.shift()
+      if (!next) {
+        throw new Error('unexpected extra encoder call')
+      }
+      return next
+    })
+
+    const { result, rerender } = renderHook(
+      ({ text, enabled }) => useQRCode(text, { enabled }),
+      { initialProps: { text: 'manual-first', enabled: false } },
+    )
+
+    let manualResult: string | null = null
+    let pending!: Promise<string | null>
+    await act(async () => {
+      pending = result.current.generate()
+    })
+    await waitFor(() => expect(toDataURLMock).toHaveBeenCalledTimes(1))
+
+    rerender({ text: 'auto-second', enabled: true })
+    await waitFor(() => expect(toDataURLMock).toHaveBeenCalledTimes(2))
+
+    await act(async () => {
+      auto.resolve(fakeDataUrl('auto-second'))
+    })
+    await waitFor(() =>
+      expect(result.current.dataUrl).toBe(fakeDataUrl('auto-second')),
+    )
+
+    await act(async () => {
+      manual.resolve(fakeDataUrl('manual-first'))
+      manualResult = await pending
+    })
+
+    expect(manualResult).toBe(fakeDataUrl('manual-first'))
+    expect(result.current.dataUrl).toBe(fakeDataUrl('auto-second'))
+  })
+
+  it('clears manual in-flight state when disabled or emptied', async () => {
+    const pendingEncode = deferred<string>()
+    toDataURLMock.mockImplementation(() => pendingEncode.promise)
+    const onError = vi.fn()
+
+    const { result, rerender } = renderHook(
+      ({ text, enabled }) => useQRCode(text, { enabled, onError }),
+      { initialProps: { text: 'manual', enabled: false } },
+    )
+
+    let generateResult: string | null = null
+    let generatePending!: Promise<string | null>
+    await act(async () => {
+      generatePending = result.current.generate()
+    })
+    await waitFor(() => expect(result.current.isLoading).toBe(true))
+
+    rerender({ text: '', enabled: false })
+    await waitFor(() => {
+      expect(result.current).toMatchObject({
+        dataUrl: '',
+        isLoading: false,
+        error: null,
+      })
+    })
+
+    await act(async () => {
+      pendingEncode.resolve(fakeDataUrl('manual'))
+      generateResult = await generatePending
+    })
+
+    expect(generateResult).toBe(fakeDataUrl('manual'))
+    expect(result.current.dataUrl).toBe('')
+    expect(onError).not.toHaveBeenCalled()
+  })
+
+  it('isolates error ownership across multiple hook instances', async () => {
+    const onErrorA = vi.fn()
+    const onErrorB = vi.fn()
+    const outcomes = [
+      Promise.reject(new Error('only-a')),
+      Promise.resolve(fakeDataUrl('b-ok')),
+    ]
+    toDataURLMock.mockImplementation(() => {
+      const next = outcomes.shift()
+      if (!next) {
+        throw new Error('unexpected extra encoder call')
+      }
+      return next
+    })
+
+    const a = renderHook(() => useQRCode('a', { onError: onErrorA }))
+    await waitFor(() => expect(a.result.current.error?.message).toBe('only-a'))
+
+    const b = renderHook(() => useQRCode('b', { onError: onErrorB }))
+    await waitFor(() =>
+      expect(b.result.current.dataUrl).toBe(fakeDataUrl('b-ok')),
+    )
+
+    expect(onErrorA).toHaveBeenCalledTimes(1)
+    expect(onErrorB).not.toHaveBeenCalled()
+    expect(b.result.current.error).toBeNull()
+    a.unmount()
+    b.unmount()
+  })
+
+  it('surfaces incompatible encoder modules as normalized errors', async () => {
+    toDataURLMock.mockImplementation(() => {
+      throw new TypeError('toDataURL is not a function')
+    })
+    const onError = vi.fn()
+    const { result } = renderHook(() => useQRCode('broken', { onError }))
+    await waitFor(() => expect(result.current.error).toBeInstanceOf(Error))
+    expect(result.current.error?.message).toMatch(/toDataURL/i)
+    expect(result.current.isLoading).toBe(false)
+    expect(onError).toHaveBeenCalledTimes(1)
   })
 })

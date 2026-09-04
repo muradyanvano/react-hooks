@@ -79,6 +79,57 @@ function isInteger(value: unknown): value is number {
   return isFiniteNumber(value) && Number.isInteger(value)
 }
 
+function readOwnProperty<T extends object, K extends keyof T>(
+  source: T,
+  key: K,
+): T[K] | undefined {
+  return Object.hasOwn(source, key) ? source[key] : undefined
+}
+
+/** Structural encoder module shapes observed under CJS/ESM interop. */
+interface QrToDataURLFn {
+  (text: string, options: object): Promise<string>
+}
+
+interface QrcodeModuleLike {
+  toDataURL?: unknown
+  default?: unknown
+}
+
+/**
+ * Resolves `toDataURL` whether the dynamic import exposes it as a named export
+ * or under `default` (CommonJS interop).
+ */
+export function resolveQrToDataURL(moduleValue: unknown): QrToDataURLFn {
+  if (
+    moduleValue == null ||
+    (typeof moduleValue !== 'object' && typeof moduleValue !== 'function')
+  ) {
+    throw new Error('QR encoder module is unavailable')
+  }
+
+  const mod = moduleValue as QrcodeModuleLike
+  if (typeof mod.toDataURL === 'function') {
+    const toDataURL = mod.toDataURL as QrToDataURLFn
+    // Call through without `bind()` so test mocks keep implementation tracking.
+    return (text, options) => toDataURL(text, options)
+  }
+
+  const defaultExport = mod.default
+  if (
+    defaultExport != null &&
+    (typeof defaultExport === 'object' || typeof defaultExport === 'function')
+  ) {
+    const nested = defaultExport as QrcodeModuleLike
+    if (typeof nested.toDataURL === 'function') {
+      const toDataURL = nested.toDataURL as QrToDataURLFn
+      return (text, options) => toDataURL(text, options)
+    }
+  }
+
+  throw new Error('QR encoder toDataURL is unavailable')
+}
+
 /**
  * Matches the hex formats accepted by `qrcode`'s renderer (`#RGB`, `#RGBA`,
  * `#RRGGBB`, `#RRGGBBAA`, with or without a leading `#`).
@@ -152,18 +203,19 @@ export function validateAndNormalizeOptions(
 ): QRCodeOptionValidationResult {
   const source = options ?? {}
 
+  const errorCorrectionLevel =
+    readOwnProperty(source, 'errorCorrectionLevel') ??
+    DEFAULT_ERROR_CORRECTION_LEVEL
+  const margin = readOwnProperty(source, 'margin') ?? DEFAULT_MARGIN
+
   const normalized: NormalizedQRCodeEncoderOptions = {
-    errorCorrectionLevel:
-      source.errorCorrectionLevel ?? DEFAULT_ERROR_CORRECTION_LEVEL,
-    margin: source.margin ?? DEFAULT_MARGIN,
+    errorCorrectionLevel,
+    margin,
   }
 
-  if (source.version !== undefined) {
-    if (
-      !isInteger(source.version) ||
-      source.version < 1 ||
-      source.version > 40
-    ) {
+  const version = readOwnProperty(source, 'version')
+  if (version !== undefined) {
+    if (!isInteger(version) || version < 1 || version > 40) {
       return {
         ok: false,
         error: createQRCodeOptionsError(
@@ -171,11 +223,15 @@ export function validateAndNormalizeOptions(
         ),
       }
     }
-    normalized.version = source.version
+    normalized.version = version
   }
 
-  if (source.errorCorrectionLevel !== undefined) {
-    if (!isSupportedErrorCorrectionLevel(source.errorCorrectionLevel)) {
+  const explicitErrorCorrectionLevel = readOwnProperty(
+    source,
+    'errorCorrectionLevel',
+  )
+  if (explicitErrorCorrectionLevel !== undefined) {
+    if (!isSupportedErrorCorrectionLevel(explicitErrorCorrectionLevel)) {
       return {
         ok: false,
         error: createQRCodeOptionsError(
@@ -183,15 +239,12 @@ export function validateAndNormalizeOptions(
         ),
       }
     }
-    normalized.errorCorrectionLevel = source.errorCorrectionLevel
+    normalized.errorCorrectionLevel = explicitErrorCorrectionLevel
   }
 
-  if (source.maskPattern !== undefined) {
-    if (
-      !isInteger(source.maskPattern) ||
-      source.maskPattern < 0 ||
-      source.maskPattern > 7
-    ) {
+  const maskPattern = readOwnProperty(source, 'maskPattern')
+  if (maskPattern !== undefined) {
+    if (!isInteger(maskPattern) || maskPattern < 0 || maskPattern > 7) {
       return {
         ok: false,
         error: createQRCodeOptionsError(
@@ -199,11 +252,12 @@ export function validateAndNormalizeOptions(
         ),
       }
     }
-    normalized.maskPattern = source.maskPattern as UseQRCodeMaskPattern
+    normalized.maskPattern = maskPattern as UseQRCodeMaskPattern
   }
 
-  if (source.margin !== undefined) {
-    if (!isFiniteNumber(source.margin) || source.margin < 0) {
+  const explicitMargin = readOwnProperty(source, 'margin')
+  if (explicitMargin !== undefined) {
+    if (!isFiniteNumber(explicitMargin) || explicitMargin < 0) {
       return {
         ok: false,
         error: createQRCodeOptionsError(
@@ -211,11 +265,12 @@ export function validateAndNormalizeOptions(
         ),
       }
     }
-    normalized.margin = source.margin
+    normalized.margin = explicitMargin
   }
 
-  if (source.scale !== undefined) {
-    if (!isFiniteNumber(source.scale) || source.scale <= 0) {
+  const scale = readOwnProperty(source, 'scale')
+  if (scale !== undefined) {
+    if (!isFiniteNumber(scale) || scale <= 0) {
       return {
         ok: false,
         error: createQRCodeOptionsError(
@@ -223,11 +278,12 @@ export function validateAndNormalizeOptions(
         ),
       }
     }
-    normalized.scale = source.scale
+    normalized.scale = scale
   }
 
-  if (source.width !== undefined) {
-    if (!isFiniteNumber(source.width) || source.width <= 0) {
+  const width = readOwnProperty(source, 'width')
+  if (width !== undefined) {
+    if (!isFiniteNumber(width) || width <= 0) {
       return {
         ok: false,
         error: createQRCodeOptionsError(
@@ -235,15 +291,12 @@ export function validateAndNormalizeOptions(
         ),
       }
     }
-    normalized.width = source.width
+    normalized.width = width
   }
 
-  if (source.quality !== undefined) {
-    if (
-      !isFiniteNumber(source.quality) ||
-      source.quality < 0 ||
-      source.quality > 1
-    ) {
+  const quality = readOwnProperty(source, 'quality')
+  if (quality !== undefined) {
+    if (!isFiniteNumber(quality) || quality < 0 || quality > 1) {
       return {
         ok: false,
         error: createQRCodeOptionsError(
@@ -251,11 +304,12 @@ export function validateAndNormalizeOptions(
         ),
       }
     }
-    normalized.quality = source.quality
+    normalized.quality = quality
   }
 
-  if (source.type !== undefined) {
-    if (!isSupportedImageType(source.type)) {
+  const type = readOwnProperty(source, 'type')
+  if (type !== undefined) {
+    if (!isSupportedImageType(type)) {
       return {
         ok: false,
         error: createQRCodeOptionsError(
@@ -263,11 +317,12 @@ export function validateAndNormalizeOptions(
         ),
       }
     }
-    normalized.type = source.type
+    normalized.type = type
   }
 
-  if (source.color !== undefined) {
-    if (source.color === null || typeof source.color !== 'object') {
+  const colorInput = readOwnProperty(source, 'color')
+  if (colorInput !== undefined) {
+    if (colorInput === null || typeof colorInput !== 'object') {
       return {
         ok: false,
         error: createQRCodeOptionsError(
@@ -278,8 +333,9 @@ export function validateAndNormalizeOptions(
 
     const color: { dark?: string; light?: string } = {}
 
-    if (source.color.dark !== undefined) {
-      if (!isAcceptedQrHexColor(source.color.dark)) {
+    const dark = readOwnProperty(colorInput, 'dark')
+    if (dark !== undefined) {
+      if (!isAcceptedQrHexColor(dark)) {
         return {
           ok: false,
           error: createQRCodeOptionsError(
@@ -287,11 +343,12 @@ export function validateAndNormalizeOptions(
           ),
         }
       }
-      color.dark = source.color.dark
+      color.dark = dark
     }
 
-    if (source.color.light !== undefined) {
-      if (!isAcceptedQrHexColor(source.color.light)) {
+    const light = readOwnProperty(colorInput, 'light')
+    if (light !== undefined) {
+      if (!isAcceptedQrHexColor(light)) {
         return {
           ok: false,
           error: createQRCodeOptionsError(
@@ -299,7 +356,7 @@ export function validateAndNormalizeOptions(
           ),
         }
       }
-      color.light = source.color.light
+      color.light = light
     }
 
     if (color.dark !== undefined || color.light !== undefined) {
@@ -308,6 +365,38 @@ export function validateAndNormalizeOptions(
   }
 
   return { ok: true, options: normalized }
+}
+
+function createInvalidOptionsSignature(
+  options: UseQRCodeOptions | undefined,
+  message: string,
+): string {
+  const source = options ?? {}
+  const colorInput = readOwnProperty(source, 'color')
+  const color =
+    colorInput != null && typeof colorInput === 'object'
+      ? {
+          dark: readOwnProperty(colorInput, 'dark') ?? null,
+          light: readOwnProperty(colorInput, 'light') ?? null,
+        }
+      : { dark: null, light: null }
+
+  // Include raw encoding fields so distinct invalid configs that share an
+  // error message (for example version 99 vs 100) still re-run and re-notify.
+  return `invalid:${JSON.stringify({
+    message,
+    version: readOwnProperty(source, 'version') ?? null,
+    errorCorrectionLevel:
+      readOwnProperty(source, 'errorCorrectionLevel') ?? null,
+    maskPattern: readOwnProperty(source, 'maskPattern') ?? null,
+    margin: readOwnProperty(source, 'margin') ?? null,
+    scale: readOwnProperty(source, 'scale') ?? null,
+    width: readOwnProperty(source, 'width') ?? null,
+    colorDark: color.dark,
+    colorLight: color.light,
+    type: readOwnProperty(source, 'type') ?? null,
+    quality: readOwnProperty(source, 'quality') ?? null,
+  })}`
 }
 
 /**
@@ -319,8 +408,7 @@ export function createQRCodeOptionsSignature(
 ): string {
   const validation = validateAndNormalizeOptions(options)
   if (!validation.ok) {
-    // Invalid options still need a stable identity for effect comparison.
-    return `invalid:${validation.error.message}`
+    return createInvalidOptionsSignature(options, validation.error.message)
   }
 
   const normalized = validation.options
@@ -397,8 +485,21 @@ export async function encodeQrDataUrl(
   text: string,
   options: NormalizedQRCodeEncoderOptions,
 ): Promise<string> {
-  const { toDataURL } = await import('qrcode')
-  const dataUrl = await toDataURL(text, toEncoderOptions(options))
+  let moduleValue: unknown
+  try {
+    moduleValue = await import('qrcode')
+  } catch (cause) {
+    throw normalizeError(cause)
+  }
+
+  const toDataURL = resolveQrToDataURL(moduleValue)
+  let dataUrl: unknown
+  try {
+    dataUrl = await toDataURL(text, toEncoderOptions(options))
+  } catch (cause) {
+    throw normalizeError(cause)
+  }
+
   if (typeof dataUrl !== 'string' || dataUrl.length === 0) {
     throw new Error('QR encoder returned an empty data URL')
   }

@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `useQRCode`: resolve `toDataURL` for both named and `default`-wrapped dynamic-import shapes from `qrcode`
+- `useQRCode`: distinguish invalid option signatures that share an error message so `onError` re-notifies
+- `useQRCode`: ignore inherited option/color properties when validating consumer objects
 - `useNProgress`: keep the decorative peg inside the bar so tip glow tracks progress instead of sitting at the container's right edge near the spinner
 - `useNProgress`: `start()` during completion resets to `minimum` instead of remaining at `1`
 - `useNProgress`: prune empty parent channels from the registry; share one document stylesheet and apply per-channel presentation via element styles

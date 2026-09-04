@@ -1978,15 +1978,16 @@ export interface UseQRCodeReturn {
 
 - Initial and SSR state: `{ dataUrl: '', isLoading: false, error: null }`
 - Automatic generation after mount for non-empty `text` when `enabled` is true
-- Empty text clears `dataUrl` / `isLoading` / `error` and does not call the encoder
-- Text is encoded exactly (Unicode, emoji, newlines, whitespace, URL queries)
+- Empty string (`''`) clears `dataUrl` / `isLoading` / `error` and does not call the encoder; a single space (`' '`) is valid content and generates
+- Text is encoded exactly (Unicode, emoji, newlines, whitespace, URL queries) — no trim or Unicode normalization
 - `enabled: false` clears automatic output; `generate()` remains usable
 - Newest generation ID wins; stale successes/failures cannot update state or call `onError`
 - Starting a request clears prior `error` and previous `dataUrl` for the owned request
-- Invalid options fail closed without calling the encoder
-- `generate()` returns the produced data URL or `null` on failure; identity is stable
+- Invalid options fail closed without calling the encoder; distinct invalid configs re-notify even when error messages match
+- `generate()` returns the produced data URL when its encoder call succeeds (including when that work is already stale for React state), or `null` on failure / empty text; identity is stable
 - Changing only `onError` identity does not regenerate
-- Equivalent option values (including equivalent `color` object values) do not regenerate
+- Equivalent option values (including equivalent `color` object values and omitted-vs-default encoding options) do not regenerate
+- The encoder is loaded via `import('qrcode')` and accepts both named and `default`-wrapped `toDataURL` shapes
 
 ### SSR behavior
 
