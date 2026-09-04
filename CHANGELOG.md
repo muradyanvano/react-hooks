@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `useEyeDropper` hook with public types:
+  - `UseEyeDropperOpenOptions`
+  - `UseEyeDropperOptions`
+  - `UseEyeDropperReturn`
+- Runtime, helper, type, Storybook, and SSR coverage for `useEyeDropper`
 - `useFavicon` hook with public types:
   - `UseFaviconOptions`
   - `UseFaviconReturn`

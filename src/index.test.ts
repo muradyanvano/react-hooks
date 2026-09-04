@@ -115,6 +115,10 @@ describe('package entry', () => {
     expect(entry.useFavicon).toBeTypeOf('function')
   })
 
+  it('exports useEyeDropper and its public types', () => {
+    expect(entry.useEyeDropper).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -124,6 +128,7 @@ describe('package entry', () => {
       'useElementByPoint',
       'useElementHover',
       'useEventListener',
+      'useEyeDropper',
       'useFavicon',
       'useFocus',
       'useFocusWithin',
@@ -171,5 +176,8 @@ describe('package entry', () => {
     expect(entry).not.toHaveProperty('createFaviconOwnerToken')
     expect(entry).not.toHaveProperty('acquireOrUpdateFavicon')
     expect(entry).not.toHaveProperty('normalizeRelKey')
+    expect(entry).not.toHaveProperty('isEyeDropperSupported')
+    expect(entry).not.toHaveProperty('validateEyeDropperResult')
+    expect(entry).not.toHaveProperty('bridgeExternalAbort')
   })
 })

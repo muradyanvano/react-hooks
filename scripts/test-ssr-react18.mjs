@@ -187,6 +187,7 @@ import {
   useNProgress,
   useQRCode,
   useFavicon,
+  useEyeDropper,
 } from '@muradyanvano/react-hooks'
 
 const SSR_JWT_VALID =
@@ -447,6 +448,33 @@ function TestComponent() {
   }
   const favDisabled = useFavicon('/x.svg', { enabled: false })
   if (favDisabled.href !== null) throw new Error('useFavicon disabled must stay idle during SSR')
+
+  // useEyeDropper SSR check: idle unsupported, no EyeDropper construction
+  const eye = useEyeDropper({
+    onError: () => {
+      throw new Error('useEyeDropper onError must not run during SSR')
+    },
+  })
+  if (eye.isSupported !== false) throw new Error('useEyeDropper.isSupported must be false during SSR')
+  if (eye.sRGBHex !== '') throw new Error('useEyeDropper.sRGBHex must be empty during SSR')
+  if (eye.isPicking !== false) throw new Error('useEyeDropper.isPicking must be false during SSR')
+  if (eye.error !== null) throw new Error('useEyeDropper.error must be null during SSR')
+  if (typeof eye.open !== 'function' || typeof eye.cancel !== 'function' || typeof eye.reset !== 'function') {
+    throw new Error('useEyeDropper controls must be functions during SSR')
+  }
+  const eyeInitial = useEyeDropper({ initialValue: '#aabbcc' })
+  if (eyeInitial.sRGBHex !== '#aabbcc') throw new Error('useEyeDropper initialValue must seed during SSR')
+  const eyeDisabled = useEyeDropper({ enabled: false, initialValue: '#112233' })
+  if (eyeDisabled.sRGBHex !== '#112233') throw new Error('useEyeDropper disabled must keep initialValue')
+  const eyeNoWindow = useEyeDropper({ window: null })
+  if (eyeNoWindow.isSupported !== false) throw new Error('useEyeDropper window:null must be unsupported')
+  const eyeAbort = useEyeDropper({ treatAbortAsError: true })
+  if (eyeAbort.error !== null) throw new Error('useEyeDropper treatAbortAsError must stay idle during SSR')
+  // Do not call open/cancel/reset during render — React 18 SSR forbids setState
+  // in the render path. Controls are exercised post-render below.
+  if (typeof eye.open !== 'function' || typeof eye.cancel !== 'function' || typeof eye.reset !== 'function') {
+    throw new Error('useEyeDropper controls must be functions during SSR')
+  }
   return createElement(
     'div',
     { ref, 'data-focus-api': 'ready' },
@@ -735,6 +763,36 @@ function CaptureFaviconApi() {
   return createElement('div', null, 'favicon-api')
 }
 
+let eyeIsSupported
+let eyeSRGBHex
+let eyeIsPicking
+let eyeError
+let eyeHasOpen
+let eyeHasCancel
+let eyeHasReset
+let eyeOpen
+let eyeCancel
+let eyeReset
+function CaptureEyeDropperApi() {
+  const eye = useEyeDropper({
+    initialValue: '#abcdef',
+    onError: () => {
+      throw new Error('useEyeDropper onError must not run during SSR capture')
+    },
+  })
+  eyeIsSupported = eye.isSupported
+  eyeSRGBHex = eye.sRGBHex
+  eyeIsPicking = eye.isPicking
+  eyeError = eye.error
+  eyeHasOpen = typeof eye.open === 'function'
+  eyeHasCancel = typeof eye.cancel === 'function'
+  eyeHasReset = typeof eye.reset === 'function'
+  eyeOpen = eye.open
+  eyeCancel = eye.cancel
+  eyeReset = eye.reset
+  return createElement('div', null, 'eyedropper-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -754,8 +812,10 @@ let postRenderCookiesError = null
 let postRenderJwtError = null
 let postRenderQRCodeError = null
 let postRenderFaviconError = null
+let postRenderEyeDropperError = null
 let getUserMediaCalls = 0
 let webSocketConstructCalls = 0
+let eyeDropperConstructCalls = 0
 let localStorageGetItemCalls = 0
 let localStorageSetItemCalls = 0
 let localStorageRemoveItemCalls = 0
@@ -807,6 +867,22 @@ if (typeof previousWebSocket === 'function') {
   globalThis.WebSocket.CLOSING = previousWebSocket.CLOSING
   globalThis.WebSocket.CLOSED = previousWebSocket.CLOSED
 }
+const previousEyeDropper = globalThis.EyeDropper
+globalThis.EyeDropper = function SpyEyeDropper() {
+  eyeDropperConstructCalls += 1
+  throw new Error('EyeDropper must not be constructed during SSR')
+}
+if (typeof globalThis.window === 'object' && globalThis.window != null) {
+  try {
+    Object.defineProperty(globalThis.window, 'EyeDropper', {
+      configurable: true,
+      writable: true,
+      value: globalThis.EyeDropper,
+    })
+  } catch {
+    // Ignore non-configurable window hosts.
+  }
+}
 const previousStorageGetItem =
   typeof Storage !== 'undefined' ? Storage.prototype.getItem : null
 const previousStorageSetItem =
@@ -845,6 +921,7 @@ try {
   renderToString(createElement(CaptureJwtApi))
   renderToString(createElement(CaptureQRCodeApi))
   renderToString(createElement(CaptureFaviconApi))
+  renderToString(createElement(CaptureEyeDropperApi))
   if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
     postRenderScrollLockError = 'useScrollLock controls missing'
   }
@@ -1093,6 +1170,44 @@ try {
         favError,
       })
   }
+  if (
+    eyeIsSupported !== false ||
+    eyeSRGBHex !== '#abcdef' ||
+    eyeIsPicking !== false ||
+    eyeError !== null ||
+    eyeHasOpen !== true ||
+    eyeHasCancel !== true ||
+    eyeHasReset !== true
+  ) {
+    postRenderEyeDropperError =
+      'Unexpected useEyeDropper SSR state: ' +
+      JSON.stringify({
+        eyeIsSupported,
+        eyeSRGBHex,
+        eyeIsPicking,
+        eyeError,
+        eyeHasOpen,
+        eyeHasCancel,
+        eyeHasReset,
+      })
+  }
+  try {
+    const eyeOpenResult = eyeOpen()
+    if (typeof eyeOpenResult?.then !== 'function') {
+      throw new Error('useEyeDropper.open must return a promise')
+    }
+    eyeCancel()
+    eyeReset()
+    if (eyeDropperConstructCalls !== 0) {
+      throw new Error(
+        'Expected zero EyeDropper constructions after safe method calls, got ' +
+          eyeDropperConstructCalls,
+      )
+    }
+  } catch (error) {
+    postRenderEyeDropperError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
   try {
     focusMethod()
   } catch (error) {
@@ -1223,7 +1338,9 @@ console.log(
     postRenderJwtError,
     postRenderQRCodeError,
     postRenderFaviconError,
+    postRenderEyeDropperError,
     webSocketConstructCalls,
+    eyeDropperConstructCalls,
     localStorageGetItemCalls,
     localStorageSetItemCalls,
     localStorageRemoveItemCalls,
@@ -1354,6 +1471,12 @@ console.log(
     )
   }
 
+  if (payload.postRenderEyeDropperError) {
+    throw new Error(
+      `useEyeDropper SSR check failed:\\n${payload.postRenderEyeDropperError}`,
+    )
+  }
+
   if (payload.setIntervalCalls !== 0) {
     throw new Error(
       `Expected no setInterval calls during SSR, got ${payload.setIntervalCalls}`,
@@ -1369,6 +1492,12 @@ console.log(
   if (payload.webSocketConstructCalls !== 0) {
     throw new Error(
       `Expected no WebSocket constructions, got ${payload.webSocketConstructCalls}`,
+    )
+  }
+
+  if (payload.eyeDropperConstructCalls !== 0) {
+    throw new Error(
+      `Expected no EyeDropper constructions, got ${payload.eyeDropperConstructCalls}`,
     )
   }
 

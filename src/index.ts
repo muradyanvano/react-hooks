@@ -220,3 +220,10 @@ export {
   type UseFaviconOptions,
   type UseFaviconReturn,
 } from './hooks/useFavicon/useFavicon'
+
+export {
+  useEyeDropper,
+  type UseEyeDropperOpenOptions,
+  type UseEyeDropperOptions,
+  type UseEyeDropperReturn,
+} from './hooks/useEyeDropper/useEyeDropper'

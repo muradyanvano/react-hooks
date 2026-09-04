@@ -2098,6 +2098,90 @@ export interface UseFaviconReturn {
 
 Unreleased beta API. May change before `0.1.0`.
 
+---
+
+## `useEyeDropper`
+
+Wraps the native EyeDropper API for imperative, user-gesture-driven color sampling. Never opens automatically — call `open()` directly from a click (or equivalent) handler.
+
+### Signature
+
+```ts
+export function useEyeDropper(
+  options?: UseEyeDropperOptions,
+): UseEyeDropperReturn
+```
+
+### Types
+
+```ts
+export interface UseEyeDropperOpenOptions {
+  signal?: AbortSignal
+}
+
+export interface UseEyeDropperOptions {
+  initialValue?: string
+  enabled?: boolean
+  window?: Window | null
+  treatAbortAsError?: boolean
+  onError?: (error: Error) => void
+}
+
+export interface UseEyeDropperReturn {
+  isSupported: boolean
+  sRGBHex: string
+  isPicking: boolean
+  error: Error | null
+  open: (options?: UseEyeDropperOpenOptions) => Promise<string | null>
+  cancel: () => void
+  reset: () => void
+}
+```
+
+### Defaults
+
+- `initialValue: ''`
+- `enabled: true`
+- `treatAbortAsError: false`
+
+### Behavior
+
+- `initialValue` seeds `sRGBHex` once for the hook instance (six-digit `#rrggbb` only; shorthand `#rgb` rejected; invalid values normalize to `''` without throwing or calling `onError` during render). Later prop changes do not overwrite a selected color. `reset()` restores the latest committed `initialValue` and clears `error` without cancelling an active picker (a later successful selection may overwrite the reset value).
+- Successful colors are normalized to lowercase six-digit opaque sRGB. There is no alpha channel.
+- `isSupported` is true only when the effective window provides a constructible `EyeDropper` with callable `open`. Support is not determined by constructing during render. Omitted `window` resolves to the global window after mount; explicit `window: null` never falls back. Changing window cancels/invalidates active work without resetting the selected color.
+- `open()` has stable identity and uses the latest enabled/window/signal/`treatAbortAsError`/`onError`. It returns `null` when disabled, unsupported, or when an external signal is already aborted. Native `new EyeDropper().open()` runs synchronously in the consumer call stack before any `await` so transient user activation is preserved. Results are validated structurally; malformed results become normalized errors.
+- Each owned attempt uses an internal `AbortController` (from the effective window when available). External `AbortSignal` aborts forward to the internal controller without mutating the consumer controller. `cancel()` aborts the active internal controller, clears `isPicking`, does not reset `sRGBHex`, and is idempotent. When no usable `AbortController` exists, the picker may open without a signal and `cancel()` only invalidates locally.
+- Overlapping `open()` calls: the newest attempt owns `isPicking`, state updates, and `onError`. Stale successes may still resolve their caller promise to the selected string but must not alter hook state. Failed/cancelled attempts resolve `null`. The public promise never rejects for handled platform failures.
+- Abort (`AbortError`, including cross-realm) is ignored by default (`treatAbortAsError: false`): return `null`, keep `error: null`, do not call `onError`. When `treatAbortAsError: true`, aborts set `error`, call `onError`, and still resolve `null`.
+- Other failures (`NotAllowedError`, `InvalidStateError`, `OperationError`, constructor/`open` throws, unknown rejections) set owned `error`, call latest `onError` (throws contained), and resolve `null`. Later success clears `error`.
+- Disabling cancels/invalidates active work, sets `isPicking: false`, preserves `sRGBHex`, and makes `open()` return `null`. Re-enabling does not open automatically.
+- No automatic opening, polyfill, continuous sampling, element-only sampling, palette/history persistence, or permission preflight. Browser UI and Escape behavior are platform-controlled. Secure context and limited browser availability apply.
+
+### SSR behavior
+
+`renderToString` returns `{ isSupported: false, sRGBHex: initialValue ?? '', isPicking: false, error: null }` with safe `open`/`cancel`/`reset`. No `window`, constructor, abort controller, listeners, timers, observers, or `useLayoutEffect`. Zero EyeDropper constructions during SSR. `open()` in a non-browser environment returns `null`.
+
+### Limitations
+
+- Browser support is limited; typically requires a secure context and transient user activation
+- No polyfill or fallback sampling implementation
+- No continuous color tracking and no alpha values
+- Does not sample a supplied DOM element; invokes the browser’s screen-level picker
+- No palette/history persistence in the hook
+- No permission preflight guarantee
+- Without `AbortController`, native cancellation cannot be forced
+
+### Exported names
+
+- `useEyeDropper`
+- `UseEyeDropperOpenOptions`
+- `UseEyeDropperOptions`
+- `UseEyeDropperReturn`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

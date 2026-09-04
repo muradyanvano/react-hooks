@@ -2313,6 +2313,89 @@ useFavicon(
 
 See Storybook (`Hooks/useFavicon`) for the favicon switcher and related examples.
 
+---
+
+### `useEyeDropper`
+
+Wraps the native EyeDropper API for imperative color sampling. Call `open()` directly from a user gesture — the hook never opens automatically.
+
+```tsx
+import { useEyeDropper } from '@muradyanvano/react-hooks'
+
+function ColorSampler() {
+  const { isSupported, sRGBHex, isPicking, error, open, cancel, reset } =
+    useEyeDropper({
+      initialValue: '#3b82f6',
+    })
+
+  return (
+    <div>
+      <p>Supported: {String(isSupported)}</p>
+      <button
+        type="button"
+        disabled={!isSupported || isPicking}
+        onClick={async () => {
+          const color = await open()
+          if (color == null) return
+        }}
+      >
+        Open Eye Dropper
+      </button>
+      <button type="button" disabled={!isPicking} onClick={() => cancel()}>
+        Cancel
+      </button>
+      <button type="button" onClick={() => reset()}>
+        Reset
+      </button>
+      <p>{sRGBHex || 'No color'}</p>
+      {error ? <p role="alert">{error.message}</p> : null}
+    </div>
+  )
+}
+```
+
+#### Signature
+
+```ts
+useEyeDropper(options?: UseEyeDropperOptions): UseEyeDropperReturn
+```
+
+#### Options
+
+| Option              | Default | Notes                                                                    |
+| ------------------- | ------- | ------------------------------------------------------------------------ |
+| `initialValue`      | `''`    | Seeds `sRGBHex` once; six-digit `#rrggbb` only (`#rgb` rejected)         |
+| `enabled`           | `true`  | When `false`, cancels active work and `open()` returns `null`            |
+| `window`            | omitted | Omitted → global window after mount; explicit `null` never falls back    |
+| `treatAbortAsError` | `false` | When `true`, Escape/`cancel`/signal abort set `error` and call `onError` |
+| `onError`           | —       | Latest-callback failure notifier                                         |
+
+#### Return value
+
+| Field         | Type                                    | Notes                                                                           |
+| ------------- | --------------------------------------- | ------------------------------------------------------------------------------- |
+| `isSupported` | `boolean`                               | Effective window provides a usable native `EyeDropper`                          |
+| `sRGBHex`     | `string`                                | Current opaque six-digit lowercase color (or initial/`''`)                      |
+| `isPicking`   | `boolean`                               | An owned native picker attempt is active                                        |
+| `error`       | `Error \| null`                         | Latest owned non-abort (or treated-abort) failure                               |
+| `open`        | `(options?) => Promise<string \| null>` | Opens the picker; resolves color or `null` (never rejects for handled failures) |
+| `cancel`      | `() => void`                            | Aborts the active attempt; does not reset `sRGBHex`                             |
+| `reset`       | `() => void`                            | Restores latest `initialValue` and clears `error`                               |
+
+#### Behavior notes
+
+- Browser support is limited and typically requires a secure context plus transient user activation. There is no polyfill.
+- Native `EyeDropper.open()` is invoked synchronously inside the consumer’s `open()` call before any `await`, so user activation is preserved.
+- Successful results are validated as six-digit `#rrggbb` and normalized to lowercase. No alpha channel. No continuous sampling. The picker samples the screen, not a supplied DOM element.
+- Escape / `cancel()` / external `AbortSignal` cancellation is normal by default (`treatAbortAsError: false`).
+- Overlapping `open()` calls: newest attempt owns React state; a stale success may still resolve its caller promise to its color without updating hook state. Stale cancellations/failures resolve that caller’s promise to `null` without mutating hook state.
+- Without a usable `AbortController`, `open()` still invokes the native picker (without a signal); `cancel()` invalidates local ownership so late settlements cannot update state, but the platform picker UI may remain open.
+- `reset()` does not cancel an active picker; a later successful selection may overwrite the reset value.
+- SSR: `{ isSupported: false, sRGBHex: initialValue ?? '', isPicking: false, error: null }` with safe controls and zero native constructions.
+- The hook does not persist palettes/history or guarantee a permission preflight. Browser UI and Escape are platform-controlled.
+
+See Storybook (`Hooks/useEyeDropper`) for the dashboard, live native picker, and related examples.
+
 ## Development
 
 ```bash

@@ -176,13 +176,17 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useFavicon</code> — controlled document favicon{' '}
       <code>&lt;link&gt;</code> management with shared ownership
     </li>
+    <li>
+      <code>useEyeDropper</code> — imperative native EyeDropper color sampling
+      (user-gesture <code>open()</code>, six-digit opaque sRGB)
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Twenty-seven public hooks exist in this prerelease.</li>
+    <li>Twenty-eight public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -317,6 +321,14 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       manage manifests, or guarantee immediate UI refresh. Prefer isolated
       iframe documents in Storybook demos. Consumers own accessible in-page
       status text.
+    </li>
+    <li>
+      <code>useEyeDropper</code> wraps the native EyeDropper API only. Support
+      is limited and typically requires a secure context plus transient user
+      activation. Call <code>open()</code> directly from a user gesture — never
+      from an effect. Output is opaque six-digit sRGB with no alpha, continuous
+      sampling, polyfill, element-only sampling, or palette persistence. Browser
+      UI and Escape are platform-controlled.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.
