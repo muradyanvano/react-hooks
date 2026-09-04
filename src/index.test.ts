@@ -119,6 +119,14 @@ describe('package entry', () => {
     expect(entry.useEyeDropper).toBeTypeOf('function')
   })
 
+  it('exports useFullscreen and its public types', () => {
+    expect(entry.useFullscreen).toBeTypeOf('function')
+  })
+
+  it('exports useUrlSearchParams and its public types', () => {
+    expect(entry.useUrlSearchParams).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -132,6 +140,7 @@ describe('package entry', () => {
       'useFavicon',
       'useFocus',
       'useFocusWithin',
+      'useFullscreen',
       'useInfiniteScroll',
       'useJwt',
       'useLocalStorage',
@@ -148,6 +157,7 @@ describe('package entry', () => {
       'useScroll',
       'useScrollLock',
       'useSessionStorage',
+      'useUrlSearchParams',
       'useUserMedia',
       'useWebSocket',
     ])
@@ -157,6 +167,8 @@ describe('package entry', () => {
     expect(entry).not.toHaveProperty('createEndpointSignature')
     expect(entry).not.toHaveProperty('createDefaultSerializer')
     expect(entry).not.toHaveProperty('subscribeSameDocument')
+    expect(entry).not.toHaveProperty('subscribeUrlSearchParams')
+    expect(entry).not.toHaveProperty('extractQueryString')
     expect(entry).not.toHaveProperty('notifySameDocument')
     expect(entry).not.toHaveProperty('useBrowserStorage')
     expect(entry).not.toHaveProperty('resolveBrowserStorage')
@@ -179,5 +191,11 @@ describe('package entry', () => {
     expect(entry).not.toHaveProperty('isEyeDropperSupported')
     expect(entry).not.toHaveProperty('validateEyeDropperResult')
     expect(entry).not.toHaveProperty('bridgeExternalAbort')
+    expect(entry).not.toHaveProperty('resolveFullscreenAdapter')
+    expect(entry).not.toHaveProperty('createStandardAdapter')
+    expect(entry).not.toHaveProperty('createWebkitAdapter')
+    expect(entry).not.toHaveProperty('resolveFullscreenAdapter')
+    expect(entry).not.toHaveProperty('createStandardAdapter')
+    expect(entry).not.toHaveProperty('createWebkitAdapter')
   })
 })

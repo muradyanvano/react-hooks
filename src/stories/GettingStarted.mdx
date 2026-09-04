@@ -180,13 +180,23 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>useEyeDropper</code> — imperative native EyeDropper color sampling
       (user-gesture <code>open()</code>, six-digit opaque sRGB)
     </li>
+    <li>
+      <code>useFullscreen</code> — imperative Fullscreen API enter/exit with
+      document-event sync (user-gesture <code>enter()</code>/
+      <code>toggle()</code>)
+    </li>
+    <li>
+      <code>useUrlSearchParams</code> — immutable URL search-parameter snapshots
+      for <code>history</code>, <code>hash</code>, and <code>hash-params</code>{' '}
+      modes with explicit controls
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Twenty-eight public hooks exist in this prerelease.</li>
+    <li>Thirty public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.
@@ -329,6 +339,23 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       from an effect. Output is opaque six-digit sRGB with no alpha, continuous
       sampling, polyfill, element-only sampling, or palette persistence. Browser
       UI and Escape are platform-controlled.
+    </li>
+    <li>
+      <code>useFullscreen</code> wraps the native Fullscreen API (standard +
+      practical WebKit prefixes). Call <code>enter()</code>/
+      <code>toggle()</code> from a user gesture. It does not emulate fullscreen
+      with CSS, trap focus, intercept Escape, lock orientation, or manage wake
+      locks. Disabling observation does not exit platform fullscreen.{' '}
+      <code>autoExit</code> applies only to genuine unmount.
+    </li>
+    <li>
+      <code>useUrlSearchParams</code> owns one URL component per mode (
+      <code>history</code> search, <code>hash</code> route query, or{' '}
+      <code>hash-params</code> entire hash). It does not integrate routers,
+      monkey-patch History, sync across tabs, validate schemas, or coerce
+      numbers/booleans on read. External <code>pushState</code>/
+      <code>replaceState</code> needs <code>refresh()</code>. Prefer isolated
+      iframe windows in Storybook demos.
     </li>
     <li>
       Storybook here is local documentation, not a deployed docs site yet.

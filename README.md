@@ -2396,6 +2396,148 @@ useEyeDropper(options?: UseEyeDropperOptions): UseEyeDropperReturn
 
 See Storybook (`Hooks/useEyeDropper`) for the dashboard, live native picker, and related examples.
 
+### `useFullscreen`
+
+Imperative native Fullscreen API control for an element ref (or `document.documentElement` when omitted).
+
+```ts
+import { useRef } from 'react'
+import { useFullscreen } from '@muradyanvano/react-hooks'
+
+const ref = useRef<HTMLDivElement>(null)
+const {
+  isSupported,
+  isFullscreen,
+  fullscreenElement,
+  error,
+  enter,
+  exit,
+  toggle,
+} = useFullscreen(ref, {
+  enabled: true,
+  autoExit: false,
+  navigationUI: 'auto',
+})
+```
+
+#### Options
+
+| Option         | Default  | Notes                                                                   |
+| -------------- | -------- | ----------------------------------------------------------------------- |
+| `enabled`      | `true`   | When `false`, detaches listeners; does not exit platform fullscreen     |
+| `autoExit`     | `false`  | Best-effort exit on genuine unmount only (not Strict Mode remount)      |
+| `document`     | omitted  | Omitted → global document after mount; explicit `null` never falls back |
+| `navigationUI` | `'auto'` | Passed to standard `requestFullscreen`; ignored by prefixed WebKit      |
+| `onError`      | —        | Latest-callback failure notifier                                        |
+
+#### Return value
+
+| Field               | Type                     | Notes                                                          |
+| ------------------- | ------------------------ | -------------------------------------------------------------- |
+| `isSupported`       | `boolean`                | Coherent request+exit+state adapter is available               |
+| `isFullscreen`      | `boolean`                | True only when this hook’s target is the active element        |
+| `fullscreenElement` | `Element \| null`        | Actual document fullscreen element                             |
+| `error`             | `Error \| null`          | Latest owned failure                                           |
+| `enter`             | `() => Promise<boolean>` | Requests fullscreen; `true` only if this target becomes active |
+| `exit`              | `() => Promise<boolean>` | Exits only when this target is active                          |
+| `toggle`            | `() => Promise<boolean>` | Reads live document state, then enter or exit                  |
+
+#### Behavior notes
+
+- Call `enter()` / `toggle()` directly from a user gesture. Native `requestFullscreen` runs synchronously before any `await`.
+- Standard and WebKit-prefixed APIs are selected as coherent families (request + exit + fullscreen-element state). Incomplete standard families yield to a complete WebKit family. No CSS fullscreen emulation.
+- Document `fullscreenchange` / `fullscreenerror` (and prefixed equivalents) are the source of truth.
+- `exit()` never dismisses another element’s fullscreen session.
+- Disabling observation does not change platform fullscreen. `autoExit` applies only to genuine unmount.
+- When multiple instances watch the same target with `autoExit: true`, unmounting one instance may exit the shared target while other instances are still mounted.
+- Target/document replacement rebinds observation and does not auto-exit the previous target.
+- Target/document mismatch is reported once without re-render loops.
+- No focus trapping, Escape interception, orientation lock, wake lock, or keyboard shortcuts.
+- Mobile video presentation APIs (for example `webkitEnterFullscreen` on media elements) are outside scope unless they expose the document Fullscreen API.
+- SSR: idle unsupported with safe commands resolving `false` and zero native request/exit calls.
+
+See Storybook (`Hooks/useFullscreen`) for the media viewer, live native story, and related examples.
+
+### `useUrlSearchParams`
+
+Observe and update URL search parameters for `history`, `hash`, or `hash-params` modes with immutable React snapshots and explicit controls (no mutation Proxy).
+
+```ts
+import { useUrlSearchParams } from '@muradyanvano/react-hooks'
+
+const {
+  params,
+  searchParams,
+  isReady,
+  error,
+  get,
+  getAll,
+  has,
+  set,
+  append,
+  remove,
+  setParams,
+  clear,
+  reset,
+  refresh,
+} = useUrlSearchParams('history', {
+  enabled: true,
+  write: true,
+  writeMode: 'replace',
+  removeNullishValues: true,
+  removeFalsyValues: false,
+  initialValue: {},
+})
+```
+
+#### Options
+
+| Option                | Default     | Notes                                                                    |
+| --------------------- | ----------- | ------------------------------------------------------------------------ |
+| `window`              | omitted     | Omitted → global after mount; explicit `null` never falls back           |
+| `enabled`             | `true`      | When `false`, local edits only; re-enable rereads URL and does not write |
+| `initialValue`        | `{}`        | Fallback for keys absent from the URL; not auto-written on init          |
+| `write`               | `true`      | When `false`, updates React state without History writes                 |
+| `writeMode`           | `'replace'` | `'replace'` or `'push'`; preserves `history.state`                       |
+| `removeNullishValues` | `true`      | `null`/`undefined` remove keys                                           |
+| `removeFalsyValues`   | `false`     | Also removes `''`, `0`, `false`, `NaN`; implies nullish removal          |
+| `stringify`           | native      | Custom textual output; canonical state still from `URLSearchParams`      |
+| `onError`             | —           | Latest-callback failure notifier                                         |
+
+#### Return value
+
+| Field                                                         | Type                      | Notes                                                          |
+| ------------------------------------------------------------- | ------------------------- | -------------------------------------------------------------- |
+| `params`                                                      | `UseUrlSearchParamsState` | Readonly snapshot (string or frozen string[] for repeats)      |
+| `searchParams`                                                | `URLSearchParams`         | Defensive snapshot; mutating it does not change hook/URL state |
+| `isReady`                                                     | `boolean`                 | `false` until client effect binds                              |
+| `error`                                                       | `Error \| null`           | Latest owned failure                                           |
+| `get`/`getAll`/`has`                                          | getters                   | Read from the current snapshot                                 |
+| `set`/`append`/`remove`/`setParams`/`clear`/`reset`/`refresh` | controls                  | Stable identities; use these to mutate                         |
+
+#### Modes
+
+- **`history`** — owns `location.search`; preserves pathname, hash, origin, and `history.state`
+- **`hash`** — owns the query after the first literal `?` in the hash route; preserves normal search and the hash route prefix
+- **`hash-params`** — owns the entire hash body after `#`; preserves normal search; empty clears the `#`
+
+#### Behavior notes
+
+- Use explicit controls. Do not mutate `params` or returned `searchParams` to change the URL.
+- `setParams` fully replaces the mode-owned collection (not a merge).
+- URL values are untrusted strings — no schema validation and no automatic number/boolean parsing on reads.
+- `initialValue` fills keys absent from the URL on **initial bind**, **mode/window rebind**, and **`reset()`** only. It is not auto-written on init and is **not** re-merged on `refresh()`, peer sync, or `popstate`/`hashchange` — removed defaults stay removed. Soft defaults that were never present on the URL remain instance-local until a write includes them.
+- In `hash` mode, a hash without `?` (for example `#foo=bar`) is a **route**, not parameters. In `hash-params` mode, an optional leading `?` after `#` is treated as a delimiter (`#?foo=bar` → `foo=bar`).
+- `hash` and `hash-params` compete for the same hash component; do not run both as independent owners on one window.
+- Same-window peers in the same mode sync via a private registry. Concurrent writers rebase onto the live URL (plus never-written soft defaults). Multiple package copies are not guaranteed to share the registry.
+- Failed `pushState`/`replaceState` calls are atomic: previous bound state is kept, `error`/`onError` fire, peers are not notified.
+- Custom `stringify` must not emit `#` (would escape mode ownership). It receives a defensive `URLSearchParams` copy.
+- Unrelated `history.pushState` / `replaceState` calls do not emit `popstate`. Call `refresh()` when integrating with routers or external History writes.
+- No router dependency, no query-string dependency, no global History monkey-patching, no cross-tab sync, no debouncing.
+- SSR: first render uses normalized `initialValue` with `isReady: false` and zero History/location writes.
+
+See Storybook (`Hooks/useUrlSearchParams`) for the parameter editor and related examples.
+
 ## Development
 
 ```bash

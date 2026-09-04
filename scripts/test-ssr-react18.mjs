@@ -188,6 +188,8 @@ import {
   useQRCode,
   useFavicon,
   useEyeDropper,
+  useFullscreen,
+  useUrlSearchParams,
 } from '@muradyanvano/react-hooks'
 
 const SSR_JWT_VALID =
@@ -475,6 +477,69 @@ function TestComponent() {
   if (typeof eye.open !== 'function' || typeof eye.cancel !== 'function' || typeof eye.reset !== 'function') {
     throw new Error('useEyeDropper controls must be functions during SSR')
   }
+
+  // useFullscreen SSR check: idle unsupported, no native request/exit
+  const fs = useFullscreen(undefined, {
+    onError: () => {
+      throw new Error('useFullscreen onError must not run during SSR')
+    },
+  })
+  if (fs.isSupported !== false) throw new Error('useFullscreen.isSupported must be false during SSR')
+  if (fs.isFullscreen !== false) throw new Error('useFullscreen.isFullscreen must be false during SSR')
+  if (fs.fullscreenElement !== null) throw new Error('useFullscreen.fullscreenElement must be null during SSR')
+  if (fs.error !== null) throw new Error('useFullscreen.error must be null during SSR')
+  if (typeof fs.enter !== 'function' || typeof fs.exit !== 'function' || typeof fs.toggle !== 'function') {
+    throw new Error('useFullscreen controls must be functions during SSR')
+  }
+  const fsEmptyRef = useFullscreen({ current: null })
+  if (fsEmptyRef.isSupported !== false) throw new Error('useFullscreen empty ref must stay idle during SSR')
+  const fsDisabled = useFullscreen(undefined, { enabled: false })
+  if (fsDisabled.isFullscreen !== false) throw new Error('useFullscreen disabled must stay idle during SSR')
+  const fsAutoExit = useFullscreen(undefined, { autoExit: true })
+  if (fsAutoExit.error !== null) throw new Error('useFullscreen autoExit must stay idle during SSR')
+  const fsNoDoc = useFullscreen(undefined, { document: null })
+  if (fsNoDoc.isSupported !== false) throw new Error('useFullscreen document:null must be unsupported')
+  for (const navigationUI of ['auto', 'show', 'hide']) {
+    const nav = useFullscreen(undefined, { navigationUI })
+    if (nav.isSupported !== false) {
+      throw new Error('useFullscreen navigationUI variants must stay idle during SSR')
+    }
+  }
+
+  // useUrlSearchParams SSR: initialValue only, isReady false, no History/location writes
+  const usp = useUrlSearchParams('history', {
+    initialValue: { q: 'ssr', tags: ['a', 'b'] },
+    onError: () => {
+      throw new Error('useUrlSearchParams onError must not run during SSR')
+    },
+  })
+  if (usp.isReady !== false) throw new Error('useUrlSearchParams.isReady must be false during SSR')
+  if (usp.error !== null) throw new Error('useUrlSearchParams.error must be null during SSR')
+  if (usp.params.q !== 'ssr') throw new Error('useUrlSearchParams must use initialValue during SSR')
+  if (!Array.isArray(usp.params.tags) || usp.params.tags.join(',') !== 'a,b') {
+    throw new Error('useUrlSearchParams must normalize repeated initial values during SSR')
+  }
+  if (typeof usp.set !== 'function' || typeof usp.refresh !== 'function' || typeof usp.reset !== 'function') {
+    throw new Error('useUrlSearchParams controls must be functions during SSR')
+  }
+  for (const mode of ['history', 'hash', 'hash-params']) {
+    const modeApi = useUrlSearchParams(mode, { initialValue: { m: mode } })
+    if (modeApi.isReady !== false || modeApi.params.m !== mode) {
+      throw new Error('useUrlSearchParams modes must stay SSR-idle with initialValue')
+    }
+  }
+  const uspNull = useUrlSearchParams('history', { window: null, initialValue: { x: '1' } })
+  if (uspNull.isReady !== false || uspNull.params.x !== '1') {
+    throw new Error('useUrlSearchParams window:null must stay SSR-idle')
+  }
+  const uspDisabled = useUrlSearchParams('history', { enabled: false, initialValue: { d: '1' } })
+  if (uspDisabled.isReady !== false) throw new Error('useUrlSearchParams disabled must stay SSR-idle')
+  const uspCustom = useUrlSearchParams('history', {
+    stringify: (params) => params.toString(),
+    initialValue: { s: '1' },
+  })
+  if (uspCustom.isReady !== false) throw new Error('useUrlSearchParams custom stringify must stay SSR-idle')
+
   return createElement(
     'div',
     { ref, 'data-focus-api': 'ready' },
@@ -793,6 +858,70 @@ function CaptureEyeDropperApi() {
   return createElement('div', null, 'eyedropper-api')
 }
 
+let fsIsSupported
+let fsIsFullscreen
+let fsFullscreenElement
+let fsError
+let fsHasEnter
+let fsHasExit
+let fsHasToggle
+let fsEnter
+let fsExit
+let fsToggle
+function CaptureFullscreenApi() {
+  const fs = useFullscreen(undefined, {
+    autoExit: true,
+    navigationUI: 'hide',
+    onError: () => {
+      throw new Error('useFullscreen onError must not run during SSR capture')
+    },
+  })
+  fsIsSupported = fs.isSupported
+  fsIsFullscreen = fs.isFullscreen
+  fsFullscreenElement = fs.fullscreenElement
+  fsError = fs.error
+  fsHasEnter = typeof fs.enter === 'function'
+  fsHasExit = typeof fs.exit === 'function'
+  fsHasToggle = typeof fs.toggle === 'function'
+  fsEnter = fs.enter
+  fsExit = fs.exit
+  fsToggle = fs.toggle
+  return createElement('div', null, 'fullscreen-api')
+}
+
+let uspIsReady
+let uspError
+let uspParams
+let uspHasSet
+let uspSet
+let uspAppend
+let uspRemove
+let uspSetParams
+let uspClear
+let uspReset
+let uspRefresh
+function CaptureUrlSearchParamsApi() {
+  const usp = useUrlSearchParams('history', {
+    initialValue: { q: 'ssr', tags: ['a', 'b'] },
+    stringify: (params) => params.toString(),
+    onError: () => {
+      throw new Error('useUrlSearchParams onError must not run during SSR capture')
+    },
+  })
+  uspIsReady = usp.isReady
+  uspError = usp.error
+  uspParams = usp.params
+  uspHasSet = typeof usp.set === 'function'
+  uspSet = usp.set
+  uspAppend = usp.append
+  uspRemove = usp.remove
+  uspSetParams = usp.setParams
+  uspClear = usp.clear
+  uspReset = usp.reset
+  uspRefresh = usp.refresh
+  return createElement('div', null, 'url-search-params-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -813,9 +942,15 @@ let postRenderJwtError = null
 let postRenderQRCodeError = null
 let postRenderFaviconError = null
 let postRenderEyeDropperError = null
+let postRenderFullscreenError = null
+let postRenderUrlSearchParamsError = null
 let getUserMediaCalls = 0
 let webSocketConstructCalls = 0
 let eyeDropperConstructCalls = 0
+let fullscreenRequestCalls = 0
+let fullscreenExitCalls = 0
+let historyPushStateCalls = 0
+let historyReplaceStateCalls = 0
 let localStorageGetItemCalls = 0
 let localStorageSetItemCalls = 0
 let localStorageRemoveItemCalls = 0
@@ -883,6 +1018,38 @@ if (typeof globalThis.window === 'object' && globalThis.window != null) {
     // Ignore non-configurable window hosts.
   }
 }
+const previousRequestFullscreen =
+  typeof Element !== 'undefined' ? Element.prototype.requestFullscreen : null
+const previousExitFullscreen =
+  typeof Document !== 'undefined' ? Document.prototype.exitFullscreen : null
+if (previousRequestFullscreen) {
+  Element.prototype.requestFullscreen = function (...args) {
+    fullscreenRequestCalls += 1
+    return previousRequestFullscreen.apply(this, args)
+  }
+}
+if (previousExitFullscreen) {
+  Document.prototype.exitFullscreen = function (...args) {
+    fullscreenExitCalls += 1
+    return previousExitFullscreen.apply(this, args)
+  }
+}
+const previousHistoryPushState =
+  typeof History !== 'undefined' ? History.prototype.pushState : null
+const previousHistoryReplaceState =
+  typeof History !== 'undefined' ? History.prototype.replaceState : null
+if (previousHistoryPushState) {
+  History.prototype.pushState = function (...args) {
+    historyPushStateCalls += 1
+    return previousHistoryPushState.apply(this, args)
+  }
+}
+if (previousHistoryReplaceState) {
+  History.prototype.replaceState = function (...args) {
+    historyReplaceStateCalls += 1
+    return previousHistoryReplaceState.apply(this, args)
+  }
+}
 const previousStorageGetItem =
   typeof Storage !== 'undefined' ? Storage.prototype.getItem : null
 const previousStorageSetItem =
@@ -922,6 +1089,8 @@ try {
   renderToString(createElement(CaptureQRCodeApi))
   renderToString(createElement(CaptureFaviconApi))
   renderToString(createElement(CaptureEyeDropperApi))
+  renderToString(createElement(CaptureFullscreenApi))
+  renderToString(createElement(CaptureUrlSearchParamsApi))
   if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
     postRenderScrollLockError = 'useScrollLock controls missing'
   }
@@ -1208,6 +1377,87 @@ try {
     postRenderEyeDropperError =
       error instanceof Error ? error.stack ?? error.message : String(error)
   }
+  if (
+    fsIsSupported !== false ||
+    fsIsFullscreen !== false ||
+    fsFullscreenElement !== null ||
+    fsError !== null ||
+    fsHasEnter !== true ||
+    fsHasExit !== true ||
+    fsHasToggle !== true
+  ) {
+    postRenderFullscreenError =
+      'Unexpected useFullscreen SSR state: ' +
+      JSON.stringify({
+        fsIsSupported,
+        fsIsFullscreen,
+        fsFullscreenElement,
+        fsError,
+        fsHasEnter,
+        fsHasExit,
+        fsHasToggle,
+      })
+  }
+  try {
+    const enterResult = fsEnter()
+    const exitResult = fsExit()
+    const toggleResult = fsToggle()
+    if (
+      typeof enterResult?.then !== 'function' ||
+      typeof exitResult?.then !== 'function' ||
+      typeof toggleResult?.then !== 'function'
+    ) {
+      throw new Error('useFullscreen commands must return promises')
+    }
+    if (fullscreenRequestCalls !== 0 || fullscreenExitCalls !== 0) {
+      throw new Error(
+        'Expected zero fullscreen request/exit calls after safe method calls, got ' +
+          fullscreenRequestCalls +
+          '/' +
+          fullscreenExitCalls,
+      )
+    }
+  } catch (error) {
+    postRenderFullscreenError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
+  if (
+    uspIsReady !== false ||
+    uspError !== null ||
+    uspHasSet !== true ||
+    uspParams?.q !== 'ssr' ||
+    !Array.isArray(uspParams?.tags) ||
+    uspParams.tags.join(',') !== 'a,b'
+  ) {
+    postRenderUrlSearchParamsError =
+      'Unexpected useUrlSearchParams SSR state: ' +
+      JSON.stringify({
+        uspIsReady,
+        uspError,
+        uspHasSet,
+        uspParams,
+      })
+  }
+  try {
+    uspSet('q', 'post')
+    uspAppend('tags', 'c')
+    uspRemove('missing')
+    uspSetParams({ q: 'set' })
+    uspClear()
+    uspReset()
+    uspRefresh()
+    if (historyPushStateCalls !== 0 || historyReplaceStateCalls !== 0) {
+      throw new Error(
+        'Expected zero History writes after safe method calls, got ' +
+          historyPushStateCalls +
+          '/' +
+          historyReplaceStateCalls,
+      )
+    }
+  } catch (error) {
+    postRenderUrlSearchParamsError =
+      error instanceof Error ? error.stack ?? error.message : String(error)
+  }
   try {
     focusMethod()
   } catch (error) {
@@ -1339,8 +1589,14 @@ console.log(
     postRenderQRCodeError,
     postRenderFaviconError,
     postRenderEyeDropperError,
+    postRenderFullscreenError,
+    postRenderUrlSearchParamsError,
     webSocketConstructCalls,
     eyeDropperConstructCalls,
+    fullscreenRequestCalls,
+    fullscreenExitCalls,
+    historyPushStateCalls,
+    historyReplaceStateCalls,
     localStorageGetItemCalls,
     localStorageSetItemCalls,
     localStorageRemoveItemCalls,
@@ -1477,6 +1733,18 @@ console.log(
     )
   }
 
+  if (payload.postRenderFullscreenError) {
+    throw new Error(
+      `useFullscreen SSR check failed:\\n${payload.postRenderFullscreenError}`,
+    )
+  }
+
+  if (payload.postRenderUrlSearchParamsError) {
+    throw new Error(
+      `useUrlSearchParams SSR check failed:\\n${payload.postRenderUrlSearchParamsError}`,
+    )
+  }
+
   if (payload.setIntervalCalls !== 0) {
     throw new Error(
       `Expected no setInterval calls during SSR, got ${payload.setIntervalCalls}`,
@@ -1498,6 +1766,24 @@ console.log(
   if (payload.eyeDropperConstructCalls !== 0) {
     throw new Error(
       `Expected no EyeDropper constructions, got ${payload.eyeDropperConstructCalls}`,
+    )
+  }
+
+  if (
+    payload.fullscreenRequestCalls !== 0 ||
+    payload.fullscreenExitCalls !== 0
+  ) {
+    throw new Error(
+      `Expected no fullscreen request/exit calls, got ${payload.fullscreenRequestCalls}/${payload.fullscreenExitCalls}`,
+    )
+  }
+
+  if (
+    payload.historyPushStateCalls !== 0 ||
+    payload.historyReplaceStateCalls !== 0
+  ) {
+    throw new Error(
+      `Expected no History push/replace calls, got ${payload.historyPushStateCalls}/${payload.historyReplaceStateCalls}`,
     )
   }
 

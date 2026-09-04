@@ -20,6 +20,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `useUrlSearchParams` hook with public types:
+  - `UseUrlSearchParamsMode`
+  - `UseUrlSearchParamsWriteMode`
+  - `UseUrlSearchParamsValue`
+  - `UseUrlSearchParamsState`
+  - `UseUrlSearchParamsInputValue`
+  - `UseUrlSearchParamsInput`
+  - `UseUrlSearchParamsStringify`
+  - `UseUrlSearchParamsOptions`
+  - `UseUrlSearchParamsReturn`
+- Runtime, helper, registry, type, Storybook, and SSR coverage for `useUrlSearchParams`
+- `useFullscreen` hook with public types:
+  - `UseFullscreenTarget`
+  - `UseFullscreenNavigationUI`
+  - `UseFullscreenOptions`
+  - `UseFullscreenReturn`
+- Runtime, helper, type, Storybook, and SSR coverage for `useFullscreen`
 - `useEyeDropper` hook with public types:
   - `UseEyeDropperOpenOptions`
   - `UseEyeDropperOptions`

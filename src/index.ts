@@ -227,3 +227,24 @@ export {
   type UseEyeDropperOptions,
   type UseEyeDropperReturn,
 } from './hooks/useEyeDropper/useEyeDropper'
+
+export {
+  useFullscreen,
+  type UseFullscreenNavigationUI,
+  type UseFullscreenOptions,
+  type UseFullscreenReturn,
+  type UseFullscreenTarget,
+} from './hooks/useFullscreen/useFullscreen'
+
+export {
+  useUrlSearchParams,
+  type UseUrlSearchParamsInput,
+  type UseUrlSearchParamsInputValue,
+  type UseUrlSearchParamsMode,
+  type UseUrlSearchParamsOptions,
+  type UseUrlSearchParamsReturn,
+  type UseUrlSearchParamsState,
+  type UseUrlSearchParamsStringify,
+  type UseUrlSearchParamsValue,
+  type UseUrlSearchParamsWriteMode,
+} from './hooks/useUrlSearchParams/useUrlSearchParams'

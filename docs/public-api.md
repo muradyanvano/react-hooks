@@ -2182,6 +2182,200 @@ export interface UseEyeDropperReturn {
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useFullscreen`
+
+```ts
+function useFullscreen<T extends UseFullscreenTarget = HTMLElement>(
+  ref?: RefObject<T | null>,
+  options?: UseFullscreenOptions,
+): UseFullscreenReturn
+```
+
+### Types
+
+```ts
+type UseFullscreenTarget = Element
+type UseFullscreenNavigationUI = 'auto' | 'show' | 'hide'
+
+interface UseFullscreenOptions {
+  enabled?: boolean
+  autoExit?: boolean
+  document?: Document | null
+  navigationUI?: UseFullscreenNavigationUI
+  onError?: (error: Error) => void
+}
+
+interface UseFullscreenReturn {
+  isSupported: boolean
+  isFullscreen: boolean
+  fullscreenElement: Element | null
+  error: Error | null
+  enter: () => Promise<boolean>
+  exit: () => Promise<boolean>
+  toggle: () => Promise<boolean>
+}
+```
+
+### Defaults
+
+- `enabled: true`
+- `autoExit: false`
+- `navigationUI: 'auto'`
+
+### Behavior
+
+- Supplied `ref` uses `ref.current`; omitted `ref` uses the selected document’s `documentElement`. Explicit null `ref.current` does not fall back. After imperative `ref.current` assignment, a later React commit is required to resynchronize.
+- When a target exists, its `ownerDocument` is authoritative. An explicit `document` that differs from the target’s ownerDocument is a safe mismatch error. Omitted document resolves to the global document after mount; explicit `document: null` never falls back.
+- `isSupported` means a coherent standard or WebKit-prefixed family exists (request + exit + fullscreen-element state). Incomplete standard families yield to a complete WebKit family. Event names cannot be probed and are assumed for the chosen family. Support does not guarantee a particular request will succeed under user-activation, permissions policy, or iframe constraints.
+- `isFullscreen` is true only when this hook’s target is the actual fullscreen element. `fullscreenElement` always reflects the document’s current fullscreen element, including external changes.
+- `enter()` / `toggle()` invoke native `requestFullscreen` synchronously in the consumer call stack before any `await`. Standard requests receive `{ navigationUI }`; prefixed WebKit methods use the compatible no-options signature.
+- `exit()` returns `false` and does not call native exit when another element is fullscreen or nothing is fullscreen.
+- `toggle()` reads the live document fullscreen element rather than trusting possibly stale React state.
+- Document change/error events (standard or prefixed) are the source of truth. Do not optimistically set fullscreen before the platform reports it. Pending enter/exit share per-operation `onError` ownership so an error event plus a rejected promise for the same attempt notify once.
+- Operation generations guard stale settlements. Disabling detaches listeners and reports idle observation state without exiting platform fullscreen. Re-enabling resynchronizes without auto-entering.
+- `autoExit: true` makes one best-effort native exit on genuine unmount when this target is fullscreen. It does not exit on Strict Mode remount, target/document replacement, option changes, or when another element is fullscreen. When multiple instances watch the same target, unmounting one `autoExit` instance may exit the shared target. Errors during auto-exit are contained and never call `onError` after unmount.
+- Explicit target/document mismatch is a stable owned error (no commit loops / repeated notifications).
+- No CSS emulation, focus trapping, focus restoration, Escape interception, announcements, orientation lock, wake lock, or keyboard shortcuts.
+
+### SSR behavior
+
+`renderToString` returns `{ isSupported: false, isFullscreen: false, fullscreenElement: null, error: null }` with safe `enter`/`exit`/`toggle` that resolve `false`. No browser globals at module evaluation, no listeners, no native request/exit, no timers, no `useLayoutEffect`.
+
+### Limitations
+
+- User activation, permissions policy, and iframe `allowfullscreen` can still reject requests
+- Only one fullscreen element per document
+- Prefixed WebKit support is best-effort and may ignore `navigationUI`
+- Mobile video presentation APIs are not automatically treated as document fullscreen
+- The hook does not manage focus, Escape keys, orientation, or wake locks
+
+### Exported names
+
+- `useFullscreen`
+- `UseFullscreenTarget`
+- `UseFullscreenNavigationUI`
+- `UseFullscreenOptions`
+- `UseFullscreenReturn`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useUrlSearchParams`
+
+```ts
+function useUrlSearchParams(
+  mode?: UseUrlSearchParamsMode,
+  options?: UseUrlSearchParamsOptions,
+): UseUrlSearchParamsReturn
+```
+
+### Types
+
+```ts
+type UseUrlSearchParamsMode = 'history' | 'hash' | 'hash-params'
+type UseUrlSearchParamsWriteMode = 'replace' | 'push'
+type UseUrlSearchParamsValue = string | readonly string[]
+type UseUrlSearchParamsState = Readonly<Record<string, UseUrlSearchParamsValue>>
+type UseUrlSearchParamsInputValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | readonly (string | number | boolean | null | undefined)[]
+type UseUrlSearchParamsInput = Readonly<
+  Record<string, UseUrlSearchParamsInputValue>
+>
+type UseUrlSearchParamsStringify = (params: URLSearchParams) => string
+
+interface UseUrlSearchParamsOptions {
+  window?: Window | null
+  enabled?: boolean
+  initialValue?: UseUrlSearchParamsInput
+  write?: boolean
+  writeMode?: UseUrlSearchParamsWriteMode
+  removeNullishValues?: boolean
+  removeFalsyValues?: boolean
+  stringify?: UseUrlSearchParamsStringify
+  onError?: (error: Error) => void
+}
+
+interface UseUrlSearchParamsReturn {
+  params: UseUrlSearchParamsState
+  searchParams: URLSearchParams
+  isReady: boolean
+  error: Error | null
+  get: (name: string) => string | null
+  getAll: (name: string) => readonly string[]
+  has: (name: string) => boolean
+  set: (name: string, value: UseUrlSearchParamsInputValue) => void
+  append: (name: string, value: string | number | boolean) => void
+  remove: (name: string, value?: string) => void
+  setParams: (params: UseUrlSearchParamsInput) => void
+  clear: () => void
+  reset: () => void
+  refresh: () => void
+}
+```
+
+### Defaults
+
+- `mode: 'history'`
+- `enabled: true`
+- `write: true`
+- `writeMode: 'replace'`
+- `removeNullishValues: true`
+- `removeFalsyValues: false`
+- `initialValue: {}`
+
+### Behavior
+
+- Immutable `params` snapshots: one occurrence → string; repeated key → frozen readonly string array; key order follows first URL appearance. Equal ordered entries preserve snapshot identity.
+- Returned `searchParams` is defensive; consumers must use controls to mutate.
+- Native `URLSearchParams` owns encoding (`+` as space, percent decoding). Do not mutate through a Proxy.
+- `initialValue` merges only on initial bind, mode/window rebind, and `reset()`. Ordinary `refresh()`, peer sync, and navigation rereads use the URL alone (no default resurrection). Soft defaults never seen on the URL stay instance-local until a write includes them.
+- `setParams` fully replaces the mode-owned collection. `remove(name, value?)` removes all matching occurrences when `value` is provided.
+- History writes use `pushState`/`replaceState` with the current `history.state` by identity (not cloned), preserve same-origin URL components owned by other modes, and skip no-op URLs. Failed writes keep prior bound state. No synthetic `popstate`/`hashchange`.
+- Observe `popstate` (all modes) and `hashchange` (`hash` / `hash-params`). External History writes require `refresh()`.
+- Same-window, same-mode peers sync through a private registry (writer excluded). Concurrent enabled writers rebase onto the live URL. Modes and windows stay isolated. `hash` and `hash-params` both own the hash — last writer wins.
+- In `hash` mode, `#foo=bar` (no `?`) is a route name, not parameters. In `hash-params`, `#?foo=bar` strips one leading `?`.
+- Custom `stringify` must not contain `#`; it receives a defensive `URLSearchParams` copy.
+- `enabled: false` detaches listeners; local edits do not write; re-enable rereads URL without writing. `write: false` local edits remain the mutation base after re-enabling writes.
+- Dynamic `mode` / `window` rebinds without migrating parameters. Explicit `window: null` is local-only.
+- Errors are normalized, never thrown during render, and cleared on later success. `onError` exceptions are contained.
+
+### SSR behavior
+
+`renderToString` returns normalized `initialValue` with `isReady: false`, `error: null`, and safe controls. No browser globals at module evaluation, no listeners, no History/location writes, no registry subscriptions, no `useLayoutEffect`.
+
+### Limitations
+
+- No router or query-string dependency
+- No global History monkey-patching
+- No cross-tab synchronization
+- No schema validation or typed coercion on reads
+- URL values are untrusted user input
+- Multiple package copies may not share the sync registry
+- Custom `stringify` formats that are not parse-equivalent may diverge after navigation refresh
+
+### Exported names
+
+- `useUrlSearchParams`
+- `UseUrlSearchParamsMode`
+- `UseUrlSearchParamsWriteMode`
+- `UseUrlSearchParamsValue`
+- `UseUrlSearchParamsState`
+- `UseUrlSearchParamsInputValue`
+- `UseUrlSearchParamsInput`
+- `UseUrlSearchParamsStringify`
+- `UseUrlSearchParamsOptions`
+- `UseUrlSearchParamsReturn`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.
