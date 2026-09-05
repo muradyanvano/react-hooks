@@ -5,6 +5,7 @@
 - Do not relax `@typescript-eslint/no-unused-vars` for type tests. Prefer `expectTypeOf` assertions for inferred callback parameters, or `void event` in `@ts-expect-error` negative cases (same pattern as existing type tests).
 - Prefer fixing root causes over weakening `strict`, lint, tests, coverage, or package allowlists.
 - Run `npm run verify` before considering foundation or library changes complete.
+- Use `npm run validate:release` when changing package metadata, publish allowlists, or GitHub Actions release/publish workflows.
 - Never introduce `any` in library or test source.
 - Ignore `dist` and `coverage` for lint and format.
 

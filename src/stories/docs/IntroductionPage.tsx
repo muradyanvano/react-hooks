@@ -50,19 +50,27 @@ export function IntroductionPage() {
           @muradyanvano/react-hooks
         </h1>
         <p className="max-w-2xl text-lg leading-8 text-slate-600">
-          Production-oriented React hooks designed for React. This Storybook
-          documents public package behavior for local development and review.
+          Production-oriented React hooks for React 18 and 19. This Storybook
+          documents public package behavior with interactive examples.
         </p>
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
-            0.1.0-beta.1 · unreleased
+          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+            1.0.0 · stable
           </span>
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-            Not published to npm
+            @muradyanvano/react-hooks
           </span>
           <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
             {HOOK_COUNT} public hooks
           </span>
+          <a
+            className="rounded-full bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-800 underline-offset-2 hover:underline"
+            href="https://muradyanvano1995.github.io/react-hooks/"
+            rel="noreferrer"
+            target="_blank"
+          >
+            GitHub Pages docs
+          </a>
         </div>
       </header>
 

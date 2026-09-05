@@ -1,6 +1,8 @@
 # Public API
 
-Status: early prerelease (`0.1.0-beta.1`, unreleased, not published to npm).
+Status: stable `1.0.0`. Authoritative public API reference for
+`@muradyanvano/react-hooks`. Interactive examples live in
+[Storybook](https://muradyanvano1995.github.io/react-hooks/).
 
 ## Package entry
 
@@ -2606,8 +2608,17 @@ Methods exist and are no-ops until mount. Do not subscribe or emit during render
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable `1.0.0` public API. Follow [Semantic Versioning](https://semver.org/) for
+future changes.
 
 ## Storybook
 
-Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.
+Interactive documentation lives in Storybook
+([GitHub Pages](https://muradyanvano1995.github.io/react-hooks/) or
+`npm run storybook` locally). Stories import the public package entry and are
+excluded from the npm tarball. Each example provides Show code / Hide code and
+Copy code for a curated consumer TypeScript snippet. Example styling uses
+Tailwind for documentation only; the hooks package does not require Tailwind.
+
+See also: [Getting started](./getting-started.md) · [SSR](./guides/ssr.md) ·
+[Releasing](./releasing.md).

@@ -21,7 +21,9 @@ const config: StorybookConfig = {
     reactDocgen: 'react-docgen-typescript',
   },
   async viteFinal(viteConfig) {
+    const basePath = process.env.STORYBOOK_BASE_PATH
     return mergeConfig(viteConfig, {
+      ...(basePath ? { base: basePath } : {}),
       plugins: [tailwindcss()],
       resolve: {
         alias: {

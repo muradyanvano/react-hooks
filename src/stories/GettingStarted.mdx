@@ -10,18 +10,25 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
   <header className="space-y-3 border-b border-slate-200 pb-6">
     <h1 className="text-3xl font-semibold tracking-tight">Getting started</h1>
     <p className="text-base leading-7 text-slate-600">
-      Honest setup notes for this prerelease. The package is not available from
-      npm yet.
+      Install <code>@muradyanvano/react-hooks</code> from npm and explore the{' '}
+      {HOOK_COUNT} public hooks in this Storybook.
     </p>
   </header>
 
 <section className="space-y-3">
-  <h2 className="text-xl font-semibold">Installation status</h2>
-  <p className="text-sm leading-7 text-slate-600">
-    Until publication is authorized, consume the package from this repository
-    only. The following command applies <strong>after</strong> a public release:
-  </p>
+  <h2 className="text-xl font-semibold">Installation</h2>
   <CodeBlock code="npm install @muradyanvano/react-hooks" language="bash" />
+  <p className="text-sm leading-7 text-slate-600">
+    Hosted documentation:{' '}
+    <a
+      className="font-medium text-indigo-700 underline-offset-2 hover:underline"
+      href="https://muradyanvano1995.github.io/react-hooks/"
+      rel="noreferrer"
+      target="_blank"
+    >
+      muradyanvano1995.github.io/react-hooks
+    </a>
+  </p>
 </section>
 
 <section className="space-y-3">
@@ -32,6 +39,10 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       Peer range: <code>react@^18.0.0 || ^19.0.0</code>.
     </li>
     <li>ESM-only. No CommonJS export map.</li>
+    <li>
+      Runtime dependency: <code>qrcode</code> (used by <code>useQRCode</code>{' '}
+      only).
+    </li>
   </ul>
 </section>
 
@@ -68,347 +79,27 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
 </section>
 
 <section className="space-y-3">
-  <h2 className="text-xl font-semibold">Available hooks</h2>
+  <h2 className="text-xl font-semibold">Where to go next</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
     <li>
-      <code>useOnClickOutside</code> — outside pointer/click detection
+      Use the Introduction catalog to open any hook&apos;s Documentation page.
     </li>
     <li>
-      <code>useOnElementRemoval</code> — document-tree removal detection via{' '}
-      <code>MutationObserver</code>
+      Read the repository{' '}
+      <a
+        className="font-medium text-indigo-700 underline-offset-2 hover:underline"
+        href="https://github.com/muradyanvano1995/react-hooks/blob/main/docs/public-api.md"
+        rel="noreferrer"
+        target="_blank"
+      >
+        public API reference
+      </a>{' '}
+      for signatures and types.
     </li>
     <li>
-      <code>useOnKeyStroke</code> — keyboard stroke listeners with exact{' '}
-      <code>event.key</code> matching
-    </li>
-    <li>
-      <code>useEventListener</code> — typed DOM listeners with native event-map
-      inference
-    </li>
-    <li>
-      <code>useOnLongPress</code> — sustained pointer press detection with
-      release metrics
-    </li>
-    <li>
-      <code>useOnStartTyping</code> — typing-intent detection outside editable
-      fields
-    </li>
-    <li>
-      <code>useDevicesList</code> — media-device enumeration with permission
-      workflow
-    </li>
-    <li>
-      <code>useDisplayMedia</code> — screen capture via{' '}
-      <code>getDisplayMedia</code> with explicit start/stop
-    </li>
-    <li>
-      <code>useElementByPoint</code> — reactive element hit-testing via{' '}
-      <code>elementFromPoint</code> / <code>elementsFromPoint</code>
-    </li>
-    <li>
-      <code>useElementHover</code> — mouse hover tracking via native{' '}
-      <code>mouseenter</code> / <code>mouseleave</code>
-    </li>
-    <li>
-      <code>useFocus</code> — direct native focus tracking with imperative{' '}
-      <code>focus</code> / <code>blur</code>
-    </li>
-    <li>
-      <code>useFocusWithin</code> — container focus tracking via native{' '}
-      <code>focusin</code> / <code>focusout</code>
-    </li>
-    <li>
-      <code>useInfiniteScroll</code> — edge-triggered loading for element,
-      window, and document scroll targets
-    </li>
-    <li>
-      <code>useMouse</code> — mouse and optional touch coordinate tracking with
-      page/client/screen/movement modes
-    </li>
-    <li>
-      <code>useMousePressed</code> — aggregate mouse/touch/drag press lifecycle
-      with global release tracking
-    </li>
-    <li>
-      <code>useParallax</code> — normalized roll/tilt from mouse movement and
-      optional device orientation for consumer-owned transforms
-    </li>
-    <li>
-      <code>useScroll</code> — scroll position, arrival, direction, and
-      scrolling-state tracking for element, window, and document targets
-    </li>
-    <li>
-      <code>useScrollLock</code> — lock scrolling on element, window, and
-      document targets via inline <code>overflow: hidden</code>
-    </li>
-    <li>
-      <code>useUserMedia</code> — camera/microphone capture with owned streams,
-      deep constraint auto-switch, and track-ended cleanup
-    </li>
-    <li>
-      <code>useWebSocket</code> — browser WebSocket helper with send buffering,
-      automatic reconnect, and application-level heartbeats
-    </li>
-    <li>
-      <code>useLocalStorage</code> — persist values in <code>localStorage</code>{' '}
-      with SSR-safe hydration, automatic serializers, same-document sync, and
-      optional cross-tab events
-    </li>
-    <li>
-      <code>useSessionStorage</code> — tab-scoped persistence in{' '}
-      <code>sessionStorage</code> with the same hydration-safe control surface
-    </li>
-    <li>
-      <code>useCookies</code> — reactive <code>document.cookie</code> manager
-      with SSR injection, attributes, and observation
-    </li>
-    <li>
-      <code>useJwt</code> — decode compact JWT header/payload contents only
-      (signature not verified)
-    </li>
-    <li>
-      <code>useNProgress</code> — package-native top-of-page progress indicator
-    </li>
-    <li>
-      <code>useQRCode</code> — QR image data URLs via the <code>qrcode</code>{' '}
-      runtime dependency (scanning does not validate content)
-    </li>
-    <li>
-      <code>useFavicon</code> — controlled document favicon{' '}
-      <code>&lt;link&gt;</code> management with shared ownership
-    </li>
-    <li>
-      <code>useEyeDropper</code> — imperative native EyeDropper color sampling
-      (user-gesture <code>open()</code>, six-digit opaque sRGB)
-    </li>
-    <li>
-      <code>useFullscreen</code> — imperative Fullscreen API enter/exit with
-      document-event sync (user-gesture <code>enter()</code>/
-      <code>toggle()</code>)
-    </li>
-    <li>
-      <code>useUrlSearchParams</code> — immutable URL search-parameter snapshots
-      for <code>history</code>, <code>hash</code>, and <code>hash-params</code>{' '}
-      modes with explicit controls
-    </li>
-    <li>
-      <code>usePageLeave</code> — mouse-boundary leave state for a browsing
-      context (<code>mouseout</code> with <code>relatedTarget == null</code>)
-    </li>
-    <li>
-      <code>useTextSelection</code> — document selection text, ranges, and
-      rectangles
-    </li>
-    <li>
-      <code>useBase64</code> — UTF-8-safe Base64 / data URL encoding
-    </li>
-    <li>
-      <code>useDebounceFn</code> — debounced callbacks with pending / cancel /
-      flush
-    </li>
-    <li>
-      <code>useEventBus</code> — typed in-memory event bus with owner-scoped
-      subscriptions
+      Review SSR, storage, media, and browser-API guides under{' '}
+      <code>docs/guides/</code> in the repository.
     </li>
   </ul>
 </section>
-
-<section className="space-y-3">
-  <h2 className="text-xl font-semibold">Limitations</h2>
-  <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>
-      Thirty-five public hooks exist in this prerelease — see Introduction for
-      the live catalog count ({HOOK_COUNT}).
-    </li>
-    <li>
-      <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
-      no iframe-specific helpers.
-    </li>
-    <li>
-      <code>useOnElementRemoval</code> is not a replacement for React effect
-      cleanup when the observing component itself unmounts.
-    </li>
-    <li>
-      <code>useOnKeyStroke</code> does not parse combination strings; use a
-      predicate for modifiers. It does not auto-ignore editable fields.
-    </li>
-    <li>
-      <code>useEventListener</code> supports one target per call and returns{' '}
-      <code>void</code>. Evaluating <code>document</code> as an argument is not
-      intrinsically SSR-safe.
-    </li>
-    <li>
-      <code>useOnLongPress</code> is Pointer Events only, does not suppress
-      clicks, and must not be the sole path for essential actions.
-    </li>
-    <li>
-      <code>useOnStartTyping</code> defaults to ASCII alphanumeric keys, uses{' '}
-      <code>keydown</code> (not IME reconstruction), and does not prevent
-      default.
-    </li>
-    <li>
-      <code>useDevicesList</code> lists devices only, stops temporary permission
-      tracks immediately, and treats <code>permissionGranted</code> as
-      hook-local state.
-    </li>
-    <li>
-      <code>useDisplayMedia</code> owns captured streams, stops tracks on stop /
-      unmount / browser-ended sharing, and recommends imperative{' '}
-      <code>start()</code> from a user gesture.
-    </li>
-    <li>
-      <code>useElementByPoint</code> only accepts client (viewport) coordinates,
-      does not poll for layout changes (call <code>update()</code> explicitly),
-      and requires any custom <code>document</code> to already exist and be
-      same-origin-accessible.
-    </li>
-    <li>
-      <code>useElementHover</code> tracks mouse hover only — not touch, keyboard
-      focus, or CSS <code>:hover</code>. Provide accessible alternatives for
-      hover-only information.
-    </li>
-    <li>
-      <code>useFocus</code> tracks direct focus only — not descendant
-      focus-within. Disabling resets hook state without blurring the browser
-      element. Use initial focus carefully in Docs mode.
-    </li>
-    <li>
-      <code>useFocusWithin</code> tracks DOM containment only — React portals
-      outside the subtree do not count. It does not move or trap focus.
-    </li>
-    <li>
-      <code>useInfiniteScroll</code> is scroll-metric based. Consumers own
-      fetching, item state, and scroll anchoring for top/left layouts. Provide
-      accessible alternatives for long feeds.
-    </li>
-    <li>
-      <code>useMouse</code> tracks mouse and optional touch events, not unified
-      Pointer Events. Element-relative coordinates require a custom extractor.
-      High-frequency updates may need <code>eventFilter</code> throttling.
-    </li>
-    <li>
-      <code>useMousePressed</code> exposes one aggregate boolean lifecycle, not
-      button state, touch count, or keyboard activation. Release is observed
-      through the owning window.
-    </li>
-    <li>
-      <code>useParallax</code> returns values only — it does not write CSS,
-      request orientation permission, or smooth sensor noise. Consumers own
-      transforms and reduced-motion behavior.
-    </li>
-    <li>
-      <code>useScroll</code> is scroll-metric based. Imperative{' '}
-      <code>smooth</code> scroll does not auto-sync state — call{' '}
-      <code>measure()</code> or wait for scroll events. After imperative{' '}
-      <code>ref.current</code> assignment, a later React commit is required
-      before attachment.
-    </li>
-    <li>
-      <code>useScrollLock</code> applies inline <code>overflow: hidden</code>{' '}
-      only — it does not suppress scroll events or act as a focus trap. Multiple
-      owners share one lock; overflow restores when the final owner releases.
-    </li>
-    <li>
-      <code>useUserMedia</code> prefers imperative <code>start()</code> from a
-      user gesture. Default <code>enabled</code> is false. It owns acquired
-      streams and does not record, upload, or analyze audio levels.
-    </li>
-    <li>
-      <code>useWebSocket</code> constructs sockets only in effects. Explicit{' '}
-      <code>close()</code> never auto-reconnects. <code>autoClose</code> only
-      controls <code>beforeunload</code> — React unmount always releases
-      ownership. Heartbeats are application messages, not native ping frames.
-    </li>
-    <li>
-      <code>useLocalStorage</code> reads storage only after mount. Malformed
-      payloads fall back locally without auto-deletion. <code>remove()</code>{' '}
-      deletes; <code>reset()</code> writes defaults. Do not store secrets — this
-      is persistence, not encryption.
-    </li>
-    <li>
-      <code>useSessionStorage</code> matches that control surface for{' '}
-      <code>sessionStorage</code>. It survives reloads in the same browsing
-      context but is not a durable cross-tab store.
-    </li>
-    <li>
-      <code>useCookies</code> cannot read or create <code>HttpOnly</code>{' '}
-      cookies. Deletion needs matching path/domain. Assignment success is not
-      acceptance proof. SSR reads require explicit <code>initialCookies</code>.
-    </li>
-    <li>
-      <code>useJwt</code> decodes only. It does not verify signatures or prove
-      claims are trustworthy. Never authorize from client-side decoded claims
-      alone. <code>exp</code>/<code>nbf</code>/<code>iat</code> are NumericDate
-      seconds. Use only synthetic tokens in examples.
-    </li>
-    <li>
-      <code>useQRCode</code> generates image data URLs only. Scanning does not
-      validate or trust destinations. Capacity depends on version, encoding, and
-      error-correction. Quiet zone and contrast matter for scan reliability. The
-      package depends on <code>qrcode</code> for encoding. Use only synthetic
-      payloads in examples.
-    </li>
-    <li>
-      <code>useFavicon</code> updates document head metadata only. Browser tab
-      icons may cache or delay. It does not generate badges, resize images,
-      manage manifests, or guarantee immediate UI refresh. Prefer isolated
-      iframe documents in Storybook demos. Consumers own accessible in-page
-      status text.
-    </li>
-    <li>
-      <code>useEyeDropper</code> wraps the native EyeDropper API only. Support
-      is limited and typically requires a secure context plus transient user
-      activation. Call <code>open()</code> directly from a user gesture — never
-      from an effect. Output is opaque six-digit sRGB with no alpha, continuous
-      sampling, polyfill, element-only sampling, or palette persistence. Browser
-      UI and Escape are platform-controlled.
-    </li>
-    <li>
-      <code>useFullscreen</code> wraps the native Fullscreen API (standard +
-      practical WebKit prefixes). Call <code>enter()</code>/
-      <code>toggle()</code> from a user gesture. It does not emulate fullscreen
-      with CSS, trap focus, intercept Escape, lock orientation, or manage wake
-      locks. Disabling observation does not exit platform fullscreen.{' '}
-      <code>autoExit</code> applies only to genuine unmount.
-    </li>
-    <li>
-      <code>useUrlSearchParams</code> owns one URL component per mode (
-      <code>history</code> search, <code>hash</code> route query, or{' '}
-      <code>hash-params</code> entire hash). It does not integrate routers,
-      monkey-patch History, sync across tabs, validate schemas, or coerce
-      numbers/booleans on read. External <code>pushState</code>/
-      <code>replaceState</code> needs <code>refresh()</code>. Prefer isolated
-      iframe windows in Storybook demos.
-    </li>
-    <li>
-      <code>usePageLeave</code> tracks mouse boundary leave/enter only. It does
-      not mean the tab closed, the page became hidden, focus left, navigation is
-      imminent, or analytics can safely be sent. Touch-only devices may never
-      update leave state. Prefer a dedicated visibility hook for{' '}
-      <code>document.hidden</code>, and <code>useElementHover</code> for
-      element-level hover. Storybook demos should observe isolated iframe
-      windows.
-    </li>
-    <li>
-      Storybook here is local documentation, not a deployed docs site yet.
-    </li>
-  </ul>
-</section>
-
-  <div className="flex flex-wrap gap-3">
-    <a
-      className="inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white no-underline"
-      href="?path=/docs/hooks-useonclickoutside--documentation"
-      target="_top"
-    >
-      Open useOnClickOutside docs
-    </a>
-    <a
-      className="inline-flex rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 no-underline"
-      href="?path=/docs/hooks-useeventlistener--documentation"
-      target="_top"
-    >
-      Open useEventListener docs
-    </a>
-  </div>
 </div>

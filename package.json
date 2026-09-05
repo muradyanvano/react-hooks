@@ -1,8 +1,7 @@
 {
   "name": "@muradyanvano/react-hooks",
-  "version": "0.1.0-beta.1",
-  "description": "Production-oriented React hooks library (early prerelease).",
-  "private": true,
+  "version": "1.0.0",
+  "description": "Production-oriented React hooks library for React 18 and 19.",
   "type": "module",
   "author": "Vano Muradyan",
   "license": "MIT",
@@ -13,7 +12,7 @@
   "bugs": {
     "url": "https://github.com/muradyanvano1995/react-hooks/issues"
   },
-  "homepage": "https://github.com/muradyanvano1995/react-hooks",
+  "homepage": "https://muradyanvano1995.github.io/react-hooks/",
   "keywords": [
     "react",
     "hooks",
@@ -64,6 +63,7 @@
     "test:reset": "node scripts/storybook-reset-audit.mjs",
     "test:ssr:react18": "node scripts/test-ssr-react18.mjs",
     "pack:dry-run": "npm pack --dry-run",
+    "validate:release": "node scripts/validate-release.mjs",
     "verify": "npm run format:check && npm run typecheck && npm run lint && npm run test && npm run build && npm run build:storybook",
     "verify:ci": "npm run verify && npm run test:storybook && npm run test:ssr:react18"
   },
