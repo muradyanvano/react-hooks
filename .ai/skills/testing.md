@@ -45,6 +45,6 @@
 - React 18 packed-consumer SSR checks run through `npm run test:ssr:react18` and are part of `verify:ci` (not every unit-test run) because they install React 18 into a temporary directory.
 - Setup lives in `vitest.setup.ts` (unit) and `.storybook/vitest.setup.ts` (Storybook).
 - Coverage via `npm run test:coverage` covers library source only.
-- Release safety: `npm run validate:release` (`scripts/validate-release.mjs`) asserts package metadata, tarball allowlist, workflow token-free publish constraints, and public export keys. Dist allowlist/export checks are skipped when `dist/` is absent (unit tests run before `build:lib` in `verify`); use `--require-publishable` after a library build (CI/publish). Unit coverage lives in `src/test/validate-release.test.ts`.
+- Release safety: `npm run validate:release` (`scripts/validate-release.mjs`) asserts package metadata, tarball allowlist, workflow token-free publish constraints, and public export keys. Dist allowlist/export checks are skipped when `dist/` is absent (unit tests run before `build:lib` in `verify`); use `--require-publishable` after a library build (CI/publish). `publish.yml` must run `npm run build:lib` before `--require-publishable` (clean checkouts have no committed `dist/`), keep a single standalone Build library step, and only publish after that validation. Unit coverage lives in `src/test/validate-release.test.ts`.
 
 When architecture, conventions, API behavior, package usage or testing policy changes, update this skill if its instructions become stale.

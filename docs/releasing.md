@@ -129,3 +129,4 @@ Create a repository environment named `npm` for `publish.yml`:
 - Do not publish from pull requests or ordinary pushes.
 - Do not force-overwrite or unpublish versions.
 - Prefer a reviewable manual first publish over automation that could double-publish.
+- `publish.yml` builds `dist/` (`npm run build:lib`) before `--require-publishable` validation because release runners start from a clean checkout and `dist/` is not committed.

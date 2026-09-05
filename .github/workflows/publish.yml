@@ -42,6 +42,9 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Build library
+        run: npm run build:lib
+
       - name: Verify release metadata and tag
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
@@ -64,9 +67,6 @@ jobs:
 
       - name: Storybook reset audit
         run: npm run test:reset
-
-      - name: Build library
-        run: npm run build:lib
 
       - name: Pack dry-run
         run: npm run pack:dry-run

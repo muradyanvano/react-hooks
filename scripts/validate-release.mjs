@@ -262,6 +262,131 @@ function assertTarballListing(pkg, { requirePublishable }) {
   }
 }
 
+/**
+ * Lightweight named-step extractor for GitHub Actions workflow YAML.
+ * Avoids a yaml dependency; sufficient for ordered `run:` step inspection.
+ */
+function extractGithubWorkflowNamedSteps(yamlText) {
+  const steps = []
+  const lines = yamlText.split(/\r?\n/)
+  let current = null
+  let multilineRunIndent = null
+
+  const pushCurrent = () => {
+    if (current) {
+      steps.push(current)
+      current = null
+    }
+    multilineRunIndent = null
+  }
+
+  for (const line of lines) {
+    const nameMatch = line.match(/^\s+- name:\s*(.+?)\s*$/)
+    if (nameMatch) {
+      pushCurrent()
+      current = { name: nameMatch[1], run: '' }
+      continue
+    }
+
+    if (!current) {
+      continue
+    }
+
+    if (multilineRunIndent !== null) {
+      const indentMatch = line.match(/^(\s*)/)
+      const indent = indentMatch ? indentMatch[1].length : 0
+      if (line.trim() === '' || indent > multilineRunIndent) {
+        current.run += `${current.run ? '\n' : ''}${line.slice(multilineRunIndent + 1)}`
+        continue
+      }
+      multilineRunIndent = null
+    }
+
+    const blockRun = line.match(/^(\s+)run:\s*[|>][+-]?\s*$/)
+    if (blockRun) {
+      multilineRunIndent = blockRun[1].length
+      current.run = ''
+      continue
+    }
+
+    const inlineRun = line.match(/^\s+run:\s+(.+?)\s*$/)
+    if (inlineRun) {
+      current.run = inlineRun[1]
+    }
+  }
+
+  pushCurrent()
+  return steps
+}
+
+function inspectPublishWorkflowOrder(publishYaml) {
+  const steps = extractGithubWorkflowNamedSteps(publishYaml)
+  const buildLibIndexes = []
+  const publishableIndexes = []
+  const publishIndexes = []
+  const buildLibraryNameIndexes = []
+
+  steps.forEach((step, index) => {
+    if (step.name === 'Build library') {
+      buildLibraryNameIndexes.push(index)
+    }
+    if (/(?:^|[\s&;|])npm run build:lib(?:$|[\s&;|])/.test(step.run)) {
+      buildLibIndexes.push(index)
+    }
+    if (/(?:^|[\s])--require-publishable(?:$|[\s])/.test(step.run)) {
+      publishableIndexes.push(index)
+    }
+    if (/(?:^|[\s&;|])npm publish(?:$|[\s&;|])/.test(step.run)) {
+      publishIndexes.push(index)
+    }
+  })
+
+  return {
+    steps,
+    buildLibIndexes,
+    publishableIndexes,
+    publishIndexes,
+    buildLibraryNameIndexes,
+  }
+}
+
+function assertPublishWorkflowOrder(publish) {
+  const {
+    buildLibIndexes,
+    publishableIndexes,
+    publishIndexes,
+    buildLibraryNameIndexes,
+  } = inspectPublishWorkflowOrder(publish)
+
+  if (buildLibIndexes.length === 0) {
+    fail('publish.yml must run npm run build:lib before publishable validation')
+  }
+  if (buildLibraryNameIndexes.length !== 1) {
+    fail(
+      `publish.yml must contain exactly one standalone "Build library" step (found ${buildLibraryNameIndexes.length})`,
+    )
+  }
+  if (publishableIndexes.length === 0) {
+    fail('publish.yml must run validate-release with --require-publishable')
+  }
+  if (publishIndexes.length === 0) {
+    fail('publish.yml must include an npm publish step')
+  }
+
+  const firstBuild = Math.min(...buildLibIndexes)
+  const firstPublishable = Math.min(...publishableIndexes)
+  const firstPublish = Math.min(...publishIndexes)
+
+  if (firstPublishable < firstBuild) {
+    fail(
+      'publish.yml must build dist (npm run build:lib) before --require-publishable validation',
+    )
+  }
+  if (firstPublish < firstPublishable) {
+    fail('publish.yml must not publish before --require-publishable validation')
+  }
+}
+
 function assertWorkflowSafety() {
   const workflowsDir = join(root, '.github', 'workflows')
   if (!existsSync(workflowsDir)) {
@@ -301,6 +426,7 @@ function assertWorkflowSafety() {
   if (!/environment:\s*npm/.test(publish)) {
     fail('publish.yml must use the npm environment')
   }
+  assertPublishWorkflowOrder(publish)
 
   const pagesPath = join(workflowsDir, 'pages.yml')
   if (existsSync(pagesPath)) {
