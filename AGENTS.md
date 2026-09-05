@@ -4,7 +4,7 @@ Operational guidance for coding agents working in `@muradyanvano/react-hooks`.
 
 ## Project
 
-Stable ESM-only React hooks library (`1.0.0`). React peer range: `^18.0.0 || ^19.0.0`.
+Stable ESM-only React hooks library (`1.0.1`). React peer range: `^18.0.0 || ^19.0.0`.
 
 Public entry: `src/index.ts` → `dist/index.js` + `dist/index.d.ts`.
 

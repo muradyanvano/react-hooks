@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-09-06
+
+Release-maintenance patch to validate the corrected npm Trusted Publishing path.
+
+### Fixed
+
+- npm `publish.yml` workflow ordering: build `dist/` (`npm run build:lib`) before `--require-publishable` validation on clean release checkouts
+
+### Notes
+
+- Token-free npm Trusted Publishing via GitHub Actions OIDC is unchanged (no `NPM_TOKEN` / `NODE_AUTH_TOKEN`)
+- Package runtime behavior and public API are unchanged from `1.0.0`
+
 ## [1.0.0] - 2026-09-05
 
 First stable release of `@muradyanvano/react-hooks`.

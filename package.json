@@ -1,6 +1,6 @@
 {
   "name": "@muradyanvano/react-hooks",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Production-oriented React hooks library for React 18 and 19.",
   "type": "module",
   "author": "Vano Muradyan",
