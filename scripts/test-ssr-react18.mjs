@@ -190,6 +190,7 @@ import {
   useEyeDropper,
   useFullscreen,
   useUrlSearchParams,
+  usePageLeave,
 } from '@muradyanvano/react-hooks'
 
 const SSR_JWT_VALID =
@@ -539,6 +540,14 @@ function TestComponent() {
     initialValue: { s: '1' },
   })
   if (uspCustom.isReady !== false) throw new Error('useUrlSearchParams custom stringify must stay SSR-idle')
+
+  // usePageLeave SSR: initialValue only, no listeners / window access
+  const pageLeave = usePageLeave()
+  if (pageLeave !== false) throw new Error('usePageLeave default must be false during SSR')
+  const pageLeaveInitial = usePageLeave({ initialValue: true })
+  if (pageLeaveInitial !== true) throw new Error('usePageLeave initialValue:true must seed during SSR')
+  const pageLeaveNull = usePageLeave({ window: null })
+  if (pageLeaveNull !== false) throw new Error('usePageLeave window:null must return initialValue during SSR')
 
   return createElement(
     'div',
@@ -922,6 +931,16 @@ function CaptureUrlSearchParamsApi() {
   return createElement('div', null, 'url-search-params-api')
 }
 
+let pageLeaveDefault
+let pageLeaveInitial
+let pageLeaveNull
+function CapturePageLeaveApi() {
+  pageLeaveDefault = usePageLeave()
+  pageLeaveInitial = usePageLeave({ initialValue: true })
+  pageLeaveNull = usePageLeave({ window: null, initialValue: false })
+  return createElement('div', null, 'page-leave-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -944,6 +963,7 @@ let postRenderFaviconError = null
 let postRenderEyeDropperError = null
 let postRenderFullscreenError = null
 let postRenderUrlSearchParamsError = null
+let postRenderPageLeaveError = null
 let getUserMediaCalls = 0
 let webSocketConstructCalls = 0
 let eyeDropperConstructCalls = 0
@@ -1091,6 +1111,7 @@ try {
   renderToString(createElement(CaptureEyeDropperApi))
   renderToString(createElement(CaptureFullscreenApi))
   renderToString(createElement(CaptureUrlSearchParamsApi))
+  renderToString(createElement(CapturePageLeaveApi))
   if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
     postRenderScrollLockError = 'useScrollLock controls missing'
   }
@@ -1458,6 +1479,19 @@ try {
     postRenderUrlSearchParamsError =
       error instanceof Error ? error.stack ?? error.message : String(error)
   }
+  if (
+    pageLeaveDefault !== false ||
+    pageLeaveInitial !== true ||
+    pageLeaveNull !== false
+  ) {
+    postRenderPageLeaveError =
+      'Unexpected usePageLeave SSR state: ' +
+      JSON.stringify({
+        pageLeaveDefault,
+        pageLeaveInitial,
+        pageLeaveNull,
+      })
+  }
   try {
     focusMethod()
   } catch (error) {
@@ -1591,6 +1625,7 @@ console.log(
     postRenderEyeDropperError,
     postRenderFullscreenError,
     postRenderUrlSearchParamsError,
+    postRenderPageLeaveError,
     webSocketConstructCalls,
     eyeDropperConstructCalls,
     fullscreenRequestCalls,
@@ -1742,6 +1777,12 @@ console.log(
   if (payload.postRenderUrlSearchParamsError) {
     throw new Error(
       `useUrlSearchParams SSR check failed:\\n${payload.postRenderUrlSearchParamsError}`,
+    )
+  }
+
+  if (payload.postRenderPageLeaveError) {
+    throw new Error(
+      `usePageLeave SSR check failed:\\n${payload.postRenderPageLeaveError}`,
     )
   }
 

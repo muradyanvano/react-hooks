@@ -2376,6 +2376,47 @@ interface UseUrlSearchParamsReturn {
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `usePageLeave`
+
+```ts
+function usePageLeave(options?: UsePageLeaveOptions): UsePageLeaveReturn
+```
+
+### Options
+
+| Name           | Type             | Default | Description                                                                       |
+| -------------- | ---------------- | ------- | --------------------------------------------------------------------------------- |
+| `enabled`      | `boolean`        | `true`  | When `false`, no listeners are registered and the current boolean is preserved.   |
+| `window`       | `Window \| null` | omitted | Omitted resolves the global window after mount. Explicit `null` never falls back. |
+| `initialValue` | `boolean`        | `false` | Seeds the first render, SSR, and hydration once.                                  |
+
+### Return
+
+`boolean` — whether the mouse has left the observed browsing context (`true` = left).
+
+### Behavior
+
+- Leave: window `mouseout` with `relatedTarget == null`, only after a `mouseover` has armed observation for that window
+- Enter: window `mouseover` (also arms leave detection)
+- Attach-time / iframe-load spurious `mouseout` events are ignored until the first enter
+- Internal movement (non-null `relatedTarget`) does not count as leaving
+- Mouse-only; no Pointer Events or touch fallbacks
+- Not blur / visibility / pagehide / unload / navigation blocking
+- Strict Mode–safe exact listener cleanup
+- Custom iframe `contentWindow` supported with exact-realm attach/detach
+- State preserved across disable and window replacement
+- SSR returns `initialValue` with zero browser side effects
+
+### Exported names
+
+- `usePageLeave`
+- `UsePageLeaveOptions`
+- `UsePageLeaveReturn`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.

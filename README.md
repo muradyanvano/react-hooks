@@ -2538,6 +2538,39 @@ const {
 
 See Storybook (`Hooks/useUrlSearchParams`) for the parameter editor and related examples.
 
+### `usePageLeave`
+
+Tracks whether the mouse pointer has left the observed browsing context.
+
+```ts
+import { usePageLeave } from '@muradyanvano/react-hooks'
+
+const hasLeft = usePageLeave({
+  enabled: true,
+  // window: iframe.contentWindow, // optional; omit to use global window after mount
+  // window: null,                 // explicit null: never fall back
+  initialValue: false,
+})
+```
+
+**Defaults:** `enabled: true`, `initialValue: false`, omitted `window` resolved after mount.
+
+**Leave semantics:** listens for `mouseout` on the selected window and sets `true` only when `event.relatedTarget == null` **and** the pointer has entered that window at least once via `mouseover` since observation started. Attach-time / iframe-load `mouseout` events are ignored until that first enter. Internal movement between descendants (including onto an in-document iframe element) does not count.
+
+**Enter semantics:** `mouseover` on the selected window sets `false`.
+
+**Not page-leave signals:** `blur`, `focus`, `visibilitychange`, `pagehide`, `beforeunload`, `unload`, touch events, keyboard focus leaving, or application route changes.
+
+**Mouse only:** Touch-only devices might never produce meaningful leave state. Pen/pointer-capture behavior is outside this contract. Switching tabs or minimizing does not necessarily emit a mouse boundary event — use a dedicated visibility hook for that. Prefer `useElementHover` for element-level hover.
+
+**Lifecycle:** Disabling detaches listeners and preserves the current boolean (does not reseed `initialValue`). Changing the selected window preserves state and does not synthesize enter/leave. `initialValue` seeds once for SSR/hydration; later prop changes do not overwrite live state.
+
+**SSR:** Returns `initialValue` with no window access and no listeners.
+
+This does **not** mean the user closed the tab, the page became hidden, the browser lost focus, navigation is about to happen, analytics can safely be sent, or the user intends to abandon a purchase. It also does not block navigation or guarantee exit-intent analytics delivery.
+
+See Storybook (`Hooks/usePageLeave`) for the page leave detector and related examples.
+
 ## Development
 
 ```bash

@@ -248,3 +248,9 @@ export {
   type UseUrlSearchParamsValue,
   type UseUrlSearchParamsWriteMode,
 } from './hooks/useUrlSearchParams/useUrlSearchParams'
+
+export {
+  usePageLeave,
+  type UsePageLeaveOptions,
+  type UsePageLeaveReturn,
+} from './hooks/usePageLeave/usePageLeave'

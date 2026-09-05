@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `usePageLeave`: ignore qualifying `mouseout` until the observed window has received a `mouseover` (prevents iframe attach/load spurious “left” state)
 - `useQRCode`: resolve `toDataURL` for both named and `default`-wrapped dynamic-import shapes from `qrcode`
 - `useQRCode`: distinguish invalid option signatures that share an error message so `onError` re-notifies
 - `useQRCode`: ignore inherited option/color properties when validating consumer objects
@@ -20,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `usePageLeave` hook with public types:
+  - `UsePageLeaveOptions`
+  - `UsePageLeaveReturn`
+- Runtime, helper, type, Storybook, and SSR coverage for `usePageLeave`
 - `useUrlSearchParams` hook with public types:
   - `UseUrlSearchParamsMode`
   - `UseUrlSearchParamsWriteMode`

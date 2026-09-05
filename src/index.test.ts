@@ -127,6 +127,10 @@ describe('package entry', () => {
     expect(entry.useUrlSearchParams).toBeTypeOf('function')
   })
 
+  it('exports usePageLeave and its public types', () => {
+    expect(entry.usePageLeave).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
@@ -152,6 +156,7 @@ describe('package entry', () => {
       'useOnKeyStroke',
       'useOnLongPress',
       'useOnStartTyping',
+      'usePageLeave',
       'useParallax',
       'useQRCode',
       'useScroll',
@@ -197,5 +202,8 @@ describe('package entry', () => {
     expect(entry).not.toHaveProperty('resolveFullscreenAdapter')
     expect(entry).not.toHaveProperty('createStandardAdapter')
     expect(entry).not.toHaveProperty('createWebkitAdapter')
+    expect(entry).not.toHaveProperty('resolveEffectiveWindow')
+    expect(entry).not.toHaveProperty('isQualifyingPageLeave')
+    expect(entry).not.toHaveProperty('isEventTargetLike')
   })
 })
