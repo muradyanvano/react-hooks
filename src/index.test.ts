@@ -131,14 +131,33 @@ describe('package entry', () => {
     expect(entry.usePageLeave).toBeTypeOf('function')
   })
 
+  it('exports useTextSelection and its public types', () => {
+    expect(entry.useTextSelection).toBeTypeOf('function')
+  })
+
+  it('exports useBase64 and its public types', () => {
+    expect(entry.useBase64).toBeTypeOf('function')
+  })
+
+  it('exports useDebounceFn and its public types', () => {
+    expect(entry.useDebounceFn).toBeTypeOf('function')
+  })
+
+  it('exports useEventBus and its public types', () => {
+    expect(entry.useEventBus).toBeTypeOf('function')
+  })
+
   it('does not expose private source subpaths on the root entry', () => {
     expect(entry).not.toHaveProperty('default')
     expect(Object.keys(entry).sort()).toEqual([
+      'useBase64',
       'useCookies',
+      'useDebounceFn',
       'useDevicesList',
       'useDisplayMedia',
       'useElementByPoint',
       'useElementHover',
+      'useEventBus',
       'useEventListener',
       'useEyeDropper',
       'useFavicon',
@@ -162,6 +181,7 @@ describe('package entry', () => {
       'useScroll',
       'useScrollLock',
       'useSessionStorage',
+      'useTextSelection',
       'useUrlSearchParams',
       'useUserMedia',
       'useWebSocket',
@@ -205,5 +225,19 @@ describe('package entry', () => {
     expect(entry).not.toHaveProperty('resolveEffectiveWindow')
     expect(entry).not.toHaveProperty('isQualifyingPageLeave')
     expect(entry).not.toHaveProperty('isEventTargetLike')
+    expect(entry).not.toHaveProperty('readTextSelection')
+    expect(entry).not.toHaveProperty('textSelectionsAreEqual')
+    expect(entry).not.toHaveProperty('EMPTY_TEXT_SELECTION')
+    expect(entry).not.toHaveProperty('encodeBase64')
+    expect(entry).not.toHaveProperty('encodeUtf8ToBase64')
+    expect(entry).not.toHaveProperty('createOptionsSignature')
+    expect(entry).not.toHaveProperty('normalizeDelay')
+    expect(entry).not.toHaveProperty('normalizeMaxWait')
+    expect(entry).not.toHaveProperty('createCancelError')
+    expect(entry).not.toHaveProperty('createEventBusOwner')
+    expect(entry).not.toHaveProperty('emitChannel')
+    expect(entry).not.toHaveProperty('resetChannel')
+    expect(entry).not.toHaveProperty('subscribe')
+    expect(entry).not.toHaveProperty('getChannelListenerCount')
   })
 })

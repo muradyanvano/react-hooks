@@ -191,6 +191,10 @@ import {
   useFullscreen,
   useUrlSearchParams,
   usePageLeave,
+  useTextSelection,
+  useBase64,
+  useDebounceFn,
+  useEventBus,
 } from '@muradyanvano/react-hooks'
 
 const SSR_JWT_VALID =
@@ -244,6 +248,13 @@ const previousRaf = globalThis.requestAnimationFrame
 globalThis.requestAnimationFrame = (callback) => {
   animationFrameCalls += 1
   return typeof previousRaf === 'function' ? previousRaf(callback) : 0
+}
+
+let getSelectionCalls = 0
+const previousGetSelection = globalThis.getSelection
+globalThis.getSelection = () => {
+  getSelectionCalls += 1
+  return null
 }
 
 let listenerCalls = 0
@@ -548,6 +559,52 @@ function TestComponent() {
   if (pageLeaveInitial !== true) throw new Error('usePageLeave initialValue:true must seed during SSR')
   const pageLeaveNull = usePageLeave({ window: null })
   if (pageLeaveNull !== false) throw new Error('usePageLeave window:null must return initialValue during SSR')
+
+  // useTextSelection SSR: initial empty state, no selection read or listeners
+  const textSelection = useTextSelection()
+  if (
+    textSelection.text !== '' ||
+    textSelection.rects.length !== 0 ||
+    textSelection.ranges.length !== 0 ||
+    textSelection.selection !== null
+  ) {
+    throw new Error('useTextSelection must return an empty state during SSR')
+  }
+
+  // useBase64 SSR: string input stays idle; do not encode during render.
+  const base64 = useBase64('ssr-safe-string')
+  if (
+    base64.base64 !== '' ||
+    base64.isLoading !== false ||
+    base64.error !== null ||
+    base64.promise !== null ||
+    typeof base64.execute !== 'function'
+  ) {
+    throw new Error('useBase64 must return an idle state during SSR')
+  }
+
+  // useDebounceFn SSR: controls exist and do not schedule work until run().
+  const debounce = useDebounceFn(() => 'ssr-safe-value')
+  if (
+    debounce.isPending !== false ||
+    typeof debounce.run !== 'function' ||
+    typeof debounce.cancel !== 'function' ||
+    typeof debounce.flush !== 'function'
+  ) {
+    throw new Error('useDebounceFn must return idle controls during SSR')
+  }
+
+  // useEventBus SSR: methods exist; never subscribe or emit during render.
+  const eventBus = useEventBus('ssr-safe-event-bus')
+  if (
+    typeof eventBus.on !== 'function' ||
+    typeof eventBus.once !== 'function' ||
+    typeof eventBus.emit !== 'function' ||
+    typeof eventBus.off !== 'function' ||
+    typeof eventBus.reset !== 'function'
+  ) {
+    throw new Error('useEventBus methods must exist during SSR')
+  }
 
   return createElement(
     'div',
@@ -941,6 +998,62 @@ function CapturePageLeaveApi() {
   return createElement('div', null, 'page-leave-api')
 }
 
+let textSelectionText
+let textSelectionRects
+let textSelectionRanges
+let textSelectionNativeSelection
+function CaptureTextSelectionApi() {
+  const selection = useTextSelection()
+  textSelectionText = selection.text
+  textSelectionRects = selection.rects
+  textSelectionRanges = selection.ranges
+  textSelectionNativeSelection = selection.selection
+  return createElement('div', null, 'text-selection-api')
+}
+
+let base64Value
+let base64IsLoading
+let base64Error
+let base64Promise
+let base64Execute
+function CaptureBase64Api() {
+  const base64 = useBase64('ssr-safe-capture')
+  base64Value = base64.base64
+  base64IsLoading = base64.isLoading
+  base64Error = base64.error
+  base64Promise = base64.promise
+  base64Execute = base64.execute
+  return createElement('div', null, 'base64-api')
+}
+
+let debounceRun
+let debounceCancel
+let debounceFlush
+let debounceIsPending
+function CaptureDebounceFnApi() {
+  const debounce = useDebounceFn(() => 'ssr-safe-capture')
+  debounceRun = debounce.run
+  debounceCancel = debounce.cancel
+  debounceFlush = debounce.flush
+  debounceIsPending = debounce.isPending
+  return createElement('div', null, 'debounce-fn-api')
+}
+
+let eventBusOn
+let eventBusOnce
+let eventBusEmit
+let eventBusOff
+let eventBusReset
+function CaptureEventBusApi() {
+  const eventBus = useEventBus('ssr-safe-capture-event-bus')
+  eventBusOn = eventBus.on
+  eventBusOnce = eventBus.once
+  eventBusEmit = eventBus.emit
+  eventBusOff = eventBus.off
+  eventBusReset = eventBus.reset
+  return createElement('div', null, 'event-bus-api')
+}
+
 let html = ''
 let renderError = null
 let postRenderFocusError = null
@@ -964,6 +1077,10 @@ let postRenderEyeDropperError = null
 let postRenderFullscreenError = null
 let postRenderUrlSearchParamsError = null
 let postRenderPageLeaveError = null
+let postRenderTextSelectionError = null
+let postRenderBase64Error = null
+let postRenderDebounceFnError = null
+let postRenderEventBusError = null
 let getUserMediaCalls = 0
 let webSocketConstructCalls = 0
 let eyeDropperConstructCalls = 0
@@ -978,6 +1095,12 @@ const previousSetInterval = globalThis.setInterval
 globalThis.setInterval = function (...args) {
   setIntervalCalls += 1
   return previousSetInterval.apply(this, args)
+}
+let setTimeoutCalls = 0
+const previousSetTimeout = globalThis.setTimeout
+globalThis.setTimeout = function (...args) {
+  setTimeoutCalls += 1
+  return previousSetTimeout.apply(this, args)
 }
 const previousDocumentCookie =
   typeof Document !== 'undefined'
@@ -1112,6 +1235,10 @@ try {
   renderToString(createElement(CaptureFullscreenApi))
   renderToString(createElement(CaptureUrlSearchParamsApi))
   renderToString(createElement(CapturePageLeaveApi))
+  renderToString(createElement(CaptureTextSelectionApi))
+  renderToString(createElement(CaptureBase64Api))
+  renderToString(createElement(CaptureDebounceFnApi))
+  renderToString(createElement(CaptureEventBusApi))
   if (typeof scrollLockLock !== 'function' || typeof scrollLockUnlock !== 'function' || typeof scrollLockToggle !== 'function') {
     postRenderScrollLockError = 'useScrollLock controls missing'
   }
@@ -1492,6 +1619,62 @@ try {
         pageLeaveNull,
       })
   }
+  if (
+    textSelectionText !== '' ||
+    textSelectionRects?.length !== 0 ||
+    textSelectionRanges?.length !== 0 ||
+    textSelectionNativeSelection !== null
+  ) {
+    postRenderTextSelectionError =
+      'Unexpected useTextSelection SSR state: ' +
+      JSON.stringify({
+        textSelectionText,
+        textSelectionRects,
+        textSelectionRanges,
+        textSelectionNativeSelection,
+      })
+  }
+  if (
+    base64Value !== '' ||
+    base64IsLoading !== false ||
+    base64Error !== null ||
+    base64Promise !== null ||
+    typeof base64Execute !== 'function'
+  ) {
+    postRenderBase64Error =
+      'Unexpected useBase64 SSR state: ' +
+      JSON.stringify({
+        base64Value,
+        base64IsLoading,
+        base64Error,
+        base64Promise,
+        hasExecute: typeof base64Execute === 'function',
+      })
+  }
+  if (
+    debounceIsPending !== false ||
+    typeof debounceRun !== 'function' ||
+    typeof debounceCancel !== 'function' ||
+    typeof debounceFlush !== 'function'
+  ) {
+    postRenderDebounceFnError =
+      'Unexpected useDebounceFn SSR state: ' +
+      JSON.stringify({
+        debounceIsPending,
+        hasRun: typeof debounceRun === 'function',
+        hasCancel: typeof debounceCancel === 'function',
+        hasFlush: typeof debounceFlush === 'function',
+      })
+  }
+  if (
+    typeof eventBusOn !== 'function' ||
+    typeof eventBusOnce !== 'function' ||
+    typeof eventBusEmit !== 'function' ||
+    typeof eventBusOff !== 'function' ||
+    typeof eventBusReset !== 'function'
+  ) {
+    postRenderEventBusError = 'useEventBus methods missing during SSR'
+  }
   try {
     focusMethod()
   } catch (error) {
@@ -1560,6 +1743,11 @@ try {
   } else {
     globalThis.requestAnimationFrame = previousRaf
   }
+  if (previousGetSelection === undefined) {
+    delete globalThis.getSelection
+  } else {
+    globalThis.getSelection = previousGetSelection
+  }
   if (previousAdd) {
     EventTarget.prototype.addEventListener = previousAdd
   }
@@ -1585,6 +1773,7 @@ try {
     Storage.prototype.removeItem = previousStorageRemoveItem
   }
   globalThis.setInterval = previousSetInterval
+  globalThis.setTimeout = previousSetTimeout
   if (
     typeof Document !== 'undefined' &&
     previousDocumentCookie != null
@@ -1601,6 +1790,7 @@ console.log(
     mutationObserverCalls,
     resizeObserverCalls,
     animationFrameCalls,
+    getSelectionCalls,
     listenerCalls,
     warnings,
     errors,
@@ -1626,6 +1816,10 @@ console.log(
     postRenderFullscreenError,
     postRenderUrlSearchParamsError,
     postRenderPageLeaveError,
+    postRenderTextSelectionError,
+    postRenderBase64Error,
+    postRenderDebounceFnError,
+    postRenderEventBusError,
     webSocketConstructCalls,
     eyeDropperConstructCalls,
     fullscreenRequestCalls,
@@ -1636,6 +1830,7 @@ console.log(
     localStorageSetItemCalls,
     localStorageRemoveItemCalls,
     setIntervalCalls,
+    setTimeoutCalls,
     documentCookieReads,
     documentCookieWrites,
   }),
@@ -1786,9 +1981,39 @@ console.log(
     )
   }
 
+  if (payload.postRenderTextSelectionError) {
+    throw new Error(
+      `useTextSelection SSR check failed:\\n${payload.postRenderTextSelectionError}`,
+    )
+  }
+
+  if (payload.postRenderBase64Error) {
+    throw new Error(
+      `useBase64 SSR check failed:\\n${payload.postRenderBase64Error}`,
+    )
+  }
+
+  if (payload.postRenderDebounceFnError) {
+    throw new Error(
+      `useDebounceFn SSR check failed:\\n${payload.postRenderDebounceFnError}`,
+    )
+  }
+
+  if (payload.postRenderEventBusError) {
+    throw new Error(
+      `useEventBus SSR check failed:\\n${payload.postRenderEventBusError}`,
+    )
+  }
+
   if (payload.setIntervalCalls !== 0) {
     throw new Error(
       `Expected no setInterval calls during SSR, got ${payload.setIntervalCalls}`,
+    )
+  }
+
+  if (payload.setTimeoutCalls !== 0) {
+    throw new Error(
+      `Expected no setTimeout calls during SSR, got ${payload.setTimeoutCalls}`,
     )
   }
 
@@ -1857,6 +2082,12 @@ console.log(
   if (payload.animationFrameCalls !== 0) {
     throw new Error(
       `Expected no requestAnimationFrame calls, got ${payload.animationFrameCalls}`,
+    )
+  }
+
+  if (payload.getSelectionCalls !== 0) {
+    throw new Error(
+      `Expected no getSelection calls during SSR, got ${payload.getSelectionCalls}`,
     )
   }
 

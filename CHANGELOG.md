@@ -22,6 +22,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `useTextSelection` hook with public types `UseTextSelectionOptions` and `UseTextSelectionReturn`
+- Runtime, helper, type, Storybook, and SSR coverage for `useTextSelection`
+- `useBase64` hook with public types `UseBase64Target`, `UseBase64Options`, and `UseBase64Return`
+- Runtime, helper, type, Storybook, and SSR coverage for `useBase64`
+- `useDebounceFn` hook with public types `UseDebounceFnFunction`, `UseDebounceFnOptions`, and `UseDebounceFnReturn`
+- Runtime, helper, type, Storybook, and SSR coverage for `useDebounceFn`
+- `useEventBus` hook with public types `EventBusKey`, `EventBusIdentifier`, `EventBusListener`, and `UseEventBusReturn`
+- Runtime, registry-pruning, type, Storybook, and SSR coverage for `useEventBus`
 - `usePageLeave` hook with public types:
   - `UsePageLeaveOptions`
   - `UsePageLeaveReturn`

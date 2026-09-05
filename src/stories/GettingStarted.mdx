@@ -194,13 +194,28 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
       <code>usePageLeave</code> — mouse-boundary leave state for a browsing
       context (<code>mouseout</code> with <code>relatedTarget == null</code>)
     </li>
+    <li>
+      <code>useTextSelection</code> — document selection text, ranges, and
+      rectangles
+    </li>
+    <li>
+      <code>useBase64</code> — UTF-8-safe Base64 / data URL encoding
+    </li>
+    <li>
+      <code>useDebounceFn</code> — debounced callbacks with pending / cancel /
+      flush
+    </li>
+    <li>
+      <code>useEventBus</code> — typed in-memory event bus with owner-scoped
+      subscriptions
+    </li>
   </ul>
 </section>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Limitations</h2>
   <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
-    <li>Thirty-one public hooks exist in this prerelease.</li>
+    <li>Thirty-five public hooks exist in this prerelease.</li>
     <li>
       <code>useOnClickOutside</code> supports a single ref, no ignore lists, and
       no iframe-specific helpers.

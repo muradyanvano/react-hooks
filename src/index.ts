@@ -254,3 +254,31 @@ export {
   type UsePageLeaveOptions,
   type UsePageLeaveReturn,
 } from './hooks/usePageLeave/usePageLeave'
+
+export {
+  useTextSelection,
+  type UseTextSelectionOptions,
+  type UseTextSelectionReturn,
+} from './hooks/useTextSelection/useTextSelection'
+
+export {
+  useBase64,
+  type UseBase64Options,
+  type UseBase64Return,
+  type UseBase64Target,
+} from './hooks/useBase64/useBase64'
+
+export {
+  useDebounceFn,
+  type UseDebounceFnFunction,
+  type UseDebounceFnOptions,
+  type UseDebounceFnReturn,
+} from './hooks/useDebounceFn/useDebounceFn'
+
+export {
+  useEventBus,
+  type EventBusIdentifier,
+  type EventBusKey,
+  type EventBusListener,
+  type UseEventBusReturn,
+} from './hooks/useEventBus/useEventBus'

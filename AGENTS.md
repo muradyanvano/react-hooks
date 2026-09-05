@@ -41,6 +41,10 @@ Current hooks:
 - `useFullscreen`
 - `useUrlSearchParams`
 - `usePageLeave`
+- `useTextSelection`
+- `useBase64`
+- `useDebounceFn`
+- `useEventBus`
 
 Do not invent hooks, APIs, or product behavior before they are specified.
 

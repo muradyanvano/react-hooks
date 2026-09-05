@@ -2571,6 +2571,121 @@ This does **not** mean the user closed the tab, the page became hidden, the brow
 
 See Storybook (`Hooks/usePageLeave`) for the page leave detector and related examples.
 
+### `useTextSelection`
+
+Observes the native document selection for a window and returns text, ranges, client rectangles, and the live `Selection` object.
+
+```ts
+import { useTextSelection } from '@muradyanvano/react-hooks'
+
+const { text, rects, ranges, selection } = useTextSelection({
+  enabled: true,
+  // window: iframe.contentWindow,
+  // window: null, // never fall back
+})
+```
+
+**Defaults:** `enabled: true`, omitted `window` resolved after mount.
+
+**Snapshot rules:** listen to `selectionchange` on the selected document; read `getSelection()`, `toString()`, ranges via `rangeCount` / `getRangeAt`, and flatten `getClientRects()` in range order. Text is not trimmed or normalized. Package-owned `rects` / `ranges` arrays are frozen; native `Selection`, `Range`, and `DOMRect` objects remain mutable platform objects.
+
+**Lifecycle:** sync once after attach; `enabled: false` clears to empty; window replacement clears and resyncs; stale events from old documents are ignored.
+
+**SSR:** `{ text: '', rects: [], ranges: [], selection: null }` with no selection access.
+
+**Limits:** geometry changes may not emit `selectionchange`; closed shadow roots and cross-origin frames are limited; no clipboard or element filtering.
+
+See Storybook (`Hooks/useTextSelection`) for the text selection inspector and related examples.
+
+### `useBase64`
+
+Encodes strings, binary views, Blobs, canvases, images, or serializer-backed custom values to Base64 / data URLs.
+
+```ts
+import { useBase64 } from '@muradyanvano/react-hooks'
+
+const { base64, isLoading, error, execute } = useBase64('hello', {
+  enabled: true,
+  dataUrl: true,
+  type: 'text/plain;charset=utf-8',
+})
+```
+
+**Defaults:** `enabled: true`, `dataUrl: true`. Default MIME types: text/serialized → `text/plain;charset=utf-8`; ArrayBuffer/view → `application/octet-stream`; Blob → `blob.type` or octet-stream; canvas/image → `image/png`.
+
+Strings are UTF-8 encoded without a `btoa(unicode)` shortcut. ArrayBufferView encoding uses only the visible `byteOffset`…`byteLength` window. Newest automatic/manual request owns state; stale success may still resolve its caller promise.
+
+**SSR:** idle empty output with a safe `execute`. DOM-only inputs fail safely when executed outside a browser.
+
+**Limits:** Base64 is encoding, not encryption; large inputs use memory; canvas/image conversion can fail from CORS tainting; no decode/streaming API.
+
+See Storybook (`Hooks/useBase64`) for the Base64 studio and related examples.
+
+### `useDebounceFn`
+
+Debounces a callback with reactive `isPending` and promise fan-out for every `run` caller.
+
+```ts
+import { useDebounceFn } from '@muradyanvano/react-hooks'
+
+const { run, cancel, flush, isPending } = useDebounceFn(
+  async (query: string) => {
+    return query
+  },
+  200,
+  { maxWait: 1000, rejectOnCancel: false },
+)
+```
+
+**Defaults:** `delay: 200`, `maxWait` disabled, `rejectOnCancel: false`. Invalid delays fall back to `200`. Zero delay still schedules a timer.
+
+All callers in one debounce window settle from the final invocation. `cancel` resolves `undefined` (or rejects a package `Error` when `rejectOnCancel` is true). `flush` invokes immediately when pending. Option changes while pending cancel using the previous window’s policy. Unmount cancels without rejection.
+
+**SSR:** methods exist; no timers until `run`.
+
+**Limits:** background-tab timer throttling; cancel does not abort an in-flight callback; this is debounce, not throttle.
+
+See Storybook (`Hooks/useDebounceFn`) for the debounced search and related examples.
+
+### `useEventBus`
+
+Shares ordered, synchronous in-memory events between mounted hook instances that use the same string, number, or symbol key.
+
+```tsx
+import { useEffect, useState } from 'react'
+import { useEventBus } from '@muradyanvano/react-hooks'
+
+export function Notifications() {
+  const { on, emit } = useEventBus<'opened', { source: string }>(
+    'notifications',
+  )
+  const [messages, setMessages] = useState<string[]>([])
+
+  useEffect(
+    () =>
+      on((event, payload) => {
+        setMessages((items) => [...items, `${event} from ${payload.source}`])
+      }),
+    [on],
+  )
+
+  return (
+    <button
+      type="button"
+      onClick={() => emit('opened', { source: 'fictional menu' })}
+    >
+      Open notification
+    </button>
+  )
+}
+```
+
+**Behavior:** owner-scoped `on` / `once` / `off`; channel-wide `reset`; snapshot `emit`; listener errors are collected and rethrown after dispatch. Controls stay stable across rerenders and always target the latest key (including from `useLayoutEffect` after a key change). String `"1"` and number `1` are distinct channels.
+
+**SSR:** methods exist and are no-ops until mount. Do not subscribe or emit during render. Registry is realm/package-copy local — not cross-tab, persistent, or networked.
+
+See Storybook (`Hooks/useEventBus`) for the activity center and related examples.
+
 ## Development
 
 ```bash

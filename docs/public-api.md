@@ -2417,6 +2417,197 @@ function usePageLeave(options?: UsePageLeaveOptions): UsePageLeaveReturn
 
 Unreleased beta API. May change before `0.1.0`.
 
+## `useTextSelection`
+
+```ts
+function useTextSelection(
+  options?: UseTextSelectionOptions,
+): UseTextSelectionReturn
+```
+
+### Options
+
+| Name      | Type             | Default | Description                                                                       |
+| --------- | ---------------- | ------- | --------------------------------------------------------------------------------- |
+| `enabled` | `boolean`        | `true`  | When `false`, no listener is registered and the empty snapshot is exposed.        |
+| `window`  | `Window \| null` | omitted | Omitted resolves the global window after mount. Explicit `null` never falls back. |
+
+### Return
+
+`{ text, rects, ranges, selection }` — frozen owned arrays; live native selection/ranges/rects.
+
+### Behavior
+
+- Observes document `selectionchange`
+- Synchronizes once after attach
+- Preserves exact `toString()` text (no trim/normalize)
+- Flattens `getClientRects()` in range order
+- Equality guards compare text, selection identity, range identities, and rectangle geometry
+- Platform getter throws yield the empty snapshot
+- Window replacement clears stale state and resynchronizes
+- Cleanup never calls `getSelection()`
+
+### SSR
+
+Empty snapshot with no selection access and no `useLayoutEffect`.
+
+### Limitations
+
+- Native objects are mutable; geometry changes may not emit `selectionchange`
+- Closed shadow roots / cross-origin frames are limited
+- No clipboard action or element filtering
+
+### Exported names
+
+- `useTextSelection`
+- `UseTextSelectionOptions`
+- `UseTextSelectionReturn`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useBase64`
+
+```ts
+function useBase64(target, options?: UseBase64Options): UseBase64Return
+```
+
+Built-in targets: `string`, `ArrayBuffer`, `ArrayBufferView`, `Blob`, `HTMLCanvasElement`, `HTMLImageElement`, `null` / `undefined`. Custom values require a `serializer` that returns a string.
+
+### Options
+
+| Name         | Type                     | Default   | Description                                      |
+| ------------ | ------------------------ | --------- | ------------------------------------------------ |
+| `enabled`    | `boolean`                | `true`    | Automatic encoding after mount / target changes. |
+| `dataUrl`    | `boolean`                | `true`    | Return `data:<mime>;base64,<payload>` when true. |
+| `type`       | `string`                 | per input | MIME for data URLs / canvas output.              |
+| `quality`    | `number`                 | —         | Finite `0…1` for supported canvas formats.       |
+| `serializer` | `(value: T) => string`   | —         | Required for unsupported custom objects.         |
+| `onError`    | `(error: Error) => void` | —         | Latest owned failure only.                       |
+
+### Return
+
+`{ base64, isLoading, error, promise, execute }` — `execute` remains usable while disabled.
+
+### Behavior
+
+- UTF-8 string encoding without `btoa(unicode)`
+- ArrayBufferView encodes only the visible byte window
+- Newest request owns React state; stale success may resolve its caller
+- Null/undefined automatic targets clear without error
+
+### SSR
+
+Idle empty output; no auto-encode during render. DOM-only execute paths fail safely outside a browser.
+
+### Limitations
+
+- Encoding, not encryption
+- Memory growth for large inputs
+- Image/canvas CORS tainting
+- No decode / streaming API
+
+### Exported names
+
+- `useBase64`
+- `UseBase64Target`
+- `UseBase64Options`
+- `UseBase64Return`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useDebounceFn`
+
+```ts
+function useDebounceFn<T extends (...args: never[]) => unknown>(
+  fn: T,
+  delay?: number,
+  options?: UseDebounceFnOptions,
+): UseDebounceFnReturn<T>
+```
+
+### Options
+
+| Name             | Type      | Default | Description                                 |
+| ---------------- | --------- | ------- | ------------------------------------------- |
+| `maxWait`        | `number`  | —       | Finite `>= 0` enables a max-wait window.    |
+| `rejectOnCancel` | `boolean` | `false` | Reject pending callers on cancel when true. |
+
+### Return
+
+`{ run, cancel, flush, isPending }` — reactive pending flag; stable methods.
+
+### Behavior
+
+- Trailing debounce with latest-args-win semantics
+- Every `run` returns a promise; callers in one window share the final result
+- Invalid delay → `200`; zero delay still uses a timer
+- Option changes while pending cancel using the previous policy
+- Unmount cancels without rejection
+
+### SSR
+
+Methods exist; no timers until `run`.
+
+### Limitations
+
+- Background timer throttling
+- Cancel does not abort an already-running callback
+- Debounce, not throttle
+
+### Exported names
+
+- `useDebounceFn`
+- `UseDebounceFnFunction`
+- `UseDebounceFnOptions`
+- `UseDebounceFnReturn`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
+## `useEventBus`
+
+```ts
+function useEventBus<T = unknown, P = undefined>(
+  key: EventBusIdentifier<T, P>,
+): UseEventBusReturn<T, P>
+```
+
+### Channel and ownership
+
+Private module registry keyed by `string | number | symbol` (string `"1"` ≠ number `1`). Subscriptions are owner-scoped; `reset()` clears the whole channel. Empty channels are pruned. Controls are stable across rerenders. Stable controls always target the latest key (including when invoked from `useLayoutEffect` after a key change). Duplicate `on`/`once` registration of the same listener by one owner is idempotent: the first registration wins, including its `once` mode.
+
+### Dispatch
+
+Snapshot iteration; `once` unsubscribes before invoke; listener errors are collected and rethrown after all listeners run (`AggregateError` when multiple and available).
+
+### SSR
+
+Methods exist and are no-ops until mount. Do not subscribe or emit during render. Avoid request-specific global bus use in long-lived SSR processes.
+
+### Limitations
+
+- Same realm / package copy only
+- No persistence, replay, buffering, cross-tab, or network delivery
+- Emit alone does not cause React rerenders
+- Listener-returned promises are not managed
+
+### Exported names
+
+- `useEventBus`
+- `EventBusKey`
+- `EventBusIdentifier`
+- `EventBusListener`
+- `UseEventBusReturn`
+
+### Stability
+
+Unreleased beta API. May change before `0.1.0`.
+
 ## Storybook
 
 Interactive documentation lives in Storybook (`npm run storybook`). Stories import the public package entry and are excluded from the npm tarball. Each example provides Show code / Hide code and Copy code for a curated consumer TypeScript snippet. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind. A future GitHub Pages deployment is not configured yet.
