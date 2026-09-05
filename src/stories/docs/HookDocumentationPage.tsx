@@ -51,18 +51,26 @@ export function HookDocumentationPage({ hookName }: { hookName: HookName }) {
         <BulletList items={doc.whenNotToUse} />
       </Section>
 
-      <Section title="Installation status">
+      <Section title="Installation">
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
-            0.1.0-beta.1 · unreleased
+          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+            1.0.0 · stable
           </span>
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-            private: true · not published to npm
+            npm install @muradyanvano/react-hooks
           </span>
         </div>
         <p>
-          Install from this repository during prerelease review. There is no npm
-          package yet.
+          Install from npm. Interactive documentation is also available on{' '}
+          <a
+            className="font-medium text-indigo-700 underline-offset-2 hover:underline"
+            href="https://muradyanvano1995.github.io/react-hooks/"
+            rel="noreferrer"
+            target="_blank"
+          >
+            GitHub Pages
+          </a>
+          .
         </p>
       </Section>
 

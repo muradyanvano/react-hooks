@@ -1,0 +1,106 @@
+name: Publish to npm
+
+on:
+  release:
+    types:
+      - published
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish
+    if: ${{ github.event.release.prerelease == false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: npm
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Install package-lock npm
+        run: npm install -g npm@11.8.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify release metadata and tag
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: node scripts/validate-release.mjs --require-tag --require-publishable
+
+      - name: Verify checked-out commit matches tag
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          TAG_COMMIT="$(git rev-list -n 1 "$RELEASE_TAG")"
+          HEAD_COMMIT="$(git rev-parse HEAD)"
+          echo "tag=$RELEASE_TAG"
+          echo "tag_commit=$TAG_COMMIT"
+          echo "head_commit=$HEAD_COMMIT"
+          test "$TAG_COMMIT" = "$HEAD_COMMIT"
+
+      - name: Full verification
+        run: npm run verify:ci
+
+      - name: Storybook reset audit
+        run: npm run test:reset
+
+      - name: Build library
+        run: npm run build:lib
+
+      - name: Pack dry-run
+        run: npm run pack:dry-run
+
+      - name: Check whether version already exists on npm
+        id: registry
+        run: |
+          set -euo pipefail
+          NAME="$(node -p "require('./package.json').name")"
+          VERSION="$(node -p "require('./package.json').version")"
+          SPEC="${NAME}@${VERSION}"
+          echo "Checking registry for ${SPEC}"
+          set +e
+          VIEW_OUTPUT="$(npm view "$SPEC" version 2>&1)"
+          VIEW_STATUS=$?
+          set -e
+          if [ "$VIEW_STATUS" -eq 0 ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Version ${SPEC} already exists on npm; publish will be skipped."
+          else
+            if echo "$VIEW_OUTPUT" | grep -Eqi 'E404|404 Not Found|not found'; then
+              echo "exists=false" >> "$GITHUB_OUTPUT"
+              echo "Version ${SPEC} is not on npm yet."
+            else
+              echo "$VIEW_OUTPUT" >&2
+              echo "Unexpected npm view failure (status ${VIEW_STATUS})" >&2
+              exit 1
+            fi
+          fi
+
+      - name: Publish to npm
+        if: ${{ steps.registry.outputs.exists != 'true' }}
+        run: npm publish --access public
+
+      - name: Skip duplicate publish
+        if: ${{ steps.registry.outputs.exists == 'true' }}
+        run: echo "Skipped npm publish because the exact version already exists."

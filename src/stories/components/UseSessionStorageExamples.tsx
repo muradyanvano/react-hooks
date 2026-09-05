@@ -101,7 +101,7 @@ const selectClass =
   'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500'
 const panelClass = 'rounded-xl border border-slate-200 bg-slate-50 p-4'
 const codePreviewClass =
-  'overflow-x-auto rounded-lg border border-slate-200 bg-slate-900 p-3 font-mono text-xs text-emerald-300'
+  'min-w-0 max-w-full break-all whitespace-pre-wrap rounded-lg border border-slate-200 bg-slate-900 p-3 font-mono text-xs text-emerald-300'
 
 type CheckoutDraft = {
   email: string

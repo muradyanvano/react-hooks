@@ -5,7 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0-beta.1] - Unreleased
+## [1.0.0] - 2026-09-05
+
+First stable release of `@muradyanvano/react-hooks`.
+
+### Added
+
+- GitHub Actions CI (`.github/workflows/ci.yml`) for pull requests and `main`
+- Scheduled/manual Storybook layout audit workflow
+- GitHub Pages Storybook deployment workflow (token-free official Pages actions)
+- npm Trusted Publishing workflow on GitHub Release publish (OIDC, no `NPM_TOKEN`)
+- Dependabot weekly updates for npm and GitHub Actions
+- Release validation script (`npm run validate:release`) and safety tests
+- Focused documentation under `docs/` (getting started, guides, contributing, releasing)
+- Concise package README with badges, quick start, and hook index
+
+### Changed
+
+- Version `0.1.0-beta.1` → `1.0.0`; removed `private: true`
+- Homepage set to https://muradyanvano1995.github.io/react-hooks/
+- Storybook Introduction / Getting Started / hook docs pages updated for the stable package and Pages URL
+- Storybook static builds accept `STORYBOOK_BASE_PATH` for repository-subpath hosting
+
+### Notes
+
+- Public hook APIs and runtime behavior are unchanged from the final beta surface
+- First npm publication is a manual bootstrap; see [docs/releasing.md](./docs/releasing.md)
+
+## [0.1.0-beta.1] - 2026-09-05
 
 ### Fixed
 

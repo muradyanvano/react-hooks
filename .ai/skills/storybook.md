@@ -62,10 +62,11 @@ Operational rules for the consumer-facing Storybook documentation environment.
 - After imperative `ref.current` assignment in examples, include a small commit/state signal when needed so observation can sync, and keep the snippet honest about that requirement.
 - Hide Storybook autodocs source when the custom code panel already shows the consumer snippet.
 - Keep examples responsive across mobile, tablet, and desktop viewports.
-- Provide clean consumer source snippets that match the public API and do not claim npm publication.
+- Provide clean consumer source snippets that match the public API.
 - Example styling may use Tailwind; the hooks package must not require Tailwind.
 - Light-only design. Do not add dark mode or theme switching.
 - Tailwind, Storybook, and syntax highlighters stay development-only and must never enter the library bundle or npm tarball.
+- Hosted Storybook builds set `STORYBOOK_BASE_PATH=/react-hooks/` for GitHub Pages; local builds omit it (default `/`).
 - Do not invent empty sections for hooks that do not exist yet.
 - When public hook behavior changes, update the related stories and docs in the same change.
 
