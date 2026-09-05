@@ -15,12 +15,21 @@
   "homepage": "https://muradyanvano1995.github.io/react-hooks/",
   "keywords": [
     "react",
-    "hooks",
     "react-hooks",
+    "hooks",
     "typescript",
-    "esm",
+    "utility-hooks",
+    "react-utilities",
+    "browser-hooks",
+    "browser-apis",
+    "web-apis",
     "ssr",
-    "utility-hooks"
+    "server-side-rendering",
+    "strict-mode",
+    "esm",
+    "storage",
+    "events",
+    "media"
   ],
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
