@@ -80,28 +80,6 @@ export function LiveNativePicker() {
   )
 }`
 
-export const basicUsageSnippet = `import { useEyeDropper } from '@muradyanvano/react-hooks'
-
-export function BasicUsage() {
-  const { sRGBHex, isSupported, open } = useEyeDropper()
-
-  return (
-    <div>
-      <button
-        type="button"
-        disabled={!isSupported}
-        onClick={async () => {
-          const color = await open()
-          if (color == null) return
-        }}
-      >
-        Open Eye Dropper
-      </button>
-      <p>{sRGBHex || 'Pick a color'}</p>
-    </div>
-  )
-}`
-
 export const initialColorSnippet = `import { useEyeDropper } from '@muradyanvano/react-hooks'
 
 export function InitialColor() {

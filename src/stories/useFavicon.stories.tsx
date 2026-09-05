@@ -1,4 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -46,38 +49,16 @@ import {
   SAMPLE_BASE_URL,
   SAMPLE_RELATIVE_ICON,
 } from './components/useFavicon.fictional'
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
 
 const meta = {
   title: 'Hooks/useFavicon',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Control a document favicon \`<link>\` through shared private ownership.
-
-\`\`\`ts
-import { useFavicon } from '@muradyanvano/react-hooks'
-
-useFavicon(icon, options?): { href, isSupported, error }
-\`\`\`
-
-**Defaults:** \`enabled: true\`, \`rel: 'icon'\`, \`restoreOnUnmount: true\`
-
-Most demos use an isolated same-origin iframe document so Storybook manager/preview favicons stay untouched. Browser tab icons may still cache or delay refresh.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useFavicon', PlaygroundExample, {
     a11y: {
       test: 'error',
     },
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -93,7 +74,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -174,8 +155,12 @@ async function waitForHref(
   })
 }
 
-export const FaviconSwitcher: Story = {
-  name: 'Favicon switcher',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Swap document favicons inside an isolated iframe so Storybook chrome stays untouched. Pick an icon, confirm href/rel text, then Reset. Prefer same-origin fixtures; restore before finishing plays.',
+  ),
+
   render: () => <FaviconSwitcherExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -205,6 +190,10 @@ export const FaviconSwitcher: Story = {
 
 export const BasicControlled: Story = {
   name: 'Basic controlled favicon',
+  ...storyDescription(
+    'Basic controlled favicon example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <BasicControlledExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -218,6 +207,10 @@ export const BasicControlled: Story = {
 
 export const RelativeBaseUrl: Story = {
   name: 'Relative URL with base URL',
+  ...storyDescription(
+    'Relative URL with base URL example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <RelativeBaseUrlExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -233,6 +226,10 @@ export const RelativeBaseUrl: Story = {
 
 export const SvgDataUrl: Story = {
   name: 'SVG data URL',
+  ...storyDescription(
+    'SVG data URL example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <SvgDataUrlExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -246,6 +243,10 @@ export const SvgDataUrl: Story = {
 
 export const NotificationBadge: Story = {
   name: 'Notification badge favicon',
+  ...storyDescription(
+    'Notification badge favicon example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <NotificationBadgeExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -267,6 +268,10 @@ export const NotificationBadge: Story = {
 
 export const ThemeAware: Story = {
   name: 'Theme-aware light/dark favicon',
+  ...storyDescription(
+    'Theme-aware light/dark favicon example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <ThemeAwareExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -285,6 +290,10 @@ export const ThemeAware: Story = {
 
 export const StatusIcons: Story = {
   name: 'Loading/success/error status icons',
+  ...storyDescription(
+    'Loading/success/error status icons example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <StatusIconsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -303,6 +312,10 @@ export const StatusIcons: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Enabled state example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <EnabledStateExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -321,6 +334,10 @@ export const EnabledState: Story = {
 
 export const NullIcon: Story = {
   name: 'Null icon and restoration',
+  ...storyDescription(
+    'Null icon and restoration example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <NullIconExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -336,6 +353,10 @@ export const NullIcon: Story = {
 
 export const ExistingRestore: Story = {
   name: 'Existing favicon restoration',
+  ...storyDescription(
+    'Existing favicon restoration example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <ExistingRestoreExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -349,6 +370,10 @@ export const ExistingRestore: Story = {
 
 export const MultipleOwners: Story = {
   name: 'Multiple hook owners',
+  ...storyDescription(
+    'Multiple hook owners example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <MultipleOwnersExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -371,6 +396,10 @@ export const MultipleOwners: Story = {
 
 export const CustomRelation: Story = {
   name: 'Custom relation',
+  ...storyDescription(
+    'Custom relation example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <CustomRelationExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -385,6 +414,10 @@ export const CustomRelation: Story = {
 
 export const DynamicDocument: Story = {
   name: 'Dynamic document',
+  ...storyDescription(
+    'Dynamic document example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <DynamicDocumentExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -408,6 +441,10 @@ export const DynamicDocument: Story = {
 
 export const IsolatedIframe: Story = {
   name: 'Isolated iframe document',
+  ...storyDescription(
+    'Isolated iframe document example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <IsolatedIframeExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -421,6 +458,10 @@ export const IsolatedIframe: Story = {
 
 export const PersistentFavicon: Story = {
   name: 'Persistent favicon with restoreOnUnmount false',
+  ...storyDescription(
+    'Persistent favicon with restoreOnUnmount false example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <PersistentFaviconExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -440,23 +481,12 @@ export const PersistentFavicon: Story = {
   },
 }
 
-export const Playground: Story = {
-  name: 'Playground',
-  render: () => <PlaygroundExample />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await waitForIframeReady(canvas, 'playground-iframe')
-    await expect(canvas.getByTestId('playground-mounted')).toHaveTextContent(
-      'false',
-    )
-    await userEvent.click(canvas.getByTestId('playground-mount'))
-    await waitForHref(canvas, 'playground-iframe', ICON_BLUE)
-    await expectCodeDisclosure(canvas, playgroundSnippet)
-  },
-}
-
 export const CurrentPreviewDocument: Story = {
   name: 'Current preview document',
+  ...storyDescription(
+    'Current preview document example for useFavicon. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <CurrentPreviewDocumentExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -484,5 +514,24 @@ export const CurrentPreviewDocument: Story = {
         expect(lastIconHref(document)).toBe(original)
       })
     }
+  },
+}
+
+export const Playground: Story = {
+  name: 'Playground',
+  ...storyDescription(
+    'Configurable useFavicon playground. Use Controls when wired to hook options, try edge interactions, and compare runtime behavior with the code panel.',
+  ),
+
+  render: () => <PlaygroundExample />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await waitForIframeReady(canvas, 'playground-iframe')
+    await expect(canvas.getByTestId('playground-mounted')).toHaveTextContent(
+      'false',
+    )
+    await userEvent.click(canvas.getByTestId('playground-mount'))
+    await waitForHref(canvas, 'playground-iframe', ICON_BLUE)
+    await expectCodeDisclosure(canvas, playgroundSnippet)
   },
 }

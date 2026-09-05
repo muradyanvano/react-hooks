@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import {
   expect,
   fireEvent,
@@ -31,77 +36,38 @@ import {
 
 const meta = {
   title: 'Hooks/useEventListener',
-  component: OverviewExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Registers an event listener on a target. Default target is \`window\` when the target argument is omitted. Explicit \`null\` registers nothing.
-
-\`\`\`ts
-import { useEventListener } from '@muradyanvano/react-hooks'
-
-// Window form (target omitted)
-useEventListener(
-  eventName: keyof WindowEventMap | readonly (keyof WindowEventMap)[],
-  handler: (event) => void,
-  options?: UseEventListenerOptions,
-): void
-
-// Target form
-useEventListener(
-  target: EventTarget | RefObject<EventTarget | null> | null,
-  eventName: string | readonly string[],
-  handler: (event) => void,
-  options?: UseEventListenerOptions,
-): void
-\`\`\`
-
-**Defaults:** \`{ enabled: true, capture: false, passive: false, once: false }\`
-
-**Options:** extends \`AddEventListenerOptions\` with \`enabled\`. Supports \`signal\` (AbortSignal).
-
-Imperative changes to a target ref’s \`current\` require a later React commit before the hook synchronizes.
-
-Each example below includes its own Show code / Hide code control and Copy code button. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      description: 'When false, no listener is registered.',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    capture: {
-      control: 'boolean',
-      description: 'Use capture-phase listener registration.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    passive: {
-      control: 'boolean',
-      description: 'Register a passive listener.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    once: {
-      control: 'boolean',
-      description: 'Remove the listener after the first matching event.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-  },
-  args: {
-    enabled: true,
-    capture: false,
-    passive: false,
-    once: false,
-  },
   tags: ['autodocs'],
-} satisfies Meta
+  ...createHookStoryMeta('useEventListener', OverviewExample, {
+    argTypes: {
+      enabled: {
+        control: 'boolean',
+        description: 'When false, no listener is registered.',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      capture: {
+        control: 'boolean',
+        description: 'Use capture-phase listener registration.',
+        table: { defaultValue: { summary: 'false' } },
+      },
+      passive: {
+        control: 'boolean',
+        description: 'Register a passive listener.',
+        table: { defaultValue: { summary: 'false' } },
+      },
+      once: {
+        control: 'boolean',
+        description: 'Remove the listener after the first matching event.',
+        table: { defaultValue: { summary: 'false' } },
+      },
+    },
+    args: {
+      enabled: true,
+      capture: false,
+      passive: false,
+      once: false,
+    },
+  }),
+} satisfies Meta<typeof OverviewExample>
 
 export default meta
 
@@ -118,7 +84,7 @@ async function expectCodeDisclosure(
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
   await expect(canvas.getByTestId('code-panel')).toBeVisible()
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   const writeText = fn(async () => undefined)
   Object.defineProperty(navigator, 'clipboard', {
@@ -137,6 +103,9 @@ async function expectCodeDisclosure(
 
 export const Overview: Story = {
   name: 'Overview',
+  ...storyDescription(
+    'Typed DOM listeners on window, elements, or refs without re-subscribing on every handler identity change. Trigger the demo events and watch the log update. Omit window on SSR-sensitive paths or pass an explicit target when the default is wrong.',
+  ),
   render: () => <OverviewExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -173,6 +142,9 @@ export const Overview: Story = {
 
 export const ElementTarget: Story = {
   name: 'Element target',
+  ...storyDescription(
+    'Element target: bind useEventListener to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <ElementTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -203,6 +175,9 @@ export const ElementTarget: Story = {
 
 export const MultipleEvents: Story = {
   name: 'Multiple events',
+  ...storyDescription(
+    'Multiple events with useEventListener: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <MultipleEventsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -237,6 +212,9 @@ export const MultipleEvents: Story = {
 
 export const DynamicTarget: Story = {
   name: 'Dynamic target',
+  ...storyDescription(
+    'Dynamic target: bind useEventListener to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <DynamicTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -281,6 +259,9 @@ export const DynamicTarget: Story = {
 
 export const CustomEvent: Story = {
   name: 'Custom event',
+  ...storyDescription(
+    'Custom event: bind useEventListener to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <CustomEventExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -308,6 +289,9 @@ export const CustomEvent: Story = {
 
 export const OnceAndEnabled: Story = {
   name: 'Once and enabled',
+  ...storyDescription(
+    'Toggle enabled for useEventListener and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <OnceAndEnabledExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -354,6 +338,9 @@ export const OnceAndEnabled: Story = {
 
 export const AbortSignal: Story = {
   name: 'Abort signal',
+  ...storyDescription(
+    'Abort signal: reproduce the race or permission edge for useEventListener with the on-canvas controls. Confirm newer requests win or aborts clear state as documented, then inspect Show code for ownership rules.',
+  ),
   render: () => <AbortSignalExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -399,6 +386,9 @@ export const AbortSignal: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useEventListener Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: (args) => (
     <PlaygroundExample
       enabled={args.enabled ?? true}
@@ -447,6 +437,9 @@ export const Playground: Story = {
 
 export const PlaygroundPaused: Story = {
   name: 'Playground paused',
+  ...storyDescription(
+    'Docs-safe playground for useEventListener: mount when ready, tune controls, and observe live status without auto-starting privileged work. Copy the curated snippet from Show code when the behavior matches your app.',
+  ),
   args: {
     enabled: false,
   },

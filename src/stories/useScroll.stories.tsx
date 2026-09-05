@@ -1,4 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -41,75 +44,48 @@ import {
   verticalArticleSnippet,
   windowTargetSnippet,
 } from './components/useScroll.snippets'
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
 
 const meta = {
   title: 'Hooks/useScroll',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useScroll', PlaygroundExample, {
+    argTypes: {
+      enabled: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'true' } },
       },
-      description: {
-        component: `
-Tracks scroll position, arrival, direction, and scrolling state for an element, \`window\`, or \`document\` target.
-
-\`\`\`ts
-import { useScroll } from '@muradyanvano/react-hooks'
-
-useScroll(ref, options?): UseScrollReturn
-\`\`\`
-
-**Defaults:** \`{ enabled: true, throttle: 0, idle: 200, observe: false, behavior: 'auto' }\`
-
-**Return:** \`{ x, y, isScrolling, arrivedState, directions, measure, scrollTo, setX, setY }\`
-
-After imperative \`ref.current\` assignment, a later React commit is required before the hook can attach to the new target.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
+      throttle: {
+        control: { type: 'number', min: 0, max: 500, step: 25 },
+        table: { defaultValue: { summary: '0' } },
+      },
+      idle: {
+        control: { type: 'number', min: 0, max: 1000, step: 50 },
+        table: { defaultValue: { summary: '200' } },
+      },
+      offset: {
+        control: { type: 'number', min: 0, max: 80, step: 5 },
+        table: { defaultValue: { summary: '0' } },
+      },
+      behavior: {
+        control: 'select',
+        options: ['auto', 'smooth', 'instant'],
+        table: { defaultValue: { summary: 'auto' } },
+      },
+      observeMutation: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'false' } },
       },
     },
-    a11y: {
-      test: 'error',
+    args: {
+      enabled: true,
+      throttle: 0,
+      idle: 200,
+      offset: 0,
+      behavior: 'auto',
+      observeMutation: false,
     },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    throttle: {
-      control: { type: 'number', min: 0, max: 500, step: 25 },
-      table: { defaultValue: { summary: '0' } },
-    },
-    idle: {
-      control: { type: 'number', min: 0, max: 1000, step: 50 },
-      table: { defaultValue: { summary: '200' } },
-    },
-    offset: {
-      control: { type: 'number', min: 0, max: 80, step: 5 },
-      table: { defaultValue: { summary: '0' } },
-    },
-    behavior: {
-      control: 'select',
-      options: ['auto', 'smooth', 'instant'],
-      table: { defaultValue: { summary: 'auto' } },
-    },
-    observeMutation: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'false' } },
-    },
-  },
-  args: {
-    enabled: true,
-    throttle: 0,
-    idle: 200,
-    offset: 0,
-    behavior: 'auto',
-    observeMutation: false,
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -125,7 +101,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -161,8 +137,11 @@ function arrivedFlag(
   return match[1] === 'true'
 }
 
-export const ScrollDashboard: Story = {
-  name: 'Scroll dashboard',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Two-axis scroll dashboards with arrived/direction metrics and programmatic setX/setY. Scroll the contained region and drive the inputs. Prefer contained scrollers over locking the Storybook page.',
+  ),
   render: () => <ScrollDashboardExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -249,6 +228,9 @@ export const ScrollDashboard: Story = {
 
 export const VerticalArticle: Story = {
   name: 'Vertical article',
+  ...storyDescription(
+    'Vertical article with useScroll: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <VerticalArticleExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -265,6 +247,9 @@ export const VerticalArticle: Story = {
 
 export const HorizontalGallery: Story = {
   name: 'Horizontal gallery',
+  ...storyDescription(
+    'Horizontal gallery with useScroll: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <HorizontalGalleryExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -293,6 +278,9 @@ export const HorizontalGallery: Story = {
 
 export const Offsets: Story = {
   name: 'Offsets',
+  ...storyDescription(
+    'Offsets with useScroll: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <OffsetsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -316,6 +304,9 @@ export const Offsets: Story = {
 
 export const ProgrammaticPosition: Story = {
   name: 'Programmatic position',
+  ...storyDescription(
+    'Programmatic position with useScroll: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ProgrammaticPositionExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -344,6 +335,9 @@ export const ProgrammaticPosition: Story = {
 
 export const SmoothScrolling: Story = {
   name: 'Smooth scrolling',
+  ...storyDescription(
+    'Smooth scrolling with useScroll: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <SmoothScrollingExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -355,6 +349,9 @@ export const SmoothScrolling: Story = {
 
 export const ScrollingState: Story = {
   name: 'Scrolling state',
+  ...storyDescription(
+    'Scrolling state with useScroll: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ScrollingStateExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -378,6 +375,9 @@ export const ScrollingState: Story = {
 
 export const ThrottleComparison: Story = {
   name: 'Throttle comparison',
+  ...storyDescription(
+    'Throttle comparison: compare both configurations side by side and note how useScroll options change observable behavior. Interact with each variant, then confirm Show code documents the option you intend to ship.',
+  ),
   render: () => <ThrottleComparisonExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -400,6 +400,9 @@ export const ThrottleComparison: Story = {
 
 export const Directions: Story = {
   name: 'Directions',
+  ...storyDescription(
+    'Directions with useScroll: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <DirectionsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -423,6 +426,9 @@ export const Directions: Story = {
 
 export const DynamicContent: Story = {
   name: 'Dynamic content',
+  ...storyDescription(
+    'Dynamic content with useScroll: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <DynamicContentExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -436,6 +442,9 @@ export const DynamicContent: Story = {
 
 export const MutationObservation: Story = {
   name: 'Mutation observation',
+  ...storyDescription(
+    'Mutation observation with useScroll: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <MutationObservationExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -451,6 +460,9 @@ export const MutationObservation: Story = {
 
 export const WindowTarget: Story = {
   name: 'Window target',
+  ...storyDescription(
+    'Window target: bind useScroll to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <WindowTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -477,6 +489,9 @@ export const WindowTarget: Story = {
 
 export const DocumentTarget: Story = {
   name: 'Document target',
+  ...storyDescription(
+    'Document target: bind useScroll to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <DocumentTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -500,6 +515,9 @@ export const DocumentTarget: Story = {
 
 export const DynamicTarget: Story = {
   name: 'Dynamic target',
+  ...storyDescription(
+    'Dynamic target: bind useScroll to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <DynamicTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -528,6 +546,9 @@ export const DynamicTarget: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Toggle enabled for useScroll and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <EnabledStateExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -548,6 +569,9 @@ export const EnabledState: Story = {
 
 export const RtlHorizontal: Story = {
   name: 'RTL horizontal',
+  ...storyDescription(
+    'RTL horizontal with useScroll: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <RtlHorizontalExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -565,6 +589,9 @@ export const RtlHorizontal: Story = {
 
 export const ErrorHandling: Story = {
   name: 'Error handling',
+  ...storyDescription(
+    'Error handling — trigger the failure path for useScroll and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <ErrorHandlingExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -583,6 +610,9 @@ export const ErrorHandling: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useScroll Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await userEvent.click(canvas.getByTestId('play-mount'))

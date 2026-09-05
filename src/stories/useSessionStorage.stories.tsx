@@ -1,4 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -48,68 +51,33 @@ import {
   twoComponentsSnippet,
   writeDefaultsSnippet,
 } from './components/useSessionStorage.snippets'
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
 
 const meta = {
   title: 'Hooks/useSessionStorage',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useSessionStorage', PlaygroundExample, {
+    argTypes: {
+      playgroundKey: {
+        control: 'text',
+        description: 'Storage key suffix (namespaced in the playground story).',
       },
-      description: {
-        component: `
-Persist state in \`sessionStorage\` with SSR-safe hydration, automatic serializers, same-document sync, and optional related-context \`storage\` events.
-
-\`\`\`ts
-import { useSessionStorage } from '@muradyanvano/react-hooks'
-
-useSessionStorage<T>(key, defaultValue, options?): {
-  value,
-  setValue,
-  remove,
-  reset,
-  isSupported,
-  isReady,
-  error,
-}
-\`\`\`
-
-**Defaults:** \`{ mergeDefaults: false, writeDefaults: true, listenToStorageChanges: true }\`
-
-**Hydration:** The first client render matches SSR (\`value: defaultValue\`, \`isReady: false\`). Storage is read in an effect; wait for \`isReady\` before treating persisted values as authoritative.
-
-Session storage survives reloads in the same tab but clears when the tab closes. It is not shared across separate tabs.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
+      defaultType: {
+        control: 'select',
+        options: ['string', 'number', 'boolean', 'object'],
       },
+      mergeDefaults: { control: 'boolean' },
+      writeDefaults: { control: 'boolean' },
+      listenToStorageChanges: { control: 'boolean' },
     },
-    a11y: {
-      test: 'error',
+    args: {
+      playgroundKey: 'playground',
+      defaultType: 'number',
+      mergeDefaults: false,
+      writeDefaults: true,
+      listenToStorageChanges: true,
     },
-  },
-  argTypes: {
-    playgroundKey: {
-      control: 'text',
-      description: 'Storage key suffix (namespaced in the playground story).',
-    },
-    defaultType: {
-      control: 'select',
-      options: ['string', 'number', 'boolean', 'object'],
-    },
-    mergeDefaults: { control: 'boolean' },
-    writeDefaults: { control: 'boolean' },
-    listenToStorageChanges: { control: 'boolean' },
-  },
-  args: {
-    playgroundKey: 'playground',
-    defaultType: 'number',
-    mergeDefaults: false,
-    writeDefaults: true,
-    listenToStorageChanges: true,
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -125,7 +93,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -158,8 +126,11 @@ async function waitForReady(
   })
 }
 
-export const CheckoutDraft: Story = {
-  name: 'Checkout draft',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Tab-scoped checkout drafts that must not pretend to sync across ordinary tabs. Advance the wizard, remount, and discard — status should say Saved for this tab. Clean session keys after plays.',
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -236,6 +207,9 @@ export const CheckoutDraft: Story = {
 
 export const RegistrationWizard: Story = {
   name: 'Registration wizard',
+  ...storyDescription(
+    "A multi-step signup form needs each step's choices to survive moving forward and backward through the wizard within the same tab. Selecting the Pro plan and advancing persists both the plan and the new step to session storage. Navigating back to step 2 keeps the Pro selection intact, since state was written on each change rather than only on final submission.",
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -277,6 +251,9 @@ export const RegistrationWizard: Story = {
 
 export const TabWorkspace: Story = {
   name: 'Tab workspace',
+  ...storyDescription(
+    "A dashboard's per-tab layout, such as the active panel, filters, and view mode, should survive a remount within that tab but has no reason to follow the user to a new tab. Toggling the view mode and remounting the workspace here reads the updated 'grid' value back immediately. The state persists across the remount because it lives in session storage scoped to this tab, not component memory.",
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -320,6 +297,9 @@ export const TabWorkspace: Story = {
 
 export const TemporaryForm: Story = {
   name: 'Temporary form',
+  ...storyDescription(
+    'A contact form or comment draft that shouldn\'t survive after the tab closes still benefits from surviving an accidental navigation within the session. Typing into the name and message fields writes each change to session storage. The draft persists for the lifetime of the tab, but — unlike localStorage — disappears once the tab or browser closes, matching the "temporary" intent.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <TemporaryFormExample />
@@ -342,6 +322,9 @@ export const TemporaryForm: Story = {
 
 export const PersistentCounter: Story = {
   name: 'Persistent counter',
+  ...storyDescription(
+    "A step counter or in-progress score needs to survive a component remount without leaking into other tabs or persisting after the tab closes. Incrementing the counter twice and remounting the component reads the same total back immediately. The value survives the remount because it's stored per-tab in session storage, not held only in component state.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <PersistentCounterExample />
@@ -371,6 +354,9 @@ export const PersistentCounter: Story = {
 
 export const BooleanFlag: Story = {
   name: 'Boolean flag',
+  ...storyDescription(
+    "A promotional banner the user dismisses shouldn't reappear on every navigation within the same tab, but there's no need for that dismissal to follow them into a new tab. The banner starts visible with the flag false. Dismissing it writes true to session storage and swaps in the dismissed message, staying hidden for the rest of this tab's session.",
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -403,6 +389,9 @@ export const BooleanFlag: Story = {
 
 export const ObjectAndArray: Story = {
   name: 'Object and array',
+  ...storyDescription(
+    "A checklist scoped to the current tab's workflow needs to persist as one structured object, not flattened across separate keys. Editing the title and adding a task here mutates fields of a single stored object. The updated JSON reflects both changes together, confirming the hook serializes the whole structure rather than one key per field.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <ObjectAndArrayExample />
@@ -427,6 +416,9 @@ export const ObjectAndArray: Story = {
 
 export const DateMapAndSet: Story = {
   name: 'Date, Map, and Set',
+  ...storyDescription(
+    "Date, Map, and Set values lose their shape under plain JSON.stringify, and that problem doesn't go away just because the data only needs to last for the current tab. This story stores all three types in session storage. The hook's serialization round-trips each type correctly, so the raw values read back as the original date, map entries, and set members.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <DateMapSetExample />
@@ -455,6 +447,9 @@ export const DateMapAndSet: Story = {
 
 export const CustomSerializer: Story = {
   name: 'Custom serializer',
+  ...storyDescription(
+    "A value shared with a same-tab legacy script in a compact pipe-delimited format shouldn't be forced into JSON just because the hook defaults to it. This instance supplies a custom serializer/deserializer matching that format. Moving the value updates the x field and rewrites the full pipe-delimited string, confirming session storage supports the same custom-format override as localStorage.",
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -486,6 +481,9 @@ export const CustomSerializer: Story = {
 
 export const MergeDefaults: Story = {
   name: 'Merge defaults',
+  ...storyDescription(
+    'A settings shape that gained a new field after some tabs already wrote older session data needs a way to backfill the missing field rather than erroring. Without merging, the stored value here shows only the original theme field. With mergeDefaults enabled, the hook fills in the missing fontSize from defaults while preserving the existing theme, so new fields appear without wiping prior session state.',
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -527,6 +525,9 @@ export const MergeDefaults: Story = {
 
 export const TwoComponents: Story = {
   name: 'Two components',
+  ...storyDescription(
+    "Two independent widgets in the same tab, like a header field and a sidebar mirror, sometimes need to share one session-scoped value without prop drilling. Typing in one editor's input here writes to the shared session storage key. The second editor, backed by the same key, updates to match immediately, since both hook instances read the same entry.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <TwoComponentsExample />
@@ -550,6 +551,9 @@ export const TwoComponents: Story = {
 
 export const StorageAreaIsolation: Story = {
   name: 'Storage-area isolation',
+  ...storyDescription(
+    "useLocalStorage and useSessionStorage look similar but must never leak into each other's storage area, even when given an identical key. Writing through the local-storage button and the session-storage button here targets the same key name in two different storage areas. Each area ends up holding its own independent value, confirming the hook writes strictly to the storage area it was built for.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <StorageAreaIsolationExample />
@@ -583,6 +587,9 @@ export const StorageAreaIsolation: Story = {
 
 export const RelatedContextEvent: Story = {
   name: 'Related-context event',
+  ...storyDescription(
+    "A value changed by another same-tab context, such as a popup window opened from this tab, should propagate through session storage's change events the same way cross-tab events do for localStorage. Simulating that related-context write here fires a storage event for the watched key. The hook adopts the new value immediately, while a write to an unrelated key is correctly ignored.",
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -619,6 +626,9 @@ export const RelatedContextEvent: Story = {
 
 export const DynamicKey: Story = {
   name: 'Dynamic key',
+  ...storyDescription(
+    "Switching between profiles or steps within one tab's session means retargeting the storage key at runtime rather than only ever reading a static one. Editing the name and switching to profile B repoints the hook at a different session storage key. Each profile's value persists independently under its own key, so switching back to profile A restores its own name instead of showing profile B's edits.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <DynamicKeyExample />
@@ -648,6 +658,9 @@ export const DynamicKey: Story = {
 
 export const WriteDefaults: Story = {
   name: 'Write defaults',
+  ...storyDescription(
+    'An unconfigured session value should sometimes seed storage immediately and sometimes stay absent until the user acts, mirroring the same choice available for localStorage. With writeDefaults enabled, the default value is written to session storage right away, so the raw entry shows it present. With writeDefaults disabled, the default only exists in memory and the raw entry stays missing until an explicit write happens.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <WriteDefaultsExample />
@@ -672,6 +685,9 @@ export const WriteDefaults: Story = {
 
 export const MalformedValue: Story = {
   name: 'Malformed value',
+  ...storyDescription(
+    'A session value corrupted by manual editing or a stray script write can break JSON.parse on read, and the hook still needs a safe fallback rather than crashing the tab. Starting with invalid JSON surfaces a parse error while the hook falls back to a safe default. Repairing or removing the entry clears the error, and a later externally injected malformed write reproduces the same recoverable error state.',
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -724,6 +740,9 @@ export const MalformedValue: Story = {
 
 export const StorageUnavailable: Story = {
   name: 'Storage unavailable',
+  ...storyDescription(
+    "Session storage can be unavailable too — a locked-down iframe, a browser privacy mode — and the hook needs to degrade the same way useLocalStorage does rather than throwing. This story simulates that unavailable environment, so the hook reports supported: false and shows a warning. Typing still updates the value through an in-memory fallback, but nothing is actually persisted since there's no session storage to write to.",
+  ),
   render: () => <StorageUnavailableExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -749,6 +768,9 @@ export const StorageUnavailable: Story = {
 
 export const RemoveVersusReset: Story = {
   name: 'Remove versus reset',
+  ...storyDescription(
+    '"Reset to default" and "clear the stored value" have different persistence effects even for session-scoped data — one still writes, the other doesn\'t. Reset here explicitly writes the default value back to session storage. Remove deletes the key entirely, yet the hook still reports the same default value in memory afterward, since removal falls back to the default instead of becoming undefined.',
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -786,6 +808,9 @@ export const RemoveVersusReset: Story = {
 
 export const CustomWindow: Story = {
   name: 'Custom window',
+  ...storyDescription(
+    "An iframe-embedded widget has its own session storage separate from the host tab's, and the hook needs to be pointed at the right window explicitly to read or write it. This instance is configured against the iframe's own window rather than the top-level one. Typing into the iframe's input persists to that frame's isolated session storage, leaving the host page's session storage untouched.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <CustomWindowExample />
@@ -829,6 +854,9 @@ export const CustomWindow: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useSessionStorage Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <PlaygroundExample />

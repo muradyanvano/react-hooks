@@ -1,9 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
   AlreadyFocusedExample,
-  BasicInputExample,
   CustomDocumentExample,
   DynamicTargetExample,
   EnabledStateExample,
@@ -16,7 +20,6 @@ import {
 } from './components/UseFocusExamples'
 import {
   alreadyFocusedSnippet,
-  basicInputSnippet,
   customDocumentSnippet,
   dynamicTargetSnippet,
   enabledStateSnippet,
@@ -30,53 +33,8 @@ import {
 
 const meta = {
   title: 'Hooks/useFocus',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Tracks whether a referenced element has direct native focus and exposes stable \`focus\` / \`blur\` methods.
-
-\`\`\`ts
-import { useFocus } from '@muradyanvano/react-hooks'
-
-useFocus<T extends UseFocusTarget>(
-  ref: RefObject<T | null>,
-  options?: UseFocusOptions,
-): UseFocusReturn
-\`\`\`
-
-**Defaults:** \`{ enabled: true, initialValue: false, focusVisible: false, preventScroll: false }\`
-
-**Direct focus only:** Descendant focus does not count. Use \`useFocusWithin\` for container-level focus tracking.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    initialValue: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    focusVisible: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    preventScroll: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'false' } },
-    },
-  },
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useFocus', PlaygroundExample),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -92,7 +50,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   const writeText = fn(async () => undefined)
   Object.defineProperty(navigator, 'clipboard', {
@@ -106,8 +64,12 @@ async function expectCodeDisclosure(
   await userEvent.click(toggle)
 }
 
-export const FocusControls: Story = {
-  name: 'Focus controls',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Programmatic focus across text, input, and button targets with a live focused flag. Use Focus text / Focus input / Focus button and confirm status text. Does not auto-focus on Docs load — gate initialValue behind an explicit mount.',
+  ),
+
   render: () => <FocusControlsExample />,
   parameters: { docs: { source: { code: focusControlsSnippet } } },
   play: async ({ canvasElement }) => {
@@ -145,30 +107,12 @@ export const FocusControls: Story = {
   },
 }
 
-export const BasicInput: Story = {
-  name: 'Basic input',
-  render: () => <BasicInputExample />,
-  parameters: { docs: { source: { code: basicInputSnippet } } },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await userEvent.click(canvas.getByTestId('basic-focus-btn'))
-    await waitFor(() => {
-      expect(canvas.getByTestId('basic-focused-value')).toHaveTextContent(
-        'true',
-      )
-    })
-    await userEvent.click(canvas.getByTestId('basic-blur-btn'))
-    await waitFor(() => {
-      expect(canvas.getByTestId('basic-focused-value')).toHaveTextContent(
-        'false',
-      )
-    })
-    await expectCodeDisclosure(canvas, basicInputSnippet)
-  },
-}
-
 export const InitialFocus: Story = {
   name: 'Initial focus',
+  ...storyDescription(
+    'Initial focus example for useFocus. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <InitialFocusExample />,
   parameters: { docs: { source: { code: initialFocusSnippet } } },
   play: async ({ canvasElement }) => {
@@ -185,6 +129,10 @@ export const InitialFocus: Story = {
 
 export const PreventScroll: Story = {
   name: 'Prevent scroll',
+  ...storyDescription(
+    'Prevent scroll example for useFocus. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <PreventScrollExample />,
   parameters: { docs: { source: { code: preventScrollSnippet } } },
   play: async ({ canvasElement }) => {
@@ -203,6 +151,10 @@ export const PreventScroll: Story = {
 
 export const FocusVisible: Story = {
   name: 'Focus visible',
+  ...storyDescription(
+    'Focus visible example for useFocus. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <FocusVisibleExample />,
   parameters: { docs: { source: { code: focusVisibleSnippet } } },
   play: async ({ canvasElement }) => {
@@ -219,6 +171,10 @@ export const FocusVisible: Story = {
 
 export const DynamicTarget: Story = {
   name: 'Dynamic target',
+  ...storyDescription(
+    'Dynamic target example for useFocus. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <DynamicTargetExample />,
   parameters: { docs: { source: { code: dynamicTargetSnippet } } },
   play: async ({ canvasElement }) => {
@@ -248,6 +204,10 @@ export const DynamicTarget: Story = {
 
 export const AlreadyFocused: Story = {
   name: 'Already focused',
+  ...storyDescription(
+    'Already focused example for useFocus. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <AlreadyFocusedExample />,
   parameters: { docs: { source: { code: alreadyFocusedSnippet } } },
   play: async ({ canvasElement }) => {
@@ -263,6 +223,10 @@ export const AlreadyFocused: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Enabled state example for useFocus. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <EnabledStateExample />,
   parameters: { docs: { source: { code: enabledStateSnippet } } },
   play: async ({ canvasElement }) => {
@@ -296,6 +260,10 @@ export const EnabledState: Story = {
 
 export const SvgTarget: Story = {
   name: 'SVG target',
+  ...storyDescription(
+    'SVG target example for useFocus. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <SvgTargetExample />,
   parameters: { docs: { source: { code: svgTargetSnippet } } },
   play: async ({ canvasElement }) => {
@@ -311,6 +279,10 @@ export const SvgTarget: Story = {
 
 export const CustomDocument: Story = {
   name: 'Custom document',
+  ...storyDescription(
+    'Custom document example for useFocus. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <CustomDocumentExample />,
   parameters: { docs: { source: { code: customDocumentSnippet } } },
   play: async ({ canvasElement }) => {
@@ -336,6 +308,10 @@ export const CustomDocument: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'Configurable useFocus playground. Use Controls when wired to hook options, try edge interactions, and compare runtime behavior with the code panel.',
+  ),
+
   args: {
     enabled: true,
     initialValue: false,

@@ -9,7 +9,7 @@ import {
   useScroll,
   type UseScrollArrivedState,
   type UseScrollDirections,
-} from '../../hooks/useScroll/useScroll'
+} from '@muradyanvano/react-hooks'
 
 import { ExampleShowcase, StatusPanel } from './ExampleShowcase'
 import {

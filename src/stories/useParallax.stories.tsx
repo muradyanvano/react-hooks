@@ -1,4 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -35,84 +38,57 @@ import {
   sourceFallbackSnippet,
   svgTargetSnippet,
 } from './components/useParallax.snippets'
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
 
 const meta = {
   title: 'Hooks/useParallax',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useParallax', PlaygroundExample, {
+    argTypes: {
+      enabled: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'true' } },
       },
-      description: {
-        component: `
-Tracks normalized parallax roll/tilt for a target element from mouse movement and optional device orientation.
-
-\`\`\`ts
-import { useParallax } from '@muradyanvano/react-hooks'
-
-useParallax(ref: RefObject<HTMLElement | SVGElement | null>, options?: UseParallaxOptions): { roll, tilt, source }
-\`\`\`
-
-**Defaults:** \`{ enabled: true, deviceOrientation: true, mouse: true, clamp: true }\` with identity adjusters.
-
-**Axes:** center \`0\`; left/up negative; right/down positive; typically \`-0.5…0.5\` when clamped.
-
-**Source:** \`'mouse' | 'deviceOrientation'\` — the latest valid input wins.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
+      mouse: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      deviceOrientation: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      clamp: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      mouseSensitivity: {
+        control: { type: 'number', min: 0.25, max: 4, step: 0.25 },
+        table: { defaultValue: { summary: '1' } },
+      },
+      orientationSensitivity: {
+        control: { type: 'number', min: 0.25, max: 4, step: 0.25 },
+        table: { defaultValue: { summary: '1' } },
+      },
+      invertRoll: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'false' } },
+      },
+      invertTilt: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'false' } },
       },
     },
-    a11y: {
-      test: 'error',
+    args: {
+      enabled: true,
+      mouse: true,
+      deviceOrientation: true,
+      clamp: true,
+      mouseSensitivity: 1,
+      orientationSensitivity: 1,
+      invertRoll: false,
+      invertTilt: false,
     },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    mouse: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    deviceOrientation: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    clamp: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    mouseSensitivity: {
-      control: { type: 'number', min: 0.25, max: 4, step: 0.25 },
-      table: { defaultValue: { summary: '1' } },
-    },
-    orientationSensitivity: {
-      control: { type: 'number', min: 0.25, max: 4, step: 0.25 },
-      table: { defaultValue: { summary: '1' } },
-    },
-    invertRoll: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    invertTilt: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'false' } },
-    },
-  },
-  args: {
-    enabled: true,
-    mouse: true,
-    deviceOrientation: true,
-    clamp: true,
-    mouseSensitivity: 1,
-    orientationSensitivity: 1,
-    invertRoll: false,
-    invertTilt: false,
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -128,7 +104,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -175,8 +151,11 @@ function parseAxis(text: string): number {
   return Number.isFinite(value) ? value : 0
 }
 
-export const LayeredScene: Story = {
-  name: 'Layered scene',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Layered illustration depth driven by pointer (and optional orientation). Move across the scene to see roll/tilt multipliers; reduced-motion should restrain motion. Consumers own transforms and permission prompts — demos never open native orientation dialogs in Docs.',
+  ),
   render: () => <LayeredSceneExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -222,6 +201,9 @@ export const LayeredScene: Story = {
 
 export const BasicCard: Story = {
   name: 'Basic card',
+  ...storyDescription(
+    'Basic card with useParallax: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <BasicCardExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -240,6 +222,9 @@ export const BasicCard: Story = {
 
 export const MouseNormalization: Story = {
   name: 'Mouse normalization',
+  ...storyDescription(
+    'Mouse normalization with useParallax: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <MouseNormalizationExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -265,6 +250,9 @@ export const MouseNormalization: Story = {
 
 export const DeviceOrientation: Story = {
   name: 'Device orientation',
+  ...storyDescription(
+    'Device orientation with useParallax: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <DeviceOrientationExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -301,6 +289,9 @@ export const DeviceOrientation: Story = {
 
 export const SourceFallback: Story = {
   name: 'Source fallback',
+  ...storyDescription(
+    'Source fallback with useParallax: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <SourceFallbackExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -333,6 +324,9 @@ export const SourceFallback: Story = {
 
 export const ScreenRotation: Story = {
   name: 'Screen rotation',
+  ...storyDescription(
+    'Screen rotation with useParallax: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ScreenRotationExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -370,6 +364,9 @@ export const ScreenRotation: Story = {
 
 export const CustomSensitivity: Story = {
   name: 'Custom sensitivity',
+  ...storyDescription(
+    'Custom sensitivity: bind useParallax to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <CustomSensitivityExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -387,6 +384,9 @@ export const CustomSensitivity: Story = {
 
 export const InvertedMovement: Story = {
   name: 'Inverted movement',
+  ...storyDescription(
+    'Inverted movement with useParallax: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <InvertedMovementExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -411,6 +411,9 @@ export const InvertedMovement: Story = {
 
 export const ClampComparison: Story = {
   name: 'Clamp comparison',
+  ...storyDescription(
+    'Clamp comparison: compare both configurations side by side and note how useParallax options change observable behavior. Interact with each variant, then confirm Show code documents the option you intend to ship.',
+  ),
   render: () => <ClampComparisonExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -436,6 +439,9 @@ export const ClampComparison: Story = {
 
 export const MouseOnly: Story = {
   name: 'Mouse only',
+  ...storyDescription(
+    'Mouse only with useParallax: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <MouseOnlyExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -460,6 +466,9 @@ export const MouseOnly: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Toggle enabled for useParallax and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <EnabledStateExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -487,6 +496,9 @@ export const EnabledState: Story = {
 
 export const DynamicTarget: Story = {
   name: 'Dynamic target',
+  ...storyDescription(
+    'Dynamic target: bind useParallax to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <DynamicTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -518,6 +530,9 @@ export const DynamicTarget: Story = {
 
 export const SvgTarget: Story = {
   name: 'SVG target',
+  ...storyDescription(
+    'SVG target: bind useParallax to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <SvgTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -538,6 +553,9 @@ export const SvgTarget: Story = {
 
 export const PermissionGuidance: Story = {
   name: 'Permission guidance',
+  ...storyDescription(
+    'Permission guidance: reproduce the race or permission edge for useParallax with the on-canvas controls. Confirm newer requests win or aborts clear state as documented, then inspect Show code for ownership rules.',
+  ),
   render: () => <PermissionGuidanceExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -557,6 +575,9 @@ export const PermissionGuidance: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useParallax Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await expectCodeDisclosure(canvas, playgroundSnippet)

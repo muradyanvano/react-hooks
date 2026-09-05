@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -8,7 +13,6 @@ import {
   ErrorCallbackExample,
   ExpirationClaimExample,
   FallbackValueExample,
-  HeaderAndPayloadExample,
   InvalidBase64Example,
   InvalidJsonExample,
   InvalidStructureExample,
@@ -27,7 +31,6 @@ import {
   errorCallbackSnippet,
   expirationClaimSnippet,
   fallbackValueSnippet,
-  headerAndPayloadSnippet,
   invalidBase64Snippet,
   invalidJsonSnippet,
   invalidStructureSnippet,
@@ -42,37 +45,8 @@ import {
 
 const meta = {
   title: 'Hooks/useJwt',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Decode compact JWS-style JWT header and payload contents synchronously.
-
-**Decoding a JWT does not verify its signature or prove that its claims are trustworthy.**
-
-\`\`\`ts
-import { useJwt } from '@muradyanvano/react-hooks'
-
-useJwt(encodedJwt, options?): { header, payload, errors }
-\`\`\`
-
-**Defaults:** \`{ fallbackValue: null }\` with a no-op \`onError\`.
-
-Use only synthetic demonstration tokens in these examples. Never paste production tokens into Storybook, screenshots, logs, or public issues.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
-    a11y: {
-      test: 'error',
-    },
-  },
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useJwt', PlaygroundExample),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -88,7 +62,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -113,8 +87,11 @@ async function expectCodeDisclosure(
   await expect(toggle).toHaveAttribute('aria-expanded', 'false')
 }
 
-export const JwtInspector: Story = {
-  name: 'JWT inspector',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Inspect synthetic JWTs into header, payload, and signature segments without verifying signatures. Paste/edit the demo token and read claims — the banner must stay Decoded only. Never treat decode success as authentication.',
+  ),
   render: () => <JwtInspectorExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -151,21 +128,11 @@ export const JwtInspector: Story = {
   },
 }
 
-export const HeaderAndPayload: Story = {
-  name: 'Header and payload',
-  render: () => <HeaderAndPayloadExample />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await expect(canvas.getByTestId('hp-header')).toHaveTextContent('HS256')
-    await expect(canvas.getByTestId('hp-payload')).toHaveTextContent(
-      '1234567890',
-    )
-    await expectCodeDisclosure(canvas, headerAndPayloadSnippet)
-  },
-}
-
 export const TypedClaims: Story = {
   name: 'Typed claims',
+  ...storyDescription(
+    'Typed claims with useJwt: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <TypedClaimsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -180,6 +147,9 @@ export const TypedClaims: Story = {
 
 export const UnicodeClaims: Story = {
   name: 'Unicode claims',
+  ...storyDescription(
+    'Unicode claims with useJwt: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <UnicodeClaimsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -193,6 +163,9 @@ export const UnicodeClaims: Story = {
 
 export const TokenEditor: Story = {
   name: 'Token editor',
+  ...storyDescription(
+    'Token editor with useJwt: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <TokenEditorExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -211,6 +184,9 @@ export const TokenEditor: Story = {
 
 export const FallbackValue: Story = {
   name: 'Fallback value',
+  ...storyDescription(
+    'Fallback value with useJwt: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <FallbackValueExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -232,6 +208,9 @@ export const FallbackValue: Story = {
 
 export const InvalidStructure: Story = {
   name: 'Invalid structure',
+  ...storyDescription(
+    'Invalid structure — trigger the failure path for useJwt and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <InvalidStructureExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -250,6 +229,9 @@ export const InvalidStructure: Story = {
 
 export const InvalidBase64URL: Story = {
   name: 'Invalid Base64URL',
+  ...storyDescription(
+    'Invalid Base64URL — trigger the failure path for useJwt and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <InvalidBase64Example />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -262,6 +244,9 @@ export const InvalidBase64URL: Story = {
 
 export const InvalidJSON: Story = {
   name: 'Invalid JSON',
+  ...storyDescription(
+    'Invalid JSON — trigger the failure path for useJwt and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <InvalidJsonExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -272,6 +257,9 @@ export const InvalidJSON: Story = {
 
 export const ExpirationClaim: Story = {
   name: 'Expiration claim',
+  ...storyDescription(
+    'Expiration claim with useJwt: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ExpirationClaimExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -288,6 +276,9 @@ export const ExpirationClaim: Story = {
 
 export const NotBeforeAndIssuedAt: Story = {
   name: 'Not-before and issued-at',
+  ...storyDescription(
+    'Not-before and issued-at with useJwt: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <NotBeforeIssuedAtExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -300,6 +291,9 @@ export const NotBeforeAndIssuedAt: Story = {
 
 export const AudienceAndIssuer: Story = {
   name: 'Audience and issuer',
+  ...storyDescription(
+    'Audience and issuer with useJwt: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <AudienceIssuerExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -313,6 +307,9 @@ export const AudienceAndIssuer: Story = {
 
 export const AlgorithmWarning: Story = {
   name: 'Algorithm warning',
+  ...storyDescription(
+    'Algorithm warning with useJwt: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <AlgorithmWarningExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -327,6 +324,9 @@ export const AlgorithmWarning: Story = {
 
 export const DynamicToken: Story = {
   name: 'Dynamic token',
+  ...storyDescription(
+    'Dynamic token with useJwt: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <DynamicTokenExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -343,6 +343,9 @@ export const DynamicToken: Story = {
 
 export const ErrorCallback: Story = {
   name: 'Error callback',
+  ...storyDescription(
+    'Error callback — trigger the failure path for useJwt and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <ErrorCallbackExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -386,6 +389,9 @@ export const ErrorCallback: Story = {
 
 export const SsrSafeDecoding: Story = {
   name: 'SSR-safe decoding',
+  ...storyDescription(
+    'SSR-safe useJwt usage: confirm the demo stays idle without browser globals at import time and hydrates without duplicate subscriptions. Inspect status after mount and open Show code for the consumer-safe import pattern.',
+  ),
   render: () => <SsrSafeDecodingExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -398,6 +404,9 @@ export const SsrSafeDecoding: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useJwt Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: (args) => <PlaygroundExample {...args} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)

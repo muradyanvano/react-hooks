@@ -14,7 +14,6 @@ import {
   errorCallbackSnippet,
   expirationClaimSnippet,
   fallbackValueSnippet,
-  headerAndPayloadSnippet,
   invalidBase64Snippet,
   invalidJsonSnippet,
   invalidStructureSnippet,
@@ -41,7 +40,6 @@ import {
   SYNTHETIC_STANDARD_TOKEN,
   SYNTHETIC_TYPED_TOKEN,
   SYNTHETIC_UNICODE_TOKEN,
-  createSyntheticJwt,
   encodeSyntheticJwtJson,
 } from './useJwt.synthetic'
 
@@ -285,38 +283,6 @@ export function JwtInspectorExample() {
           ))}
         </ul>
       ) : null}
-    </ExampleShowcase>
-  )
-}
-
-export function HeaderAndPayloadExample() {
-  const token = createSyntheticJwt(
-    { alg: 'HS256', typ: 'JWT' },
-    { sub: '1234567890', iat: 1516239022 },
-  )
-  const { header, payload } = useJwt(token)
-
-  return (
-    <ExampleShowcase
-      hookName="useJwt"
-      title="Header and payload"
-      description="A compact example of the common HS256-shaped header and a minimal payload."
-      instruction="Review the decoded JSON panels. Signature is not verified."
-      code={headerAndPayloadSnippet}
-    >
-      <SecurityBanner />
-      <JsonPanel
-        title='Header {"alg":"HS256","typ":"JWT"}'
-        value={header}
-        testId="hp-header"
-        tone="header"
-      />
-      <JsonPanel
-        title='Payload {"sub":"1234567890","iat":1516239022}'
-        value={payload}
-        testId="hp-payload"
-        tone="payload"
-      />
     </ExampleShowcase>
   )
 }

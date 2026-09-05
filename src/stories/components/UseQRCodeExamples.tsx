@@ -7,21 +7,12 @@ import {
 
 import { ExampleShowcase, StatusPanel } from './ExampleShowcase'
 import {
-  FICTIONAL_MAILTO_PAYLOAD,
-  FICTIONAL_SMS_PAYLOAD,
-  FICTIONAL_VCARD_PAYLOAD,
-  FICTIONAL_VEVENT_PAYLOAD,
-  FICTIONAL_WIFI_PAYLOAD,
   SAMPLE_GENERATOR_TEXT,
   SAMPLE_PLAIN_TEXT,
   SAMPLE_UNICODE_TEXT,
-  SAMPLE_WEBSITE_URL,
 } from './useQRCode.fictional'
 import {
-  calendarEventSnippet,
-  contactCardSnippet,
   customColorsSnippet,
-  emailCompositionSnippet,
   enabledStateSnippet,
   errorCorrectionSnippet,
   imageFormatSnippet,
@@ -32,9 +23,6 @@ import {
   playgroundSnippet,
   qrCodeGeneratorSnippet,
   rapidInputSnippet,
-  smsPayloadSnippet,
-  websiteUrlSnippet,
-  wifiSetupSnippet,
   widthScaleSnippet,
 } from './useQRCode.snippets'
 
@@ -311,55 +299,6 @@ export function QrCodeGeneratorExample() {
   )
 }
 
-export function WebsiteUrlExample() {
-  const { dataUrl, isLoading, error } = useQRCode(SAMPLE_WEBSITE_URL)
-
-  return (
-    <ExampleShowcase
-      hookName="useQRCode"
-      title="Website URL"
-      description="URL payloads open links after scanning. Always verify the destination domain."
-      instruction="Review the encoded URL and QR preview for a documentation-style link."
-      code={websiteUrlSnippet}
-      aside={
-        <StatusPanel
-          items={[
-            {
-              label: 'Payload type',
-              value: 'https URL',
-              testId: 'url-type',
-            },
-            {
-              label: 'Loading',
-              value: String(isLoading),
-              testId: 'url-loading',
-            },
-          ]}
-        />
-      }
-    >
-      <TrustBanner />
-      <QrStatusText
-        text={SAMPLE_WEBSITE_URL}
-        isLoading={isLoading}
-        error={error}
-        testIdPrefix="url"
-      />
-      <QrFrame
-        dataUrl={dataUrl}
-        alt="QR code encoding an example documentation website URL"
-        testId="url-qr"
-      />
-      <code
-        className="block break-all rounded-lg bg-slate-50 px-3 py-2 font-mono text-xs text-slate-800"
-        data-testid="url-encoded"
-      >
-        {SAMPLE_WEBSITE_URL}
-      </code>
-    </ExampleShowcase>
-  )
-}
-
 export function PlainTextUnicodeExample() {
   const plain = useQRCode(SAMPLE_PLAIN_TEXT)
   const unicode = useQRCode(SAMPLE_UNICODE_TEXT)
@@ -419,178 +358,6 @@ export function PlainTextUnicodeExample() {
           </p>
         </section>
       </div>
-    </ExampleShowcase>
-  )
-}
-
-export function WifiSetupExample() {
-  const { dataUrl, isLoading, error } = useQRCode(FICTIONAL_WIFI_PAYLOAD, {
-    errorCorrectionLevel: 'M',
-  })
-
-  return (
-    <ExampleShowcase
-      hookName="useQRCode"
-      title="Wi-Fi setup payload"
-      description="Fictional WPA network string for documentation. Never encode production Wi-Fi passwords in public demos."
-      instruction="Review the WIFI: syntax and scan reliability note for special characters."
-      code={wifiSetupSnippet}
-    >
-      <TrustBanner />
-      <p className="text-sm text-slate-600">
-        Wi-Fi QR codes are convenient but join networks immediately after
-        scanning. Special characters in SSID or password must be escaped per the
-        WIFI: format. Test on target phones when reliability matters.
-      </p>
-      <QrStatusText
-        text={FICTIONAL_WIFI_PAYLOAD}
-        isLoading={isLoading}
-        error={error}
-        testIdPrefix="wifi"
-      />
-      <QrFrame
-        dataUrl={dataUrl}
-        alt="QR code for fictional Wi-Fi network setup"
-        testId="wifi-qr"
-      />
-      <EncodedPreview text={FICTIONAL_WIFI_PAYLOAD} testId="wifi-encoded" />
-    </ExampleShowcase>
-  )
-}
-
-export function ContactCardExample() {
-  const { dataUrl, isLoading, error } = useQRCode(FICTIONAL_VCARD_PAYLOAD)
-
-  return (
-    <ExampleShowcase
-      hookName="useQRCode"
-      title="Contact card payload"
-      description="Fictional vCard contact for documentation. Treat scanned contacts as untrusted."
-      instruction="Review multi-line vCard syntax encoded into one QR payload."
-      code={contactCardSnippet}
-    >
-      <TrustBanner />
-      <p className="text-sm text-slate-600">
-        vCard payloads are multi-line and dense. Higher error correction (M or
-        H) improves scan reliability on printed cards.
-      </p>
-      <QrStatusText
-        text={FICTIONAL_VCARD_PAYLOAD}
-        isLoading={isLoading}
-        error={error}
-        testIdPrefix="contact"
-      />
-      <QrFrame
-        dataUrl={dataUrl}
-        alt="QR code for fictional vCard contact"
-        testId="contact-qr"
-      />
-      <EncodedPreview text={FICTIONAL_VCARD_PAYLOAD} testId="contact-encoded" />
-    </ExampleShowcase>
-  )
-}
-
-export function EmailCompositionExample() {
-  const { dataUrl, isLoading, error } = useQRCode(FICTIONAL_MAILTO_PAYLOAD)
-
-  return (
-    <ExampleShowcase
-      hookName="useQRCode"
-      title="Email composition payload"
-      description="Fictional mailto: link with subject and body. Confirm recipients before sending."
-      instruction="Review percent-encoded query parameters in the mailto payload."
-      code={emailCompositionSnippet}
-    >
-      <TrustBanner />
-      <QrStatusText
-        text={FICTIONAL_MAILTO_PAYLOAD}
-        isLoading={isLoading}
-        error={error}
-        testIdPrefix="email"
-      />
-      <QrFrame
-        dataUrl={dataUrl}
-        alt="QR code for fictional email composition link"
-        testId="email-qr"
-      />
-      <code
-        className="block break-all rounded-lg bg-slate-50 px-3 py-2 font-mono text-xs"
-        data-testid="email-encoded"
-      >
-        {FICTIONAL_MAILTO_PAYLOAD}
-      </code>
-    </ExampleShowcase>
-  )
-}
-
-export function SmsPayloadExample() {
-  const { dataUrl, isLoading, error } = useQRCode(FICTIONAL_SMS_PAYLOAD)
-
-  return (
-    <ExampleShowcase
-      hookName="useQRCode"
-      title="SMS payload"
-      description="Fictional smsto: payload. SMS QR behavior varies by device and reader app."
-      instruction="Review the smsto syntax and platform variance note."
-      code={smsPayloadSnippet}
-    >
-      <TrustBanner />
-      <p className="text-sm text-slate-600">
-        Some devices expect SMSTO:, others smsto:. Message length and encoding
-        affect reliability — test on target hardware rather than assuming
-        universal support.
-      </p>
-      <QrStatusText
-        text={FICTIONAL_SMS_PAYLOAD}
-        isLoading={isLoading}
-        error={error}
-        testIdPrefix="sms"
-      />
-      <QrFrame
-        dataUrl={dataUrl}
-        alt="QR code for fictional SMS message payload"
-        testId="sms-qr"
-      />
-      <code
-        className="block break-all rounded-lg bg-slate-50 px-3 py-2 font-mono text-xs"
-        data-testid="sms-encoded"
-      >
-        {FICTIONAL_SMS_PAYLOAD}
-      </code>
-    </ExampleShowcase>
-  )
-}
-
-export function CalendarEventExample() {
-  const { dataUrl, isLoading, error } = useQRCode(FICTIONAL_VEVENT_PAYLOAD, {
-    errorCorrectionLevel: 'M',
-  })
-
-  return (
-    <ExampleShowcase
-      hookName="useQRCode"
-      title="Calendar/event payload"
-      description="Fictional iCalendar VEVENT block. Calendar apps parse fields differently."
-      instruction="Review the multi-line event payload and error-correction recommendation."
-      code={calendarEventSnippet}
-    >
-      <TrustBanner />
-      <p className="text-sm text-slate-600">
-        Calendar payloads are among the densest common QR uses. Prefer M or H
-        error correction and adequate quiet zone for printed invites.
-      </p>
-      <QrStatusText
-        text={FICTIONAL_VEVENT_PAYLOAD}
-        isLoading={isLoading}
-        error={error}
-        testIdPrefix="event"
-      />
-      <QrFrame
-        dataUrl={dataUrl}
-        alt="QR code for fictional calendar event invitation"
-        testId="event-qr"
-      />
-      <EncodedPreview text={FICTIONAL_VEVENT_PAYLOAD} testId="event-encoded" />
     </ExampleShowcase>
   )
 }

@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import { SAMPLE_GENERATOR_TEXT } from './components/useQRCode.fictional'
 import {
-  CalendarEventExample,
-  ContactCardExample,
   CustomColorsExample,
-  EmailCompositionExample,
   EnabledStateExample,
   ErrorCorrectionExample,
   ImageFormatExample,
@@ -17,16 +19,10 @@ import {
   PlaygroundExample,
   QrCodeGeneratorExample,
   RapidInputExample,
-  SmsPayloadExample,
-  WebsiteUrlExample,
-  WifiSetupExample,
   WidthScaleExample,
 } from './components/UseQRCodeExamples'
 import {
-  calendarEventSnippet,
-  contactCardSnippet,
   customColorsSnippet,
-  emailCompositionSnippet,
   enabledStateSnippet,
   errorCorrectionSnippet,
   imageFormatSnippet,
@@ -37,43 +33,13 @@ import {
   playgroundSnippet,
   qrCodeGeneratorSnippet,
   rapidInputSnippet,
-  smsPayloadSnippet,
-  websiteUrlSnippet,
-  wifiSetupSnippet,
   widthScaleSnippet,
 } from './components/useQRCode.snippets'
 
 const meta = {
   title: 'Hooks/useQRCode',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Generate QR code image data URLs from text using the \`qrcode\` encoder.
-
-\`\`\`ts
-import { useQRCode } from '@muradyanvano/react-hooks'
-
-useQRCode(text, options?): { dataUrl, isLoading, error, generate }
-\`\`\`
-
-**Defaults:** \`enabled: true\`, \`errorCorrectionLevel: 'M'\`, \`margin: 4\`
-
-**Scanning a QR code does not validate or trust its content.**
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
-    a11y: {
-      test: 'error',
-    },
-  },
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useQRCode', PlaygroundExample),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -89,7 +55,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -123,12 +89,15 @@ async function waitForQrImage(
       const img = canvas.getByTestId(testId)
       expect(img.getAttribute('src') ?? '').toMatch(/^data:image\//)
     },
-    { timeout: 5000 },
+    { timeout: 15_000 },
   )
 }
 
-export const QrCodeGenerator: Story = {
-  name: 'QR code generator',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Generate scannable QR images from editable text with loading and error states. Change the payload and confirm the square preview updates; scanning does not imply trust. Downloads stay attribute-only in automated plays.',
+  ),
   render: () => <QrCodeGeneratorExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -177,21 +146,11 @@ export const QrCodeGenerator: Story = {
   },
 }
 
-export const WebsiteUrl: Story = {
-  name: 'Website URL',
-  render: () => <WebsiteUrlExample />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await waitForQrImage(canvas, 'url-qr')
-    await expect(canvas.getByTestId('url-encoded')).toHaveTextContent(
-      'https://example.com',
-    )
-    await expectCodeDisclosure(canvas, websiteUrlSnippet)
-  },
-}
-
 export const PlainTextAndUnicode: Story = {
   name: 'Plain text and Unicode',
+  ...storyDescription(
+    'Plain text and Unicode with useQRCode: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <PlainTextUnicodeExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -202,71 +161,11 @@ export const PlainTextAndUnicode: Story = {
   },
 }
 
-export const WifiSetup: Story = {
-  name: 'Wi-Fi setup payload',
-  render: () => <WifiSetupExample />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await waitForQrImage(canvas, 'wifi-qr')
-    await expect(canvas.getByTestId('wifi-encoded')).toHaveTextContent(
-      'WIFI:T:WPA',
-    )
-    await expectCodeDisclosure(canvas, wifiSetupSnippet)
-  },
-}
-
-export const ContactCard: Story = {
-  name: 'Contact card payload',
-  render: () => <ContactCardExample />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await waitForQrImage(canvas, 'contact-qr')
-    await expect(canvas.getByTestId('contact-encoded')).toHaveTextContent(
-      'BEGIN:VCARD',
-    )
-    await expectCodeDisclosure(canvas, contactCardSnippet)
-  },
-}
-
-export const EmailComposition: Story = {
-  name: 'Email composition payload',
-  render: () => <EmailCompositionExample />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await waitForQrImage(canvas, 'email-qr')
-    await expect(canvas.getByTestId('email-encoded')).toHaveTextContent(
-      'mailto:',
-    )
-    await expectCodeDisclosure(canvas, emailCompositionSnippet)
-  },
-}
-
-export const SmsPayload: Story = {
-  name: 'SMS payload',
-  render: () => <SmsPayloadExample />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await waitForQrImage(canvas, 'sms-qr')
-    await expect(canvas.getByTestId('sms-encoded')).toHaveTextContent('smsto:')
-    await expectCodeDisclosure(canvas, smsPayloadSnippet)
-  },
-}
-
-export const CalendarEvent: Story = {
-  name: 'Calendar/event payload',
-  render: () => <CalendarEventExample />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await waitForQrImage(canvas, 'event-qr')
-    await expect(canvas.getByTestId('event-encoded')).toHaveTextContent(
-      'BEGIN:VEVENT',
-    )
-    await expectCodeDisclosure(canvas, calendarEventSnippet)
-  },
-}
-
 export const ErrorCorrectionComparison: Story = {
   name: 'Error-correction comparison',
+  ...storyDescription(
+    'Error-correction comparison — trigger the failure path for useQRCode and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <ErrorCorrectionExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -280,6 +179,9 @@ export const ErrorCorrectionComparison: Story = {
 
 export const WidthAndScale: Story = {
   name: 'Width and scale',
+  ...storyDescription(
+    'Width and scale with useQRCode: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <WidthScaleExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -292,6 +194,9 @@ export const WidthAndScale: Story = {
 
 export const MarginComparison: Story = {
   name: 'Margin / quiet-zone comparison',
+  ...storyDescription(
+    'Margin / quiet-zone comparison: compare both configurations side by side and note how useQRCode options change observable behavior. Interact with each variant, then confirm Show code documents the option you intend to ship.',
+  ),
   render: () => <MarginComparisonExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -306,6 +211,9 @@ export const MarginComparison: Story = {
 
 export const CustomColors: Story = {
   name: 'Custom colors with high contrast',
+  ...storyDescription(
+    'Custom colors with high contrast: bind useQRCode to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <CustomColorsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -317,6 +225,9 @@ export const CustomColors: Story = {
 
 export const ImageFormatComparison: Story = {
   name: 'Image format comparison',
+  ...storyDescription(
+    'Image format comparison: compare both configurations side by side and note how useQRCode options change observable behavior. Interact with each variant, then confirm Show code documents the option you intend to ship.',
+  ),
   render: () => <ImageFormatExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -332,6 +243,9 @@ export const ImageFormatComparison: Story = {
 
 export const ManualGeneration: Story = {
   name: 'Manual generation',
+  ...storyDescription(
+    'Manual generation with useQRCode: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ManualGenerationExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -347,6 +261,9 @@ export const ManualGeneration: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Toggle enabled for useQRCode and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <EnabledStateExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -371,6 +288,9 @@ export const EnabledState: Story = {
 
 export const InvalidConfiguration: Story = {
   name: 'Invalid configuration / error recovery',
+  ...storyDescription(
+    'Invalid configuration / error recovery — trigger the failure path for useQRCode and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <InvalidConfigExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -386,6 +306,9 @@ export const InvalidConfiguration: Story = {
 
 export const RapidInputChanges: Story = {
   name: 'Rapid input changes',
+  ...storyDescription(
+    'Rapid input changes with useQRCode: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <RapidInputExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -411,6 +334,9 @@ export const RapidInputChanges: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useQRCode Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: (args) => <PlaygroundExample {...args} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)

@@ -1,8 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
-  BasicUsageExample,
   CancelControlExample,
   ContrastPreviewExample,
   DashboardExample,
@@ -26,7 +30,6 @@ import {
   type EyeDropperMockMode,
 } from './components/eyeDropperMock'
 import {
-  basicUsageSnippet,
   cancelControlSnippet,
   contrastPreviewSnippet,
   dashboardSnippet,
@@ -47,37 +50,8 @@ import {
 
 const meta = {
   title: 'Hooks/useEyeDropper',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Wraps the native EyeDropper API for imperative, user-gesture-driven color sampling.
-
-\`\`\`ts
-import { useEyeDropper } from '@muradyanvano/react-hooks'
-
-useEyeDropper(options?: UseEyeDropperOptions): UseEyeDropperReturn
-\`\`\`
-
-**Defaults:** \`initialValue: ''\`, \`enabled: true\`, \`treatAbortAsError: false\`
-
-Call \`open()\` directly from a click handler — never from an effect — so transient user activation is preserved. Browser support is limited and typically requires a secure context. Output is opaque six-digit sRGB (\`#rrggbb\`); there is no alpha channel, continuous tracking, polyfill, or element-only sampling.
-
-**Live vs. mocked:** Interactive success demos (dashboard, basic, palette, theme, gradient, contrast, enabled) and the **Live native picker** story use the real browser API so Open Eye Dropper launches the system picker. Scenario stories (cancellation, permission, failures, abort, overlap, playground) use a Storybook-only mock so CI can drive outcomes without opening the real picker. Automated play tests for success demos also install that mock temporarily.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
-    a11y: {
-      test: 'error',
-    },
-  },
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useEyeDropper', PlaygroundExample),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -93,7 +67,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -131,8 +105,11 @@ async function withPlayMock(
   }
 }
 
-export const EyeDropperDashboard: Story = {
-  name: 'Eye Dropper dashboard',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Sample screen colors into sRGB hex with history owned by the example. Open the mocked picker, copy a swatch, and Reset. Support is limited; the Live native picker story must never auto-open in tests.',
+  ),
   render: () => <DashboardExample />,
   parameters: { docs: { source: { code: dashboardSnippet } } },
   play: async ({ canvasElement }) => {
@@ -186,6 +163,9 @@ export const EyeDropperDashboard: Story = {
 
 export const LiveNativePicker: Story = {
   name: 'Live native picker',
+  ...storyDescription(
+    'useEyeDropper Live native picker: automated tests inspect idle UI only and never trigger real camera, microphone, screen-share, EyeDropper, fullscreen, or network prompts.',
+  ),
   render: () => <LiveNativeExample />,
   parameters: { docs: { source: { code: liveNativeSnippet } } },
   play: async ({ canvasElement }) => {
@@ -216,26 +196,11 @@ export const LiveNativePicker: Story = {
   },
 }
 
-export const BasicUsage: Story = {
-  name: 'Basic usage',
-  render: () => <BasicUsageExample />,
-  parameters: { docs: { source: { code: basicUsageSnippet } } },
-  play: async ({ canvasElement }) => {
-    await withPlayMock({ successColor: '#0ea5e9' }, async () => {
-      const canvas = within(canvasElement)
-      await userEvent.click(canvas.getByTestId('ex-open'))
-      await waitFor(() =>
-        expect(canvas.getByTestId('ex-hex-display')).toHaveTextContent(
-          '#0ea5e9',
-        ),
-      )
-      await expectCodeDisclosure(canvas, basicUsageSnippet)
-    })
-  },
-}
-
 export const InitialColor: Story = {
   name: 'Initial color',
+  ...storyDescription(
+    'Initial color with useEyeDropper: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <InitialColorExample />,
   parameters: { docs: { source: { code: initialColorSnippet } } },
   play: async ({ canvasElement }) => {
@@ -255,6 +220,9 @@ export const InitialColor: Story = {
 
 export const ColorPaletteBuilder: Story = {
   name: 'Color palette builder',
+  ...storyDescription(
+    'Color palette builder with useEyeDropper: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <PaletteBuilderExample />,
   parameters: { docs: { source: { code: paletteBuilderSnippet } } },
   play: async ({ canvasElement }) => {
@@ -273,6 +241,9 @@ export const ColorPaletteBuilder: Story = {
 
 export const CssThemeTokens: Story = {
   name: 'CSS theme tokens',
+  ...storyDescription(
+    'CSS theme tokens with useEyeDropper: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ThemeTokensExample />,
   parameters: { docs: { source: { code: themeTokensSnippet } } },
   play: async ({ canvasElement }) => {
@@ -294,6 +265,9 @@ export const CssThemeTokens: Story = {
 
 export const GradientDesigner: Story = {
   name: 'Gradient designer',
+  ...storyDescription(
+    'Gradient designer with useEyeDropper: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <GradientDesignerExample />,
   parameters: { docs: { source: { code: gradientDesignerSnippet } } },
   play: async ({ canvasElement }) => {
@@ -316,6 +290,9 @@ export const GradientDesigner: Story = {
 
 export const ContrastPreview: Story = {
   name: 'Contrast preview',
+  ...storyDescription(
+    'Contrast preview with useEyeDropper: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ContrastPreviewExample />,
   parameters: { docs: { source: { code: contrastPreviewSnippet } } },
   play: async ({ canvasElement }) => {
@@ -330,6 +307,9 @@ export const ContrastPreview: Story = {
 
 export const UserCancellation: Story = {
   name: 'User cancellation',
+  ...storyDescription(
+    'User cancellation: schedule work, then exercise cancel/flush/pending timing for useEyeDropper. Watch status settle to a deterministic idle state before leaving; Show code should match the timing policy under test.',
+  ),
   render: () => <UserCancellationExample />,
   parameters: { docs: { source: { code: userCancellationSnippet } } },
   play: async ({ canvasElement }) => {
@@ -344,6 +324,9 @@ export const UserCancellation: Story = {
 
 export const PermissionRequired: Story = {
   name: 'Permission required',
+  ...storyDescription(
+    'Permission required: reproduce the race or permission edge for useEyeDropper with the on-canvas controls. Confirm newer requests win or aborts clear state as documented, then inspect Show code for ownership rules.',
+  ),
   render: () => <PermissionRequiredExample />,
   parameters: { docs: { source: { code: permissionRequiredSnippet } } },
   play: async ({ canvasElement }) => {
@@ -360,6 +343,9 @@ export const PermissionRequired: Story = {
 
 export const OperationFailureAndRecovery: Story = {
   name: 'Operation failure and recovery',
+  ...storyDescription(
+    'Operation failure and recovery — trigger the failure path for useEyeDropper and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <OperationFailureExample />,
   parameters: { docs: { source: { code: operationFailureSnippet } } },
   play: async ({ canvasElement }) => {
@@ -379,6 +365,9 @@ export const OperationFailureAndRecovery: Story = {
 
 export const ExternalAbortSignal: Story = {
   name: 'External AbortSignal',
+  ...storyDescription(
+    'External AbortSignal: reproduce the race or permission edge for useEyeDropper with the on-canvas controls. Confirm newer requests win or aborts clear state as documented, then inspect Show code for ownership rules.',
+  ),
   render: () => <ExternalAbortExample />,
   parameters: { docs: { source: { code: externalAbortSnippet } } },
   play: async ({ canvasElement }) => {
@@ -397,6 +386,9 @@ export const ExternalAbortSignal: Story = {
 
 export const CancelControl: Story = {
   name: 'Cancel control',
+  ...storyDescription(
+    'Cancel control: schedule work, then exercise cancel/flush/pending timing for useEyeDropper. Watch status settle to a deterministic idle state before leaving; Show code should match the timing policy under test.',
+  ),
   render: () => <CancelControlExample />,
   parameters: { docs: { source: { code: cancelControlSnippet } } },
   play: async ({ canvasElement }) => {
@@ -415,6 +407,9 @@ export const CancelControl: Story = {
 
 export const OverlappingRequests: Story = {
   name: 'Overlapping requests',
+  ...storyDescription(
+    'Overlapping requests: reproduce the race or permission edge for useEyeDropper with the on-canvas controls. Confirm newer requests win or aborts clear state as documented, then inspect Show code for ownership rules.',
+  ),
   render: () => <OverlappingRequestsExample />,
   parameters: { docs: { source: { code: overlappingRequestsSnippet } } },
   play: async ({ canvasElement }) => {
@@ -433,6 +428,9 @@ export const OverlappingRequests: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Toggle enabled for useEyeDropper and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <EnabledStateExample />,
   parameters: { docs: { source: { code: enabledStateSnippet } } },
   play: async ({ canvasElement }) => {
@@ -455,6 +453,9 @@ export const EnabledState: Story = {
 
 export const UnsupportedBrowser: Story = {
   name: 'Unsupported browser',
+  ...storyDescription(
+    'Unsupported browser — trigger the failure path for useEyeDropper and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <UnsupportedBrowserExample />,
   parameters: { docs: { source: { code: unsupportedSnippet } } },
   play: async ({ canvasElement }) => {
@@ -470,6 +471,9 @@ export const UnsupportedBrowser: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useEyeDropper Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: (args) => (
     <PlaygroundExample
       treatAbortAsError={Boolean(args.treatAbortAsError)}

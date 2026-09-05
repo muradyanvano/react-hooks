@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -30,72 +35,47 @@ import {
 
 const meta = {
   title: 'Hooks/useElementByPoint',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useElementByPoint', PlaygroundExample, {
+    argTypes: {
+      x: {
+        control: { type: 'number', min: 0, max: 400, step: 10 },
+        description:
+          'Horizontal position, relative to the stage below (converted to viewport coordinates internally).',
+        table: { defaultValue: { summary: '100' } },
       },
-      description: {
-        component: `
-Reactively resolves the DOM \`Element\` (or elements) sitting at viewport coordinates via \`elementFromPoint\` / \`elementsFromPoint\`.
-
-\`\`\`ts
-import { useElementByPoint } from '@muradyanvano/react-hooks'
-
-useElementByPoint(options: UseElementByPointOptions): UseElementByPointReturn
-\`\`\`
-
-**Defaults:** \`{ multiple: false, enabled: true, scheduler: 'animationFrame' }\`
-
-**Coordinate space:** \`x\` / \`y\` are viewport ("client") coordinates — the same space as \`event.clientX\` / \`event.clientY\` and \`element.getBoundingClientRect()\`, not page/document coordinates.
-
-**Non-mutating:** the hook only reads the DOM. It never writes to the returned element's style, class, or attributes. Every highlight overlay and crosshair below is a separate, \`pointer-events: none\` Storybook-only visual — never part of the hook's result.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
+      y: {
+        control: { type: 'number', min: 0, max: 240, step: 10 },
+        description: 'Vertical position, relative to the stage below.',
+        table: { defaultValue: { summary: '70' } },
+      },
+      multiple: {
+        control: 'boolean',
+        description:
+          'Switch the result to a readonly Element[] via elementsFromPoint.',
+        table: { defaultValue: { summary: 'false' } },
+      },
+      enabled: {
+        control: 'boolean',
+        description:
+          'When false, clears the result and stops scheduling lookups.',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      scheduler: {
+        control: 'select',
+        options: ['animationFrame', 'sync'],
+        description: 'Lookup scheduling strategy.',
+        table: { defaultValue: { summary: 'animationFrame' } },
       },
     },
-  },
-  argTypes: {
-    x: {
-      control: { type: 'number', min: 0, max: 400, step: 10 },
-      description:
-        'Horizontal position, relative to the stage below (converted to viewport coordinates internally).',
-      table: { defaultValue: { summary: '100' } },
+    args: {
+      x: 100,
+      y: 70,
+      multiple: false,
+      enabled: true,
+      scheduler: 'animationFrame',
     },
-    y: {
-      control: { type: 'number', min: 0, max: 240, step: 10 },
-      description: 'Vertical position, relative to the stage below.',
-      table: { defaultValue: { summary: '70' } },
-    },
-    multiple: {
-      control: 'boolean',
-      description:
-        'Switch the result to a readonly Element[] via elementsFromPoint.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    enabled: {
-      control: 'boolean',
-      description:
-        'When false, clears the result and stops scheduling lookups.',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    scheduler: {
-      control: 'select',
-      options: ['animationFrame', 'sync'],
-      description: 'Lookup scheduling strategy.',
-      table: { defaultValue: { summary: 'animationFrame' } },
-    },
-  },
-  args: {
-    x: 100,
-    y: 70,
-    multiple: false,
-    enabled: true,
-    scheduler: 'animationFrame',
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -110,7 +90,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   const writeText = fn(async () => undefined)
   Object.defineProperty(navigator, 'clipboard', {
@@ -125,8 +105,11 @@ async function expectCodeDisclosure(
   await expect(toggle).toHaveAttribute('aria-expanded', 'false')
 }
 
-export const XYCoordinates: Story = {
-  name: 'X and Y coordinates',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Hit-testing UI under viewport client coordinates from pointer movement. Move across stacked targets and confirm the detected element matches elementFromPoint space — never page coordinates. Overlays use pointer-events: none so they stay out of the hit tree.',
+  ),
   render: () => <XYCoordinatesExample />,
   parameters: { docs: { source: { code: xyCoordinatesSnippet } } },
   play: async ({ canvasElement }) => {
@@ -191,6 +174,9 @@ export const XYCoordinates: Story = {
 
 export const PointerInspector: Story = {
   name: 'Pointer inspector',
+  ...storyDescription(
+    'Pointer inspector with useElementByPoint: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <PointerInspectorExample />,
   parameters: { docs: { source: { code: pointerInspectorSnippet } } },
   play: async ({ canvasElement }) => {
@@ -220,6 +206,9 @@ export const PointerInspector: Story = {
 
 export const MultipleElements: Story = {
   name: 'Multiple elements',
+  ...storyDescription(
+    'Multiple elements with useElementByPoint: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <MultipleElementsExample />,
   parameters: { docs: { source: { code: multipleElementsSnippet } } },
   play: async ({ canvasElement }) => {
@@ -255,6 +244,9 @@ export const MultipleElements: Story = {
 
 export const PauseAndResume: Story = {
   name: 'Pause and resume',
+  ...storyDescription(
+    'Pause and resume with useElementByPoint: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <PauseResumeExample />,
   parameters: { docs: { source: { code: pauseResumeSnippet } } },
   play: async ({ canvasElement }) => {
@@ -293,6 +285,9 @@ export const PauseAndResume: Story = {
 
 export const ManualUpdate: Story = {
   name: 'Manual update',
+  ...storyDescription(
+    'Manual update with useElementByPoint: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ManualUpdateExample />,
   parameters: { docs: { source: { code: manualUpdateSnippet } } },
   play: async ({ canvasElement }) => {
@@ -334,6 +329,9 @@ export const ManualUpdate: Story = {
 
 export const SvgDetection: Story = {
   name: 'SVG detection',
+  ...storyDescription(
+    'SVG detection with useElementByPoint: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <SvgDetectionExample />,
   parameters: { docs: { source: { code: svgDetectionSnippet } } },
   play: async ({ canvasElement }) => {
@@ -361,6 +359,9 @@ export const SvgDetection: Story = {
 
 export const OutOfViewport: Story = {
   name: 'Out-of-viewport',
+  ...storyDescription(
+    'Out-of-viewport with useElementByPoint: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <OutOfViewportExample />,
   parameters: { docs: { source: { code: outOfViewportSnippet } } },
   play: async ({ canvasElement }) => {
@@ -395,6 +396,9 @@ export const OutOfViewport: Story = {
 
 export const CustomDocument: Story = {
   name: 'Custom document',
+  ...storyDescription(
+    'Custom document: bind useElementByPoint to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <CustomDocumentExample />,
   parameters: { docs: { source: { code: customDocumentSnippet } } },
   play: async ({ canvasElement }) => {
@@ -420,6 +424,9 @@ export const CustomDocument: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Toggle enabled for useElementByPoint and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <EnabledStateExample />,
   parameters: { docs: { source: { code: enabledStateSnippet } } },
   play: async ({ canvasElement }) => {
@@ -455,6 +462,9 @@ export const EnabledState: Story = {
 
 export const SchedulerComparison: Story = {
   name: 'Scheduler comparison',
+  ...storyDescription(
+    'Scheduler comparison: compare both configurations side by side and note how useElementByPoint options change observable behavior. Interact with each variant, then confirm Show code documents the option you intend to ship.',
+  ),
   render: () => <SchedulerComparisonExample />,
   parameters: { docs: { source: { code: schedulerComparisonSnippet } } },
   play: async ({ canvasElement }) => {
@@ -478,6 +488,9 @@ export const SchedulerComparison: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useElementByPoint Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: (args) => <PlaygroundExample {...args} />,
   parameters: { docs: { source: { code: playgroundSnippet } } },
   play: async ({ canvasElement }) => {

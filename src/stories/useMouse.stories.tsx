@@ -1,4 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -31,78 +34,53 @@ import {
   playgroundSnippet,
   touchTrackingSnippet,
 } from './components/useMouse.snippets'
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
 
 const meta = {
   title: 'Hooks/useMouse',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useMouse', PlaygroundExample, {
+    argTypes: {
+      enabled: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'true' } },
       },
-      description: {
-        component: `
-Tracks mouse and optional touch coordinates for a target.
-
-\`\`\`ts
-import { useMouse } from '@muradyanvano/react-hooks'
-
-useMouse(options?: UseMouseOptions): UseMouseReturn
-\`\`\`
-
-**Defaults:** \`{ enabled: true, type: 'page', target: window, touch: true, scroll: true, resetOnTouchEnd: false, initialValue: { x: 0, y: 0 } }\`
-
-**Targets:** Omitted \`target\` resolves to \`window\` inside an effect. Explicit \`target: null\` registers nothing.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
+      type: {
+        control: 'select',
+        options: ['page', 'client', 'screen', 'movement'],
+        table: { defaultValue: { summary: 'page' } },
+      },
+      touch: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      scroll: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      resetOnTouchEnd: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'false' } },
+      },
+      initialX: {
+        control: { type: 'number' },
+        table: { defaultValue: { summary: '0' } },
+      },
+      initialY: {
+        control: { type: 'number' },
+        table: { defaultValue: { summary: '0' } },
       },
     },
-    a11y: {
-      test: 'error',
+    args: {
+      enabled: true,
+      type: 'page',
+      touch: true,
+      scroll: true,
+      resetOnTouchEnd: false,
+      initialX: 0,
+      initialY: 0,
     },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    type: {
-      control: 'select',
-      options: ['page', 'client', 'screen', 'movement'],
-      table: { defaultValue: { summary: 'page' } },
-    },
-    touch: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    scroll: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    resetOnTouchEnd: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    initialX: {
-      control: { type: 'number' },
-      table: { defaultValue: { summary: '0' } },
-    },
-    initialY: {
-      control: { type: 'number' },
-      table: { defaultValue: { summary: '0' } },
-    },
-  },
-  args: {
-    enabled: true,
-    type: 'page',
-    touch: true,
-    scroll: true,
-    resetOnTouchEnd: false,
-    initialX: 0,
-    initialY: 0,
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -118,7 +96,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   const writeText = fn(async () => undefined)
   Object.defineProperty(navigator, 'clipboard', {
@@ -147,8 +125,11 @@ function dispatchMouseOn(
   element.dispatchEvent(event)
 }
 
-export const BasicUsage: Story = {
-  name: 'Basic usage',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Page or element mouse coordinates with a contained tracker surface. Move inside the stage and read x/y/sourceType without a page-level overlay. Markers are decorative; prefer restrained live summaries over announcing every move.',
+  ),
   render: () => <BasicUsageExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -183,6 +164,9 @@ export const BasicUsage: Story = {
 
 export const CustomExtractor: Story = {
   name: 'Custom extractor',
+  ...storyDescription(
+    'Custom extractor: bind useMouse to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <CustomExtractorExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -213,6 +197,9 @@ export const CustomExtractor: Story = {
 
 export const CoordinateSystems: Story = {
   name: 'Coordinate systems',
+  ...storyDescription(
+    'Coordinate systems with useMouse: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <CoordinateSystemsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -224,6 +211,9 @@ export const CoordinateSystems: Story = {
 
 export const TouchTracking: Story = {
   name: 'Touch tracking',
+  ...storyDescription(
+    'Touch tracking with useMouse: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <TouchTrackingExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -286,6 +276,9 @@ export const TouchTracking: Story = {
 
 export const MouseOnly: Story = {
   name: 'Mouse only',
+  ...storyDescription(
+    'Mouse only with useMouse: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <MouseOnlyExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -342,6 +335,9 @@ export const MouseOnly: Story = {
 
 export const DragTracking: Story = {
   name: 'Drag tracking',
+  ...storyDescription(
+    'Drag tracking with useMouse: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <DragTrackingExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -366,6 +362,9 @@ export const DragTracking: Story = {
 
 export const PageScrolling: Story = {
   name: 'Page scrolling',
+  ...storyDescription(
+    'Page scrolling with useMouse: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <PageScrollingExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -376,6 +375,9 @@ export const PageScrolling: Story = {
 
 export const CustomTarget: Story = {
   name: 'Custom target',
+  ...storyDescription(
+    'Custom target: bind useMouse to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <CustomTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -404,6 +406,9 @@ export const CustomTarget: Story = {
 
 export const DynamicTarget: Story = {
   name: 'Dynamic target',
+  ...storyDescription(
+    'Dynamic target: bind useMouse to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <DynamicTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -446,6 +451,9 @@ export const DynamicTarget: Story = {
 
 export const FilteredUpdates: Story = {
   name: 'Filtered updates',
+  ...storyDescription(
+    'Filtered updates with useMouse: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <FilteredUpdatesExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -466,6 +474,9 @@ export const FilteredUpdates: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Toggle enabled for useMouse and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <EnabledStateExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -497,6 +508,9 @@ export const EnabledState: Story = {
 
 export const InitialValue: Story = {
   name: 'Initial value',
+  ...storyDescription(
+    'Initial value with useMouse: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <InitialValueExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -508,6 +522,9 @@ export const InitialValue: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useMouse Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await expectCodeDisclosure(canvas, playgroundSnippet)

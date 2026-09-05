@@ -116,16 +116,20 @@ function useIframeWindow(testId: string) {
 
 /** Story-only: distinguish idle (never entered) from true inside after mouseover. */
 function usePointerEntered(pageWindow: Window | null): boolean {
-  const [entered, setEntered] = useState(false)
+  const [snapshot, setSnapshot] = useState<{
+    window: Window | null
+    entered: boolean
+  }>({ window: null, entered: false })
+
+  const entered = snapshot.window === pageWindow ? snapshot.entered : false
 
   useEffect(() => {
-    setEntered(false)
     if (pageWindow == null) {
       return
     }
 
     const onOver = () => {
-      setEntered(true)
+      setSnapshot({ window: pageWindow, entered: true })
     }
     pageWindow.addEventListener('mouseover', onOver)
     return () => {

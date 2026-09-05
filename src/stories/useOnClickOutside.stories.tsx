@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fireEvent, fn, userEvent, within } from 'storybook/test'
 
 import {
@@ -22,65 +27,37 @@ import {
 
 const meta = {
   title: 'Hooks/useOnClickOutside',
-  component: OverviewExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Invokes a handler when a document-level pointer or click event happens outside a referenced element.
-
-\`\`\`ts
-import { useOnClickOutside } from '@muradyanvano/react-hooks'
-
-useOnClickOutside<T extends HTMLElement>(
-  ref: RefObject<T | null>,
-  handler: UseOnClickOutsideHandler,
-  options?: UseOnClickOutsideOptions,
-): void
-\`\`\`
-
-**Defaults:** \`{ enabled: true, eventType: 'pointerdown', capture: true }\`
-
-**Limitations:** one ref only; no ignore lists; no iframe helpers; not a full Shadow DOM or portal API.
-
-Each example below includes its own Show code / Hide code control and Copy code button. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      description: 'When false, no document listener is registered.',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    eventType: {
-      control: 'inline-radio',
-      options: ['pointerdown', 'click'],
-      description: 'Document event to listen for.',
-      table: { defaultValue: { summary: 'pointerdown' } },
-    },
-    capture: {
-      control: 'boolean',
-      description: 'Use capture-phase listener registration.',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    onOutside: {
-      action: 'outside',
-      description: 'Fires when an outside event is handled.',
-    },
-  },
-  args: {
-    enabled: true,
-    eventType: 'pointerdown',
-    capture: true,
-    onOutside: fn(),
-  },
   tags: ['autodocs'],
+  ...createHookStoryMeta('useOnClickOutside', OverviewExample, {
+    argTypes: {
+      enabled: {
+        control: 'boolean',
+        description: 'When false, no document listener is registered.',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      eventType: {
+        control: 'inline-radio',
+        options: ['pointerdown', 'click'],
+        description: 'Document event to listen for.',
+        table: { defaultValue: { summary: 'pointerdown' } },
+      },
+      capture: {
+        control: 'boolean',
+        description: 'Use capture-phase listener registration.',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      onOutside: {
+        action: 'outside',
+        description: 'Fires when an outside event is handled.',
+      },
+    },
+    args: {
+      enabled: true,
+      eventType: 'pointerdown',
+      capture: true,
+      onOutside: fn(),
+    },
+  }),
 } satisfies Meta<typeof OverviewExample>
 
 export default meta
@@ -95,7 +72,7 @@ async function expectCodeDisclosure(canvas: ReturnType<typeof within>) {
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
   await expect(canvas.getByTestId('code-panel')).toBeVisible()
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   await userEvent.keyboard('{Tab}')
   await expect(canvas.getByTestId('copy-code')).toHaveFocus()
@@ -124,6 +101,9 @@ async function expectCopySuccess(
 
 export const Overview: Story = {
   name: 'Overview',
+  ...storyDescription(
+    'Dropdown panels that should close when the pointer lands outside the boundary. Open the menu, click outside, and confirm the panel dismisses without swallowing inside clicks. Pair outside-click with an explicit close control — this hook does not manage focus or Escape.',
+  ),
   render: (args) => <OverviewExample {...args} />,
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement)
@@ -144,6 +124,9 @@ export const Overview: Story = {
 
 export const DropdownMenu: Story = {
   name: 'Dropdown menu',
+  ...storyDescription(
+    'Dropdown menu with useOnClickOutside: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: (args) => <DropdownMenuExample onOutside={args.onOutside} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -169,6 +152,9 @@ export const DropdownMenu: Story = {
 
 export const FilterPopover: Story = {
   name: 'Filter popover',
+  ...storyDescription(
+    'Filter popover with useOnClickOutside: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: (args) => <FilterPopoverExample onOutside={args.onOutside} />,
   parameters: {
     viewport: { value: 'mobile' },
@@ -192,6 +178,9 @@ export const FilterPopover: Story = {
 
 export const EventTypeComparison: Story = {
   name: 'Event type comparison',
+  ...storyDescription(
+    'Event type comparison: compare both configurations side by side and note how useOnClickOutside options change observable behavior. Interact with each variant, then confirm Show code documents the option you intend to ship.',
+  ),
   render: (args) => <EventTypeComparisonExample onOutside={args.onOutside} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -212,6 +201,9 @@ export const EventTypeComparison: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Toggle enabled for useOnClickOutside and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: (args) => <EnabledStateExample onOutside={args.onOutside} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -240,6 +232,9 @@ export const EnabledState: Story = {
 
 export const NestedContent: Story = {
   name: 'Nested content',
+  ...storyDescription(
+    'Nested content with useOnClickOutside: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: (args) => <NestedContentExample onOutside={args.onOutside} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -258,6 +253,9 @@ export const NestedContent: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useOnClickOutside Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: (args) => <PlaygroundExample {...args} />,
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement)
@@ -292,6 +290,9 @@ export const Playground: Story = {
 
 export const ClipboardFailure: Story = {
   name: 'Clipboard failure',
+  ...storyDescription(
+    'Verify Show code still surfaces a clear failure when clipboard.writeText rejects. Open disclosure, trigger Copy, and confirm the failed status — ownership of clipboard errors stays in the example, not the hook.',
+  ),
   tags: ['!autodocs', '!dev'],
   render: (args) => <OverviewExample {...args} />,
   play: async ({ canvasElement }) => {

@@ -46,33 +46,6 @@ export function FocusControls() {
   )
 }`
 
-export const basicInputSnippet = `import { useRef } from 'react'
-import { useFocus } from '@muradyanvano/react-hooks'
-
-export function SearchField() {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const { focused, focus, blur } = useFocus(inputRef, {
-    preventScroll: true,
-  })
-
-  return (
-    <section>
-      <label htmlFor="search">Search</label>
-      <input ref={inputRef} id="search" type="search" />
-
-      <p>{focused ? 'Search has focus' : 'Search is not focused'}</p>
-
-      <button type="button" onClick={focus}>
-        Focus search
-      </button>
-
-      <button type="button" onClick={blur}>
-        Blur search
-      </button>
-    </section>
-  )
-}`
-
 export const initialFocusSnippet = `import { useRef, useState } from 'react'
 import { useFocus } from '@muradyanvano/react-hooks'
 

@@ -8,7 +8,6 @@ import {
   type EyeDropperMockMode,
 } from './eyeDropperMock'
 import {
-  basicUsageSnippet,
   cancelControlSnippet,
   contrastPreviewSnippet,
   dashboardSnippet,
@@ -511,17 +510,6 @@ function DefaultPickerControls({
         </p>
       ) : null}
     </div>
-  )
-}
-
-export function BasicUsageExample() {
-  return (
-    <NativeExample
-      title="Basic usage"
-      description="Call open() from a click handler. The hook never opens automatically."
-      instruction="Click Open Eye Dropper to open the real browser color picker when supported."
-      code={basicUsageSnippet}
-    />
   )
 }
 

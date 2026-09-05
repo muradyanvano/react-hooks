@@ -27,24 +27,6 @@ export function JwtInspector() {
 }
 `
 
-export const headerAndPayloadSnippet = `import { useJwt } from '@muradyanvano/react-hooks'
-
-const TOKEN =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ.synthetic-signature-not-verified'
-
-export function HeaderAndPayload() {
-  const { header, payload } = useJwt(TOKEN)
-
-  return (
-    <section>
-      <pre>{JSON.stringify(header, null, 2)}</pre>
-      <pre>{JSON.stringify(payload, null, 2)}</pre>
-      <p>Decoded only — signature not verified</p>
-    </section>
-  )
-}
-`
-
 export const typedClaimsSnippet = `import {
   useJwt,
   type UseJwtHeader,

@@ -88,6 +88,7 @@ src/
 ├── index.ts                 # Public barrel export
 ├── hooks/<hookName>/        # Hook impl + colocated tests
 └── stories/                 # Storybook (dev-only, not in tarball)
+    └── docs/                # HOOK_CATALOG + HookDocumentationPage (Storybook-only)
 
 .storybook/                  # Storybook config
 docs/public-api.md           # Formal API reference

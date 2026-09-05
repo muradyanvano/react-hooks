@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -29,43 +34,17 @@ import * as snippets from './components/useFullscreen.snippets'
 
 const meta = {
   title: 'Hooks/useFullscreen',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useFullscreen', PlaygroundExample, {
+    argTypes: {
+      enabled: { control: 'boolean' },
+      navigationUI: {
+        control: 'select',
+        options: ['auto', 'show', 'hide'],
       },
-      description: {
-        component: `
-Wraps the native Fullscreen API for imperative, user-gesture-driven presentation.
-
-\`\`\`ts
-import { useFullscreen } from '@muradyanvano/react-hooks'
-
-useFullscreen(ref?, options?): UseFullscreenReturn
-\`\`\`
-
-**Defaults:** \`enabled: true\`, \`autoExit: false\`, \`navigationUI: 'auto'\`
-
-Call \`enter()\` / \`toggle()\` directly from a click handler — never from an effect — so transient user activation is preserved. Document events are the source of truth. \`exit()\` only exits when this hook’s target is the active fullscreen element. The hook does not provide focus trapping, Escape interception, orientation lock, or wake lock.
-
-**Interactive demos** use the real browser Fullscreen API so Enter/Exit work when you click them. Automated play tests install a temporary Storybook-only mock (try/finally) so CI never takes over the display. Scenario stories that simulate another element / external entry keep a persistent mock. The **Live native fullscreen** play test never clicks Enter.
-        `,
-      },
+      autoExit: { control: 'boolean' },
     },
-    a11y: {
-      test: 'error',
-    },
-  },
-  argTypes: {
-    enabled: { control: 'boolean' },
-    navigationUI: {
-      control: 'select',
-      options: ['auto', 'show', 'hide'],
-    },
-    autoExit: { control: 'boolean' },
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -81,7 +60,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -118,8 +97,11 @@ async function withPlayMock(
   }
 }
 
-export const FullscreenMediaViewer: Story = {
-  name: 'Fullscreen media viewer',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Media-stage fullscreen enter/exit with Escape guidance. Enter via the mock in automated plays, exit cleanly, and avoid leaking fullscreen state. Live native fullscreen is manual-only.',
+  ),
   render: () => <MediaViewerExample />,
   parameters: { docs: { source: { code: snippets.mediaViewerSnippet } } },
   play: async ({ canvasElement }) => {
@@ -150,6 +132,9 @@ export const FullscreenMediaViewer: Story = {
 
 export const LiveNativeFullscreen: Story = {
   name: 'Live native fullscreen',
+  ...storyDescription(
+    'useFullscreen Live native fullscreen: automated tests inspect idle UI only and never trigger real camera, microphone, screen-share, EyeDropper, fullscreen, or network prompts.',
+  ),
   render: () => <LiveNativeExample />,
   parameters: { docs: { source: { code: snippets.liveNativeSnippet } } },
   play: async ({ canvasElement }) => {
@@ -167,6 +152,9 @@ export const LiveNativeFullscreen: Story = {
 
 export const EntireDocument: Story = {
   name: 'Entire document',
+  ...storyDescription(
+    'Entire document: bind useFullscreen to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <EntireDocumentExample />,
   parameters: { docs: { source: { code: snippets.entireDocumentSnippet } } },
   play: async ({ canvasElement }) => {
@@ -191,6 +179,9 @@ export const EntireDocument: Story = {
 
 export const SpecificElement: Story = {
   name: 'Specific element',
+  ...storyDescription(
+    'Specific element with useFullscreen: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <SpecificElementExample />,
   parameters: { docs: { source: { code: snippets.specificElementSnippet } } },
   play: async ({ canvasElement }) => {
@@ -215,6 +206,9 @@ export const SpecificElement: Story = {
 
 export const VideoPlayerLayout: Story = {
   name: 'Video player layout',
+  ...storyDescription(
+    'Video player layout with useFullscreen: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <VideoPlayerExample />,
   parameters: { docs: { source: { code: snippets.videoPlayerSnippet } } },
   play: async ({ canvasElement }) => {
@@ -237,6 +231,9 @@ export const VideoPlayerLayout: Story = {
 
 export const PresentationSlides: Story = {
   name: 'Presentation slides',
+  ...storyDescription(
+    'Presentation slides with useFullscreen: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <PresentationExample />,
   parameters: { docs: { source: { code: snippets.presentationSnippet } } },
   play: async ({ canvasElement }) => {
@@ -262,6 +259,9 @@ export const PresentationSlides: Story = {
 
 export const ImageGallery: Story = {
   name: 'Image gallery',
+  ...storyDescription(
+    'Image gallery with useFullscreen: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <GalleryExample />,
   parameters: { docs: { source: { code: snippets.gallerySnippet } } },
   play: async ({ canvasElement }) => {
@@ -287,6 +287,9 @@ export const ImageGallery: Story = {
 
 export const SvgVisualization: Story = {
   name: 'SVG visualization',
+  ...storyDescription(
+    'SVG visualization with useFullscreen: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <SvgExample />,
   parameters: { docs: { source: { code: snippets.svgSnippet } } },
   play: async ({ canvasElement }) => {
@@ -309,6 +312,9 @@ export const SvgVisualization: Story = {
 
 export const NavigationUIOptions: Story = {
   name: 'Navigation UI options',
+  ...storyDescription(
+    'Navigation UI options with useFullscreen: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <NavigationUiExample />,
   parameters: { docs: { source: { code: snippets.navigationUiSnippet } } },
   play: async ({ canvasElement }) => {
@@ -332,6 +338,9 @@ export const NavigationUIOptions: Story = {
 
 export const EscapeAndExternalExit: Story = {
   name: 'Escape and external exit',
+  ...storyDescription(
+    'Escape and external exit with useFullscreen: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <EscapeExitExample />,
   parameters: { docs: { source: { code: snippets.escapeExitSnippet } } },
   play: async ({ canvasElement }) => {
@@ -354,6 +363,9 @@ export const EscapeAndExternalExit: Story = {
 
 export const ExternalFullscreenEntry: Story = {
   name: 'External fullscreen entry',
+  ...storyDescription(
+    'External fullscreen entry with useFullscreen: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ExternalEntryExample />,
   parameters: { docs: { source: { code: snippets.externalEntrySnippet } } },
   play: async ({ canvasElement }) => {
@@ -368,6 +380,9 @@ export const ExternalFullscreenEntry: Story = {
 
 export const AnotherElementFullscreen: Story = {
   name: 'Another element fullscreen',
+  ...storyDescription(
+    'Another element fullscreen with useFullscreen: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <AnotherElementExample />,
   parameters: { docs: { source: { code: snippets.anotherElementSnippet } } },
   play: async ({ canvasElement }) => {
@@ -386,6 +401,9 @@ export const AnotherElementFullscreen: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Toggle enabled for useFullscreen and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <EnabledStateExample />,
   parameters: { docs: { source: { code: snippets.enabledStateSnippet } } },
   play: async ({ canvasElement }) => {
@@ -410,6 +428,9 @@ export const EnabledState: Story = {
 
 export const AutoExit: Story = {
   name: 'Auto-exit',
+  ...storyDescription(
+    'Auto-exit with useFullscreen: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <AutoExitExample />,
   parameters: { docs: { source: { code: snippets.autoExitSnippet } } },
   play: async ({ canvasElement }) => {
@@ -432,6 +453,9 @@ export const AutoExit: Story = {
 
 export const DynamicTarget: Story = {
   name: 'Dynamic target',
+  ...storyDescription(
+    'Dynamic target: bind useFullscreen to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <DynamicTargetExample />,
   parameters: { docs: { source: { code: snippets.dynamicTargetSnippet } } },
   play: async ({ canvasElement }) => {
@@ -456,6 +480,9 @@ export const DynamicTarget: Story = {
 
 export const CustomIframeDocument: Story = {
   name: 'Custom iframe document',
+  ...storyDescription(
+    'Custom iframe document: bind useFullscreen to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <IframeDocumentExample />,
   parameters: { docs: { source: { code: snippets.iframeDocumentSnippet } } },
   play: async ({ canvasElement }) => {
@@ -490,6 +517,9 @@ export const CustomIframeDocument: Story = {
 
 export const UnsupportedBrowser: Story = {
   name: 'Unsupported browser',
+  ...storyDescription(
+    'Unsupported browser — trigger the failure path for useFullscreen and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <UnsupportedExample />,
   parameters: { docs: { source: { code: snippets.unsupportedSnippet } } },
   play: async ({ canvasElement }) => {
@@ -504,6 +534,9 @@ export const UnsupportedBrowser: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useFullscreen Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   args: {
     enabled: true,
     navigationUI: 'auto',

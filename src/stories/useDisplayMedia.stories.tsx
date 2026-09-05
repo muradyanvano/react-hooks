@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -30,63 +35,39 @@ import {
 
 const meta = {
   title: 'Hooks/useDisplayMedia',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useDisplayMedia', PlaygroundExample, {
+    argTypes: {
+      enabled: {
+        control: 'boolean',
+        description:
+          'Declarative activation signal (advanced; prefer start()).',
+        table: { defaultValue: { summary: 'false' } },
       },
-      description: {
-        component: `
-Captures screen, window, or tab video (and optionally audio) through \`navigator.mediaDevices.getDisplayMedia\`.
-
-\`\`\`ts
-import { useDisplayMedia } from '@muradyanvano/react-hooks'
-
-useDisplayMedia(options?: UseDisplayMediaOptions): UseDisplayMediaReturn
-\`\`\`
-
-**Defaults:** \`{ enabled: false, video: true, audio: false }\`
-
-**Live vs. mocked:** The **Live screen sharing** story uses the real API and opens your browser's native share picker — it is the only story where you should click Start. Every other story below uses a deterministic Storybook-only mock so behavior is reproducible in CI and never opens a real chooser.
-
-Prefer imperative \`start()\` from a user gesture. \`enabled\` is an advanced declarative activation signal that real browsers may block without a preceding gesture.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
+      video: {
+        control: 'boolean',
+        description: 'Requested video constraint.',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      audio: {
+        control: 'boolean',
+        description: 'Requested audio constraint.',
+        table: { defaultValue: { summary: 'false' } },
+      },
+      resultMode: {
+        control: 'select',
+        options: ['success', 'cancelled', 'denied', 'unavailable'],
+        description: 'Simulated outcome of the mocked getDisplayMedia call.',
+        table: { defaultValue: { summary: 'success' } },
       },
     },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      description: 'Declarative activation signal (advanced; prefer start()).',
-      table: { defaultValue: { summary: 'false' } },
+    args: {
+      enabled: false,
+      video: true,
+      audio: false,
+      resultMode: 'success',
     },
-    video: {
-      control: 'boolean',
-      description: 'Requested video constraint.',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    audio: {
-      control: 'boolean',
-      description: 'Requested audio constraint.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    resultMode: {
-      control: 'select',
-      options: ['success', 'cancelled', 'denied', 'unavailable'],
-      description: 'Simulated outcome of the mocked getDisplayMedia call.',
-      table: { defaultValue: { summary: 'success' } },
-    },
-  },
-  args: {
-    enabled: false,
-    video: true,
-    audio: false,
-    resultMode: 'success',
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -100,7 +81,7 @@ async function expectCodeDisclosure(
   await expect(toggle).toHaveAttribute('aria-expanded', 'false')
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   const writeText = fn(async () => undefined)
   Object.defineProperty(navigator, 'clipboard', {
@@ -113,8 +94,38 @@ async function expectCodeDisclosure(
   await userEvent.click(toggle)
 }
 
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Screen-share flows with start/stop ownership on a mocked getDisplayMedia stream. Start sharing in the mock, inspect the preview, then stop and confirm tracks end. Only the Live screen sharing story touches the real browser picker.',
+  ),
+  render: () => <OverviewExample />,
+  parameters: { docs: { source: { code: overviewSnippet } } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByTestId('overview-start'))
+    await waitFor(() => {
+      expect(canvas.getByTestId('overview-status')).toHaveTextContent('Sharing')
+    })
+    await expect(canvas.getByTestId('overview-video-tracks')).toHaveTextContent(
+      '1',
+    )
+    await expect(canvas.getByTestId('overview-audio-tracks')).toHaveTextContent(
+      '0',
+    )
+    await userEvent.click(canvas.getByTestId('overview-stop'))
+    await waitFor(() => {
+      expect(canvas.getByTestId('overview-status')).toHaveTextContent('Idle')
+    })
+    await expectCodeDisclosure(canvas, overviewSnippet)
+  },
+}
+
 export const LiveScreenSharing: Story = {
   name: 'Live screen sharing',
+  ...storyDescription(
+    'useDisplayMedia Live screen sharing: automated tests inspect idle UI only and never trigger real camera, microphone, screen-share, EyeDropper, fullscreen, or network prompts.',
+  ),
   render: () => <LiveScreenShareExample />,
   parameters: { docs: { source: { code: liveScreenShareSnippet } } },
   play: async ({ canvasElement }) => {
@@ -142,32 +153,11 @@ export const LiveScreenSharing: Story = {
   },
 }
 
-export const Overview: Story = {
-  name: 'Overview',
-  render: () => <OverviewExample />,
-  parameters: { docs: { source: { code: overviewSnippet } } },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await userEvent.click(canvas.getByTestId('overview-start'))
-    await waitFor(() => {
-      expect(canvas.getByTestId('overview-status')).toHaveTextContent('Sharing')
-    })
-    await expect(canvas.getByTestId('overview-video-tracks')).toHaveTextContent(
-      '1',
-    )
-    await expect(canvas.getByTestId('overview-audio-tracks')).toHaveTextContent(
-      '0',
-    )
-    await userEvent.click(canvas.getByTestId('overview-stop'))
-    await waitFor(() => {
-      expect(canvas.getByTestId('overview-status')).toHaveTextContent('Idle')
-    })
-    await expectCodeDisclosure(canvas, overviewSnippet)
-  },
-}
-
 export const VideoPreview: Story = {
   name: 'Video preview',
+  ...storyDescription(
+    'Video preview with useDisplayMedia: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <VideoPreviewExample />,
   parameters: { docs: { source: { code: videoPreviewSnippet } } },
   play: async ({ canvasElement }) => {
@@ -194,6 +184,9 @@ export const VideoPreview: Story = {
 
 export const SystemAudio: Story = {
   name: 'System audio',
+  ...storyDescription(
+    'System audio with useDisplayMedia: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <SystemAudioExample />,
   parameters: { docs: { source: { code: systemAudioSnippet } } },
   play: async ({ canvasElement }) => {
@@ -208,6 +201,9 @@ export const SystemAudio: Story = {
 
 export const BrowserEndedSharing: Story = {
   name: 'Browser-ended sharing',
+  ...storyDescription(
+    'Browser-ended sharing with useDisplayMedia: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <BrowserEndedSharingExample />,
   parameters: { docs: { source: { code: browserEndedSnippet } } },
   play: async ({ canvasElement }) => {
@@ -228,6 +224,9 @@ export const BrowserEndedSharing: Story = {
 
 export const PermissionCancelled: Story = {
   name: 'Permission cancelled',
+  ...storyDescription(
+    'Permission cancelled: schedule work, then exercise cancel/flush/pending timing for useDisplayMedia. Watch status settle to a deterministic idle state before leaving; Show code should match the timing policy under test.',
+  ),
   render: () => <PermissionCancelledExample />,
   parameters: { docs: { source: { code: permissionCancelledSnippet } } },
   play: async ({ canvasElement }) => {
@@ -251,6 +250,9 @@ export const PermissionCancelled: Story = {
 
 export const ErrorRecovery: Story = {
   name: 'Error recovery',
+  ...storyDescription(
+    'Error recovery — trigger the failure path for useDisplayMedia and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <ErrorRecoveryExample />,
   parameters: { docs: { source: { code: errorRecoverySnippet } } },
   play: async ({ canvasElement }) => {
@@ -273,6 +275,9 @@ export const ErrorRecovery: Story = {
 
 export const StreamReplacement: Story = {
   name: 'Stream replacement',
+  ...storyDescription(
+    'Stream replacement with useDisplayMedia: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <StreamReplacementExample />,
   parameters: { docs: { source: { code: streamReplacementSnippet } } },
   play: async ({ canvasElement }) => {
@@ -304,6 +309,9 @@ export const StreamReplacement: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Toggle enabled for useDisplayMedia and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <EnabledStateExample />,
   parameters: { docs: { source: { code: enabledStateSnippet } } },
   play: async ({ canvasElement }) => {
@@ -329,6 +337,9 @@ export const EnabledState: Story = {
 
 export const UnsupportedBrowser: Story = {
   name: 'Unsupported browser',
+  ...storyDescription(
+    'Unsupported browser — trigger the failure path for useDisplayMedia and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <UnsupportedBrowserExample />,
   parameters: { docs: { source: { code: unsupportedSnippet } } },
   play: async ({ canvasElement }) => {
@@ -343,6 +354,9 @@ export const UnsupportedBrowser: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useDisplayMedia Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: (args) => <PlaygroundExample {...args} />,
   parameters: { docs: { source: { code: playgroundSnippet } } },
   play: async ({ canvasElement }) => {

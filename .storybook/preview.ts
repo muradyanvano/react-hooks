@@ -1,8 +1,11 @@
 import type { Preview } from '@storybook/react-vite'
 import { fn } from 'storybook/test'
 
+import { getDocsHighlighter } from '../src/stories/components/shiki'
 import { resetAfterPlayDecorator } from './resetAfterPlayDecorator'
 import './preview.css'
+
+void getDocsHighlighter()
 
 const preview: Preview = {
   decorators: [resetAfterPlayDecorator],

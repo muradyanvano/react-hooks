@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactElement } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useInfiniteScroll } from '@muradyanvano/react-hooks'
 
 import { ExampleShowcase, StatusPanel } from './ExampleShowcase'
@@ -37,7 +37,12 @@ export function InfiniteListExample(): ReactElement {
   const [items, setItems] = useState(() =>
     Array.from({ length: 6 }, (_, index) => index + 1),
   )
+  const itemsLengthRef = useRef(items.length)
   const maxItems = 18
+
+  useEffect(() => {
+    itemsLengthRef.current = items.length
+  }, [items.length])
 
   const { isLoading, reset } = useInfiniteScroll(
     containerRef,
@@ -53,7 +58,7 @@ export function InfiniteListExample(): ReactElement {
     },
     {
       distance: 10,
-      canLoadMore: () => items.length < maxItems,
+      canLoadMore: () => itemsLengthRef.current < maxItems,
     },
   )
 

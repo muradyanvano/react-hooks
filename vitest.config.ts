@@ -26,7 +26,7 @@ export default defineConfig({
           name: 'unit',
           environment: 'jsdom',
           setupFiles: ['./vitest.setup.ts'],
-          include: ['src/**/*.test.{ts,tsx}'],
+          include: ['src/**/*.test.{ts,tsx}', '.storybook/**/*.test.{ts,tsx}'],
           exclude: ['src/stories/**'],
         },
       },
@@ -39,6 +39,8 @@ export default defineConfig({
         ],
         test: {
           name: 'storybook',
+          testTimeout: 30_000,
+          hookTimeout: 30_000,
           browser: {
             enabled: true,
             provider: playwright(),

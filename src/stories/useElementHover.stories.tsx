@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -30,53 +35,27 @@ import {
 
 const meta = {
   title: 'Hooks/useElementHover',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useElementHover', PlaygroundExample, {
+    argTypes: {
+      enabled: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'true' } },
       },
-      description: {
-        component: `
-Tracks whether the mouse pointer is hovering over a referenced DOM element using native \`mouseenter\` / \`mouseleave\` listeners.
-
-\`\`\`ts
-import { useElementHover } from '@muradyanvano/react-hooks'
-
-useElementHover<T extends Element>(
-  ref: RefObject<T | null>,
-  options?: UseElementHoverOptions,
-): boolean
-\`\`\`
-
-**Defaults:** \`{ enabled: true, delayEnter: 0, delayLeave: 0, triggerOnRemoval: false }\`
-
-**Mouse only:** Keyboard focus and touch presses do not change the returned boolean. Provide accessible alternatives for hover-only information.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
+      delayEnter: {
+        control: { type: 'number', min: 0, max: 2000, step: 50 },
+        table: { defaultValue: { summary: '0' } },
+      },
+      delayLeave: {
+        control: { type: 'number', min: 0, max: 2000, step: 50 },
+        table: { defaultValue: { summary: '0' } },
+      },
+      triggerOnRemoval: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'false' } },
       },
     },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    delayEnter: {
-      control: { type: 'number', min: 0, max: 2000, step: 50 },
-      table: { defaultValue: { summary: '0' } },
-    },
-    delayLeave: {
-      control: { type: 'number', min: 0, max: 2000, step: 50 },
-      table: { defaultValue: { summary: '0' } },
-    },
-    triggerOnRemoval: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'false' } },
-    },
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -92,7 +71,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   const writeText = fn(async () => undefined)
   Object.defineProperty(navigator, 'clipboard', {
@@ -106,8 +85,11 @@ async function expectCodeDisclosure(
   await userEvent.click(toggle)
 }
 
-export const HoverMe: Story = {
-  name: 'Hover me',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Immediate vs delayed hover flags on adjacent controls. Hover each button and compare status timing; keyboard focus does not flip the boolean. Delayed-leave demos keep trigger and panel under one observed ref.',
+  ),
   render: () => <HoverMeExample delayedEnterMs={1000} />,
   parameters: { docs: { source: { code: hoverMeSnippet } } },
   play: async ({ canvasElement }) => {
@@ -179,6 +161,9 @@ export const HoverMe: Story = {
 
 export const ImmediateHover: Story = {
   name: 'Immediate hover',
+  ...storyDescription(
+    'Immediate hover with useElementHover: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ImmediateHoverExample />,
   parameters: { docs: { source: { code: immediateHoverSnippet } } },
   play: async ({ canvasElement }) => {
@@ -195,6 +180,9 @@ export const ImmediateHover: Story = {
 
 export const DelayedEnter: Story = {
   name: 'Delayed enter',
+  ...storyDescription(
+    'Delayed enter: schedule work, then exercise cancel/flush/pending timing for useElementHover. Watch status settle to a deterministic idle state before leaving; Show code should match the timing policy under test.',
+  ),
   render: () => <DelayedEnterExample delayEnter={200} />,
   parameters: { docs: { source: { code: delayedEnterSnippet } } },
   play: async ({ canvasElement }) => {
@@ -214,6 +202,9 @@ export const DelayedEnter: Story = {
 
 export const DelayedLeave: Story = {
   name: 'Delayed leave',
+  ...storyDescription(
+    'Delayed leave: schedule work, then exercise cancel/flush/pending timing for useElementHover. Watch status settle to a deterministic idle state before leaving; Show code should match the timing policy under test.',
+  ),
   render: () => <DelayedLeaveExample delayLeave={200} />,
   parameters: { docs: { source: { code: delayedLeaveSnippet } } },
   play: async ({ canvasElement }) => {
@@ -239,6 +230,9 @@ export const DelayedLeave: Story = {
 
 export const CancelledTransitions: Story = {
   name: 'Cancelled transitions',
+  ...storyDescription(
+    'Cancelled transitions: schedule work, then exercise cancel/flush/pending timing for useElementHover. Watch status settle to a deterministic idle state before leaving; Show code should match the timing policy under test.',
+  ),
   render: () => (
     <CancelledTransitionsExample delayEnter={200} delayLeave={200} />
   ),
@@ -273,6 +267,9 @@ export const CancelledTransitions: Story = {
 
 export const NestedContent: Story = {
   name: 'Nested content',
+  ...storyDescription(
+    'Nested content with useElementHover: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <NestedContentExample />,
   parameters: { docs: { source: { code: nestedContentSnippet } } },
   play: async ({ canvasElement }) => {
@@ -297,6 +294,9 @@ export const NestedContent: Story = {
 
 export const ElementRemoval: Story = {
   name: 'Element removal',
+  ...storyDescription(
+    'Element removal with useElementHover: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ElementRemovalExample delayLeave={150} />,
   parameters: { docs: { source: { code: elementRemovalSnippet } } },
   play: async ({ canvasElement }) => {
@@ -322,6 +322,9 @@ export const ElementRemoval: Story = {
 
 export const DynamicTarget: Story = {
   name: 'Dynamic target',
+  ...storyDescription(
+    'Dynamic target: bind useElementHover to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <DynamicTargetExample />,
   parameters: { docs: { source: { code: dynamicTargetSnippet } } },
   play: async ({ canvasElement }) => {
@@ -350,6 +353,9 @@ export const DynamicTarget: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Toggle enabled for useElementHover and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <EnabledStateExample />,
   parameters: { docs: { source: { code: enabledStateSnippet } } },
   play: async ({ canvasElement }) => {
@@ -379,6 +385,9 @@ export const EnabledState: Story = {
 
 export const SvgTarget: Story = {
   name: 'SVG target',
+  ...storyDescription(
+    'SVG target: bind useElementHover to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <SvgTargetExample />,
   parameters: { docs: { source: { code: svgTargetSnippet } } },
   play: async ({ canvasElement }) => {
@@ -394,6 +403,9 @@ export const SvgTarget: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useElementHover Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   args: {
     enabled: true,
     delayEnter: 0,

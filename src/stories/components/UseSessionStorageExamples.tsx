@@ -1034,7 +1034,10 @@ export function DateMapSetExample(): ReactElement {
           </p>
           <pre
             className={`${codePreviewClass} mt-2`}
+            data-allow-h-scroll
             data-testid="structured-date-raw"
+            tabIndex={0}
+            aria-label="Serialized Date value"
           >
             {dateRaw}
           </pre>
@@ -1048,7 +1051,10 @@ export function DateMapSetExample(): ReactElement {
           </p>
           <pre
             className={`${codePreviewClass} mt-2`}
+            data-allow-h-scroll
             data-testid="structured-map-raw"
+            tabIndex={0}
+            aria-label="Serialized Map value"
           >
             {mapRaw}
           </pre>
@@ -1060,7 +1066,10 @@ export function DateMapSetExample(): ReactElement {
           </p>
           <pre
             className={`${codePreviewClass} mt-2`}
+            data-allow-h-scroll
             data-testid="structured-set-raw"
+            tabIndex={0}
+            aria-label="Serialized Set value"
           >
             {setRaw}
           </pre>

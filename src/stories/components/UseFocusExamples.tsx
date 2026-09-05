@@ -4,7 +4,6 @@ import { useFocus } from '@muradyanvano/react-hooks'
 import { ExampleShowcase, StatusPanel } from './ExampleShowcase'
 import {
   alreadyFocusedSnippet,
-  basicInputSnippet,
   customDocumentSnippet,
   dynamicTargetSnippet,
   enabledStateSnippet,
@@ -155,71 +154,6 @@ export function FocusControlsExample() {
           onClick={() => buttonFocus.focus()}
         >
           Focus button
-        </button>
-      </div>
-    </ExampleShowcase>
-  )
-}
-
-export function BasicInputExample() {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const { focused, focus, blur } = useFocus(inputRef, {
-    preventScroll: true,
-  })
-
-  return (
-    <ExampleShowcase
-      hookName="useFocus"
-      title="Basic input"
-      description="A labeled search field with imperative focus and blur helpers. preventScroll is enabled for programmatic focus requests."
-      instruction="Tab to the field or use the buttons to move focus programmatically."
-      badge={focused ? 'Focused' : 'Not focused'}
-      code={basicInputSnippet}
-      aside={
-        <StatusPanel
-          items={[
-            {
-              label: 'Focused',
-              value: String(focused),
-              testId: 'basic-focused-value',
-            },
-          ]}
-        />
-      }
-    >
-      <label
-        htmlFor="basic-input"
-        className="text-sm font-medium text-slate-700"
-      >
-        Search
-      </label>
-      <input
-        ref={inputRef}
-        id="basic-input"
-        data-testid="basic-input"
-        type="search"
-        className={`mt-2 ${inputClass}`}
-        aria-describedby="basic-help"
-      />
-      <p id="basic-help" className="mt-2 text-sm text-slate-600">
-        {focused ? 'Search has focus' : 'Search is not focused'}
-      </p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <button
-          type="button"
-          data-testid="basic-focus-btn"
-          className={primaryButtonClass}
-          onClick={focus}
-        >
-          Focus search
-        </button>
-        <button
-          type="button"
-          data-testid="basic-blur-btn"
-          className={secondaryButtonClass}
-          onClick={blur}
-        >
-          Blur search
         </button>
       </div>
     </ExampleShowcase>

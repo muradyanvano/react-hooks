@@ -1,4 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -37,49 +40,23 @@ import {
   tabVisibilitySnippet,
   touchLimitationSnippet,
 } from './components/usePageLeave.snippets'
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
 
 const meta = {
   title: 'Hooks/usePageLeave',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('usePageLeave', PlaygroundExample, {
+    argTypes: {
+      enabled: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'true' } },
       },
-      description: {
-        component: `
-Tracks whether the mouse has left the observed browsing context using window \`mouseout\` (\`relatedTarget == null\` after a prior \`mouseover\`) and \`mouseover\` re-entry.
-
-\`\`\`ts
-import { usePageLeave } from '@muradyanvano/react-hooks'
-
-const hasLeft = usePageLeave({
-  enabled?: boolean
-  window?: Window | null
-  initialValue?: boolean
-})
-\`\`\`
-
-**Defaults:** \`{ enabled: true, initialValue: false }\` with omitted window resolved after mount.
-
-**Mouse only:** Touch, blur, visibility, pagehide, and unload are not page-leave signals. Prefer a dedicated visibility hook for tab state, and \`useElementHover\` for element-level hover.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
+      initialValue: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'false' } },
       },
     },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    initialValue: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'false' } },
-    },
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -95,7 +72,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.length ?? 0).toBeGreaterThan(0)
 
@@ -159,8 +136,11 @@ function dispatchInternal(win: Window) {
   )
 }
 
-export const PageLeaveDetector: Story = {
-  name: 'Page leave detector',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Detect pointer leaving an isolated mini-browser frame. Move outside the iframe viewport and watch Inside/Left status; re-enter to clear. Never attach to the Storybook manager document.',
+  ),
   render: () => <PageLeaveDetectorExample />,
   parameters: { docs: { source: { code: pageLeaveDetectorSnippet } } },
   play: async ({ canvasElement }) => {
@@ -197,6 +177,9 @@ export const PageLeaveDetector: Story = {
 
 export const BasicUsage: Story = {
   name: 'Basic usage',
+  ...storyDescription(
+    'Basic usage with usePageLeave: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <BasicUsageExample />,
   parameters: { docs: { source: { code: basicUsageSnippet } } },
   play: async ({ canvasElement }) => {
@@ -220,6 +203,9 @@ export const BasicUsage: Story = {
 
 export const ReEntering: Story = {
   name: 'Re-entering the page',
+  ...storyDescription(
+    'Re-entering the page with usePageLeave: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ReEnteringExample />,
   parameters: { docs: { source: { code: reEnteringSnippet } } },
   play: async ({ canvasElement }) => {
@@ -243,6 +229,9 @@ export const ReEntering: Story = {
 
 export const InternalMovement: Story = {
   name: 'Internal element movement',
+  ...storyDescription(
+    'Internal element movement with usePageLeave: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <InternalMovementExample />,
   parameters: { docs: { source: { code: internalMovementSnippet } } },
   play: async ({ canvasElement }) => {
@@ -280,6 +269,9 @@ export const InternalMovement: Story = {
 
 export const ExitIntentMessage: Story = {
   name: 'Exit-intent message',
+  ...storyDescription(
+    'Exit-intent message with usePageLeave: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ExitIntentExample />,
   parameters: { docs: { source: { code: exitIntentSnippet } } },
   play: async ({ canvasElement }) => {
@@ -298,6 +290,9 @@ export const ExitIntentMessage: Story = {
 
 export const PausingVisualEffect: Story = {
   name: 'Pausing a visual effect',
+  ...storyDescription(
+    'Pausing a visual effect with usePageLeave: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <PausingEffectExample />,
   parameters: { docs: { source: { code: pausingEffectSnippet } } },
   play: async ({ canvasElement }) => {
@@ -327,6 +322,9 @@ export const PausingVisualEffect: Story = {
 
 export const DraftReminder: Story = {
   name: 'Draft reminder',
+  ...storyDescription(
+    'Draft reminder with usePageLeave: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <DraftReminderExample />,
   parameters: { docs: { source: { code: draftReminderSnippet } } },
   play: async ({ canvasElement }) => {
@@ -346,6 +344,9 @@ export const DraftReminder: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Toggle enabled for usePageLeave and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <EnabledStateExample />,
   parameters: { docs: { source: { code: enabledStateSnippet } } },
   play: async ({ canvasElement }) => {
@@ -381,6 +382,9 @@ export const EnabledState: Story = {
 
 export const InitialValue: Story = {
   name: 'Initial value',
+  ...storyDescription(
+    'Initial value with usePageLeave: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <InitialValueExample />,
   parameters: { docs: { source: { code: initialValueSnippet } } },
   play: async ({ canvasElement }) => {
@@ -405,6 +409,9 @@ export const InitialValue: Story = {
 
 export const CustomIframeWindow: Story = {
   name: 'Custom iframe window',
+  ...storyDescription(
+    'Custom iframe window: bind usePageLeave to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <CustomIframeExample />,
   parameters: { docs: { source: { code: customIframeSnippet } } },
   play: async ({ canvasElement }) => {
@@ -432,6 +439,9 @@ export const CustomIframeWindow: Story = {
 
 export const DynamicWindow: Story = {
   name: 'Dynamic window',
+  ...storyDescription(
+    'Dynamic window: bind usePageLeave to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <DynamicWindowExample />,
   parameters: { docs: { source: { code: dynamicWindowSnippet } } },
   play: async ({ canvasElement }) => {
@@ -467,6 +477,9 @@ export const DynamicWindow: Story = {
 
 export const MultipleInstances: Story = {
   name: 'Multiple instances',
+  ...storyDescription(
+    'Multiple instances with usePageLeave: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <MultipleInstancesExample />,
   parameters: { docs: { source: { code: multipleInstancesSnippet } } },
   play: async ({ canvasElement }) => {
@@ -509,6 +522,9 @@ export const MultipleInstances: Story = {
 
 export const TabVisibilityIsDifferent: Story = {
   name: 'Tab visibility is different',
+  ...storyDescription(
+    'Tab visibility is different with usePageLeave: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <TabVisibilityExample />,
   parameters: { docs: { source: { code: tabVisibilitySnippet } } },
   play: async ({ canvasElement }) => {
@@ -528,6 +544,9 @@ export const TabVisibilityIsDifferent: Story = {
 
 export const TouchDeviceLimitation: Story = {
   name: 'Touch-device limitation',
+  ...storyDescription(
+    'Touch-device limitation with usePageLeave: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <TouchLimitationExample />,
   parameters: { docs: { source: { code: touchLimitationSnippet } } },
   play: async ({ canvasElement }) => {
@@ -543,6 +562,9 @@ export const TouchDeviceLimitation: Story = {
 
 export const UnsupportedOrNullWindow: Story = {
   name: 'Unsupported or null window',
+  ...storyDescription(
+    'Unsupported or null window — trigger the failure path for usePageLeave and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <NullWindowExample />,
   parameters: { docs: { source: { code: nullWindowSnippet } } },
   play: async ({ canvasElement }) => {
@@ -565,6 +587,9 @@ export const UnsupportedOrNullWindow: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'usePageLeave Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   args: {
     enabled: true,
     initialValue: false,

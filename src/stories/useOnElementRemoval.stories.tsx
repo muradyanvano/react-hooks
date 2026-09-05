@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -20,48 +25,20 @@ import {
 
 const meta = {
   title: 'Hooks/useOnElementRemoval',
-  component: OverviewExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Calls a handler when a referenced element is removed from its owning document tree (directly or via an ancestor).
-
-\`\`\`ts
-import { useOnElementRemoval } from '@muradyanvano/react-hooks'
-
-useOnElementRemoval<T extends Element>(
-  ref: RefObject<T | null>,
-  handler: UseOnElementRemovalHandler<T>,
-  options?: UseOnElementRemovalOptions,
-): void
-\`\`\`
-
-**Defaults:** \`{ enabled: true }\`
-
-**Limitation:** intended for external/imperative DOM removal, or observation from a component that remains mounted. It is not a replacement for React effect cleanup when the observing component itself unmounts.
-
-Each example below includes its own Show code / Hide code control and Copy code button. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      description: 'When false, no MutationObserver is created.',
-      table: { defaultValue: { summary: 'true' } },
-    },
-  },
-  args: {
-    enabled: true,
-  },
   tags: ['autodocs'],
-} satisfies Meta
+  ...createHookStoryMeta('useOnElementRemoval', OverviewExample, {
+    argTypes: {
+      enabled: {
+        control: 'boolean',
+        description: 'When false, no MutationObserver is created.',
+        table: { defaultValue: { summary: 'true' } },
+      },
+    },
+    args: {
+      enabled: true,
+    },
+  }),
+} satisfies Meta<typeof OverviewExample>
 
 export default meta
 
@@ -78,7 +55,7 @@ async function expectCodeDisclosure(
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
   await expect(canvas.getByTestId('code-panel')).toBeVisible()
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   const writeText = fn(async () => undefined)
   Object.defineProperty(navigator, 'clipboard', {
@@ -97,6 +74,9 @@ async function expectCodeDisclosure(
 
 export const Overview: Story = {
   name: 'Overview',
+  ...storyDescription(
+    'Detect when a watched DOM node is removed by imperative code while the observer stays mounted. Remove the target and confirm the handler fires once with the removed instance. Prefer React effect cleanup when the observing component itself unmounts.',
+  ),
   render: () => <OverviewExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -129,6 +109,9 @@ export const Overview: Story = {
 
 export const AncestorRemoval: Story = {
   name: 'Ancestor removal',
+  ...storyDescription(
+    'Ancestor removal with useOnElementRemoval: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <AncestorRemovalExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -163,6 +146,9 @@ export const AncestorRemoval: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Toggle enabled for useOnElementRemoval and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <EnabledStateExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -203,6 +189,9 @@ export const EnabledState: Story = {
 
 export const ElementReplacement: Story = {
   name: 'Element replacement',
+  ...storyDescription(
+    'Element replacement with useOnElementRemoval: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ElementReplacementExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -239,6 +228,9 @@ export const ElementReplacement: Story = {
 
 export const SvgRemoval: Story = {
   name: 'SVG removal',
+  ...storyDescription(
+    'SVG removal with useOnElementRemoval: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <SvgRemovalExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -269,6 +261,9 @@ export const SvgRemoval: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useOnElementRemoval Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: (args) => <PlaygroundExample enabled={args.enabled ?? true} />,
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement)
@@ -306,6 +301,9 @@ export const Playground: Story = {
 
 export const PlaygroundPaused: Story = {
   name: 'Playground paused',
+  ...storyDescription(
+    'Docs-safe playground for useOnElementRemoval: mount when ready, tune controls, and observe live status without auto-starting privileged work. Copy the curated snippet from Show code when the behavior matches your app.',
+  ),
   args: {
     enabled: false,
   },

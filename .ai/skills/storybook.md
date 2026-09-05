@@ -2,9 +2,27 @@
 
 Operational rules for the consumer-facing Storybook documentation environment.
 
+## Documentation architecture (Phase 3)
+
+- Hook metadata lives in `src/stories/docs/catalog.ts` (`HOOK_CATALOG`) — never parse `README.md` at runtime.
+- Custom docs pages: `src/stories/docs/HookDocumentationPage.tsx` via `createHookStoryMeta()` in `src/stories/docs/createHookStoryMeta.tsx`.
+- Story titles: `Hooks/useHookName` (no space after `Hooks/`). Every hook story file must declare literal `title: 'Hooks/useHookName'` and `tags: ['autodocs']` in the CSF meta object (Storybook’s static indexer cannot see values only inside `createHookStoryMeta()` spreads). Then spread `createHookStoryMeta(...)` for docs page, component description, and canvas `sourceState: 'none'`.
+- Showcase surfaces mark `data-showcase` on `ExampleShowcase` / `StatusPanel` for layout audits; intentional horizontal scrollers use `data-allow-h-scroll`.
+- Each hook docs page includes overview, when/when-not, installation status, import, signature, parameters, defaults, runtime/SSR/StrictMode behavior, accessibility notes, limitations, related hooks, `Primary` + `Stories` blocks, and example source disclosure notes.
+- `parameters.docs.canvas.sourceState: 'none'` — consumer snippets come from `ExampleShowcase` / `CodeDisclosure`, not autodocs source.
+- Per-story docs: `storyDescription()` from `src/stories/docs/storyDescription.ts` on every exported autodocs story (`parameters.docs.description.story`).
+- Story order: first export is `Overview` (name: `Overview`); last autodocs export is `Playground`. Internal stories keep `tags: ['!autodocs', '!dev']` (for example `ClipboardFailure`, `PlaygroundPaused`).
+- Introduction catalog: `src/stories/docs/IntroductionPage.tsx` imports `HOOK_CATALOG` for category grouping, search, and doc links (`?path=/docs/hooks-usehookname--documentation`). Counts derive from `HOOK_COUNT` — do not hardcode hook totals.
+- Pass hook-playground `argTypes`/`args` through `createHookStoryMeta` only when Controls document real hook options; hide irrelevant example-component prop tables.
+
+## General rules
+
 - Document public package behavior only. Stories import from `@muradyanvano/react-hooks`, never from internal hook paths.
 - Keep the Storybook Vite alias scoped to Storybook/development configuration.
-- Present examples with the shared `ExampleShowcase` system: polished preview, Show/Hide code, Copy code, and curated snippets.
+- After play finishes, demos must return to a clean idle UI. Project-wide: `.storybook/resetAfterPlayDecorator.tsx` remounts the React tree when the render phase becomes `played` / `errored` (decorator key remount — not `FORCE_REMOUNT`, so play does not re-run). Hooks live in `StoryResetBoundary`; stale queued resets are discarded when `storyId` changes; docs view mode skips reset entirely. Docs uses `parameters.docs.story.autoplay: false` so Documentation pages stay idle; Vitest and story-canvas play still run, then reset. Individual plays should still leave interactive state tidy before finishing (close code disclosure, unlock scroll, dismiss dialogs, re-enter page-leave frames, etc.).
+- Layout overflow guardrails: `src/stories/components/assertNoPageOverflow.ts` asserts `documentElement.scrollWidth <= clientWidth` and scans card/showcase regions (skipping `data-allow-h-scroll` descendants). `expectCodeDisclosure()` calls it after toggling code closed. Internal stress stories live under `src/stories/layout/LongContentStress.stories.tsx` (`Internal/Layout`, `!autodocs`). Static audit: `npm run build:storybook && npm run test:layout` (`scripts/storybook-layout-audit.mjs`) visits every public `Hooks/*` story from the generated index at common viewports unless tagged `layout-audit-skip` (exclusions are printed). Do not maintain a handwritten story allowlist. Browser reset proof: `npm run test:reset` after the static build.
+- Internal reset fixtures: `ResetAfterPlay` (play succeeds), `ErroredPlayReset` (`!test` — intentional throw after mutation), and `ResetSwitchTarget` (`!test` — story-switch race target) under `src/stories/layout/ResetAfterPlay.stories.tsx`.
+- Present examples with the shared `ExampleShowcase` system (`layout`, optional `notes`, `StatusPanel` value modes, `src/stories/components/ui/` primitives): polished preview, Show/Hide code, Copy code, and curated snippets. Split layout shows the status sidebar from `xl` only (`xl:grid-cols-[minmax(0,1fr)_minmax(12rem,18rem)]`); `dashboard` and `form` show the aside from `lg` (`lg:grid-cols-[minmax(0,1fr)_minmax(12rem,18rem)]`). Layouts `single`, `comparison`, `framed`, `table`, and `visualization` do **not** render `aside` — put `StatusPanel` metrics with required `data-testid`s in the main demo (for example `MetricGrid` / `MetricTile`) when play tests read those ids.
 - Prefer Controls for real options (`enabled`, `eventType`, `capture`, `dedupe`, `passive`, `once`, `delay`, `distanceThreshold`, `button`, `self`) and Actions/event logs for handler calls.
 - For event-listener examples, show omitted-window vs explicit-target SSR guidance honestly, and prefer accessible interactive targets over pointer-only regions.
 - For keyboard examples, document shortcuts, keep focus rings visible, avoid trapping focus, and use predicates when character shortcuts should not fire while typing in inputs.
@@ -43,9 +61,6 @@ Operational rules for the consumer-facing Storybook documentation environment.
 - For scroll-lock examples (`useScrollLock`): the primary **Scroll lock** story must use a contained 2D scroller (TopLeft/TopRight/BottomLeft/BottomRight + central “Scroll Me”), show `isLocked`, and keep Lock/Unlock (`toggle()`) outside the scroll region with a subtle locked badge while preserving scroll position. Prefer isolated iframe documents for window/document/modal page-lock demos so Storybook Docs is never locked. Modal demos need an accessible dialog (focus in, Escape/close restores, focus back to trigger). Cover multiple owners, `initialLocked` mount gates, existing/`!important` overflow restore, dynamic and late targets, SVG targets, scroll-position and unrelated-style preservation, unmount cleanup, and a Docs-safe playground. Finish every play unlocked/clean; use `role="region"` + `aria-label` on scrollers and `tabIndex={0}` only when keyboard scrolling is intended.
 - After imperative `ref.current` assignment in examples, include a small commit/state signal when needed so observation can sync, and keep the snippet honest about that requirement.
 - Hide Storybook autodocs source when the custom code panel already shows the consumer snippet.
-- Highlight TSX with Shiki (or an official Storybook Source block if it meets the same bar). Keep highlighters development-only.
-- Add meaningful `play` interaction tests and accessibility checks for important stories, including disclosure and clipboard behavior.
-- After play finishes, demos must return to a clean idle UI. Project-wide: `.storybook/resetAfterPlayDecorator.tsx` remounts the React tree when the render phase becomes `played` / `errored` (decorator key remount — not `FORCE_REMOUNT`, so play does not re-run). Docs uses `parameters.docs.story.autoplay: false` so Documentation pages stay idle; Vitest and story-canvas play still run, then reset. Individual plays should still leave interactive state tidy before finishing (close code disclosure, unlock scroll, dismiss dialogs, re-enter page-leave frames, etc.).
 - Keep examples responsive across mobile, tablet, and desktop viewports.
 - Provide clean consumer source snippets that match the public API and do not claim npm publication.
 - Example styling may use Tailwind; the hooks package must not require Tailwind.

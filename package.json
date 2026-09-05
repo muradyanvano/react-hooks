@@ -60,6 +60,8 @@
     "test:watch": "vitest --project=unit",
     "test:coverage": "vitest run --project=unit --coverage",
     "test:storybook": "vitest run --project=storybook",
+    "test:layout": "node scripts/storybook-layout-audit.mjs",
+    "test:reset": "node scripts/storybook-reset-audit.mjs",
     "test:ssr:react18": "node scripts/test-ssr-react18.mjs",
     "pack:dry-run": "npm pack --dry-run",
     "verify": "npm run format:check && npm run typecheck && npm run lint && npm run test && npm run build && npm run build:storybook",

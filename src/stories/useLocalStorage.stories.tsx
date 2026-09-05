@@ -1,4 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -44,66 +47,33 @@ import {
   twoComponentsSnippet,
   writeDefaultsSnippet,
 } from './components/useLocalStorage.snippets'
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
 
 const meta = {
   title: 'Hooks/useLocalStorage',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useLocalStorage', PlaygroundExample, {
+    argTypes: {
+      playgroundKey: {
+        control: 'text',
+        description: 'Storage key suffix (namespaced in the playground story).',
       },
-      description: {
-        component: `
-Persist state in \`localStorage\` with SSR-safe hydration, automatic serializers, same-document sync, and optional cross-tab \`storage\` events.
-
-\`\`\`ts
-import { useLocalStorage } from '@muradyanvano/react-hooks'
-
-useLocalStorage<T>(key, defaultValue, options?): {
-  value,
-  setValue,
-  remove,
-  reset,
-  isSupported,
-  isReady,
-  error,
-}
-\`\`\`
-
-**Defaults:** \`{ mergeDefaults: false, writeDefaults: true, listenToStorageChanges: true }\`
-
-**Hydration:** The first client render matches SSR (\`value: defaultValue\`, \`isReady: false\`). Storage is read in an effect; wait for \`isReady\` before treating persisted values as authoritative.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
+      defaultType: {
+        control: 'select',
+        options: ['string', 'number', 'boolean', 'object'],
       },
+      mergeDefaults: { control: 'boolean' },
+      writeDefaults: { control: 'boolean' },
+      listenToStorageChanges: { control: 'boolean' },
     },
-    a11y: {
-      test: 'error',
+    args: {
+      playgroundKey: 'playground',
+      defaultType: 'number',
+      mergeDefaults: false,
+      writeDefaults: true,
+      listenToStorageChanges: true,
     },
-  },
-  argTypes: {
-    playgroundKey: {
-      control: 'text',
-      description: 'Storage key suffix (namespaced in the playground story).',
-    },
-    defaultType: {
-      control: 'select',
-      options: ['string', 'number', 'boolean', 'object'],
-    },
-    mergeDefaults: { control: 'boolean' },
-    writeDefaults: { control: 'boolean' },
-    listenToStorageChanges: { control: 'boolean' },
-  },
-  args: {
-    playgroundKey: 'playground',
-    defaultType: 'number',
-    mergeDefaults: false,
-    writeDefaults: true,
-    listenToStorageChanges: true,
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -119,7 +89,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -152,8 +122,11 @@ async function waitForReady(
   })
 }
 
-export const PersistentFruitEditor: Story = {
-  name: 'Persistent fruit editor',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Persistent preferences that survive remounts in the same origin. Edit the fruit form, remount/reset, and confirm namespaced keys update. Never store secrets; plays clean demo keys afterward.',
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -206,6 +179,9 @@ export const PersistentFruitEditor: Story = {
 
 export const PreferencesPanel: Story = {
   name: 'Preferences panel',
+  ...storyDescription(
+    'A settings panel with several independent preferences, such as theme, motion, and density, needs each field to persist without one write clobbering the others. Toggling reduced motion here updates only that field inside the stored preferences object. Switching the theme selector updates the theme field the same way, confirming each control writes its own key without overwriting siblings.',
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -249,6 +225,9 @@ export const PreferencesPanel: Story = {
 
 export const PersistentCounter: Story = {
   name: 'Persistent counter',
+  ...storyDescription(
+    'State that should survive a remount, like a step counter in a multi-page wizard, needs to read its last value back rather than resetting to a default. Incrementing the counter twice writes the running total to localStorage on each click. Remounting the component reads that same value back immediately, confirming the count survives instead of resetting to zero.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <PersistentCounterExample />
@@ -278,6 +257,9 @@ export const PersistentCounter: Story = {
 
 export const BooleanSetting: Story = {
   name: 'Boolean setting',
+  ...storyDescription(
+    "Boolean flags, like a dark-mode switch or a dismissed-banner flag, need round-trip-safe persistence even though localStorage only ever stores strings. Checking the box writes 'true' to storage; unchecking writes 'false' back. The hook converts the checkbox's boolean state to and from that string representation transparently, so the consumer only ever handles a real boolean.",
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -314,6 +296,9 @@ export const BooleanSetting: Story = {
 
 export const StringValue: Story = {
   name: 'String value',
+  ...storyDescription(
+    'A draft text field should be able to persist an intentionally empty value, not just non-empty strings. Clearing the input writes an empty string to storage rather than removing the key entirely. Typing new characters afterward overwrites that empty string, confirming string values round-trip exactly as typed, including the empty case.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <StringValueExample />
@@ -341,6 +326,9 @@ export const StringValue: Story = {
 
 export const ObjectAndArray: Story = {
   name: 'Object and array',
+  ...storyDescription(
+    'To-do lists and form drafts need to persist as a whole structured object, not flattened into separate keys. Editing the title and adding a tag here mutates one field of a larger object at a time. The stored JSON reflects both changes together, confirming the hook serializes the full object rather than requiring one storage key per field.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <ObjectAndArrayExample />
@@ -365,6 +353,9 @@ export const ObjectAndArray: Story = {
 
 export const DateMapAndSet: Story = {
   name: 'Date, Map, and Set',
+  ...storyDescription(
+    "JSON.stringify silently mangles Date, Map, and Set into plain objects or arrays, breaking round-trips for structured data. This story stores values of exactly those three types. The hook's serialization preserves each type's shape through storage and back, so reading it returns the original date, map entries, and set members rather than corrupted plain objects.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <DateMapSetExample />
@@ -393,6 +384,9 @@ export const DateMapAndSet: Story = {
 
 export const CustomSerializer: Story = {
   name: 'Custom serializer',
+  ...storyDescription(
+    'Some values need a compact or legacy-compatible storage format instead of JSON, such as a pipe-delimited string shared with an older system. This instance supplies a custom serializer/deserializer pair matching that format. Moving the value updates just the x field and rewrites the full pipe-delimited string, confirming the hook defers entirely to the custom format rather than assuming JSON.',
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -424,6 +418,9 @@ export const CustomSerializer: Story = {
 
 export const MergeDefaults: Story = {
   name: 'Merge defaults',
+  ...storyDescription(
+    'Adding a new option to a settings shape after users already have older stored data leaves existing records missing that field. Without merging, this story shows the stored value alone, missing fontSize. With mergeDefaults enabled, the hook fills in the missing field from the default object while keeping the stored theme value, so new fields appear without erasing existing data.',
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -465,6 +462,9 @@ export const MergeDefaults: Story = {
 
 export const TwoComponents: Story = {
   name: 'Two components',
+  ...storyDescription(
+    "Two independent components rendered separately, perhaps in different routes, sometimes need to read and write the exact same stored value without any shared parent state. Typing in one editor's input writes to the shared storage key. The second editor, backed by the same key, updates to match immediately, since both hook instances read the same localStorage entry.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <TwoComponentsExample />
@@ -488,6 +488,9 @@ export const TwoComponents: Story = {
 
 export const CrossTabEvent: Story = {
   name: 'Cross-tab event',
+  ...storyDescription(
+    'A value changed in another browser tab, like a shopping cart or a logged-in user, should reflect in every open tab without a manual refresh. Simulating a cross-tab write here fires a native storage event for the watched key. The hook picks up that change and updates immediately, while a write to an unrelated key is correctly ignored and leaves the tracked value untouched.',
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -524,6 +527,9 @@ export const CrossTabEvent: Story = {
 
 export const DynamicKey: Story = {
   name: 'Dynamic key',
+  ...storyDescription(
+    "Switching between user profiles or workspaces on the same page means the storage key itself needs to change at runtime, not just the value. Editing the name and switching to profile B repoints the hook at a different storage key. Values for each profile persist independently under their own keys, so switching back to profile A restores its own name rather than showing profile B's edits.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <DynamicKeyExample />
@@ -553,6 +559,9 @@ export const DynamicKey: Story = {
 
 export const WriteDefaults: Story = {
   name: 'Write defaults',
+  ...storyDescription(
+    'An uninitialized preference should sometimes seed storage immediately and sometimes stay absent until the user acts, to distinguish "never configured" from "set to the default." With writeDefaults enabled, the default value is written to storage right away, so raw storage shows it present. With writeDefaults disabled, the default is only used in memory and the raw entry stays missing until an explicit write occurs.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <WriteDefaultsExample />
@@ -577,6 +586,9 @@ export const WriteDefaults: Story = {
 
 export const MalformedValue: Story = {
   name: 'Malformed value',
+  ...storyDescription(
+    'A value corrupted by manual editing or an old app version can break JSON.parse on load, and the hook still needs to render something usable. Starting with invalid JSON in storage surfaces a parse error while the hook falls back to a safe default value. Repairing or removing the entry clears the error state, showing recovery paths for both fixing the value and discarding it entirely.',
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -629,6 +641,9 @@ export const MalformedValue: Story = {
 
 export const StorageUnavailable: Story = {
   name: 'Storage unavailable',
+  ...storyDescription(
+    "localStorage can be unavailable entirely — private-browsing restrictions, quota exhaustion, a locked-down environment — and the hook still needs to avoid throwing. This story simulates that unavailable environment, so the hook reports supported: false and displays a warning. Typing still updates the value as an in-memory fallback, but nothing is actually persisted since there's no storage to write to.",
+  ),
   render: () => <StorageUnavailableExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -652,6 +667,9 @@ export const StorageUnavailable: Story = {
 
 export const RemoveVersusReset: Story = {
   name: 'Remove versus reset',
+  ...storyDescription(
+    '"Reset to default" and "clear the stored value" sound similar but have different persistence implications — one still writes, the other doesn\'t. Reset here writes the default value back to storage explicitly. Remove deletes the key from storage entirely, yet the hook still reports the same default value in memory, since removal falls back to the default rather than becoming undefined.',
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -689,6 +707,9 @@ export const RemoveVersusReset: Story = {
 
 export const CustomWindow: Story = {
   name: 'Custom window',
+  ...storyDescription(
+    "An embedded widget running in its own iframe has a separate localStorage instance from the host page, and the hook needs to be pointed at the right one explicitly. This instance is configured to read and write against the iframe's own window rather than the top-level one. Typing into the iframe's input persists to that frame's isolated storage, leaving the host page's localStorage untouched.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <CustomWindowExample />
@@ -732,6 +753,9 @@ export const CustomWindow: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useLocalStorage Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryKeys()}>
       <PlaygroundExample />

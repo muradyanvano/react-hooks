@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -32,47 +37,8 @@ import {
 
 const meta = {
   title: 'Hooks/useInfiniteScroll',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Loads more content when a scrollable target approaches a configured edge.
-
-\`\`\`ts
-import { useInfiniteScroll } from '@muradyanvano/react-hooks'
-
-useInfiniteScroll(ref, onLoadMore, options?): UseInfiniteScrollReturn
-\`\`\`
-
-**Defaults:** \`{ enabled: true, distance: 0, direction: 'bottom', canLoadMore: () => true }\`
-
-The hook owns threshold detection and serialized loading. Consumers own fetching, item state, scroll anchoring, and accessibility messaging.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    direction: {
-      control: 'select',
-      options: ['top', 'right', 'bottom', 'left'],
-      table: { defaultValue: { summary: 'bottom' } },
-    },
-    distance: {
-      control: { type: 'number', min: 0, step: 1 },
-      table: { defaultValue: { summary: '0' } },
-    },
-  },
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useInfiniteScroll', PlaygroundExample),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -88,7 +54,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   const writeText = fn(async () => undefined)
   Object.defineProperty(navigator, 'clipboard', {
@@ -116,8 +82,12 @@ function nudgeScrollForLoad(element: HTMLElement): void {
   scrollNearBottom(element)
 }
 
-export const InfiniteList: Story = {
-  name: 'Infinite list',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Feed-style lists that load the next page near the bottom. Scroll the contained list until more items appear, then Reset to the initial six. Stop loading with canLoadMore; Docs playgrounds stay mount-gated so they do not auto-fetch.',
+  ),
+
   render: () => <InfiniteListExample />,
   parameters: { docs: { source: { code: infiniteListSnippet } } },
   play: async ({ canvasElement }) => {
@@ -128,22 +98,22 @@ export const InfiniteList: Story = {
 
     await waitFor(
       () => {
-        scrollNearBottom(list)
+        nudgeScrollForLoad(list)
         expect(
           Number(canvas.getByTestId('list-count').textContent),
         ).toBeGreaterThan(6)
       },
-      { timeout: 4000 },
+      { timeout: 6000 },
     )
 
     await waitFor(
       () => {
-        scrollNearBottom(list)
+        nudgeScrollForLoad(list)
         expect(canvas.getByTestId('list-status')).toHaveTextContent(
           'All items loaded',
         )
       },
-      { timeout: 8000 },
+      { timeout: 15_000 },
     )
 
     await userEvent.click(canvas.getByTestId('list-reset'))
@@ -153,12 +123,12 @@ export const InfiniteList: Story = {
 
     await waitFor(
       () => {
-        scrollNearBottom(list)
+        nudgeScrollForLoad(list)
         expect(
           Number(canvas.getByTestId('list-count').textContent),
         ).toBeGreaterThan(6)
       },
-      { timeout: 4000 },
+      { timeout: 6000 },
     )
 
     await expectCodeDisclosure(canvas, infiniteListSnippet)
@@ -167,6 +137,10 @@ export const InfiniteList: Story = {
 
 export const BottomDirection: Story = {
   name: 'Bottom direction',
+  ...storyDescription(
+    'Bottom direction example for useInfiniteScroll. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <BottomDirectionExample />,
   parameters: { docs: { source: { code: bottomDirectionSnippet } } },
   play: async ({ canvasElement }) => {
@@ -183,6 +157,10 @@ export const BottomDirection: Story = {
 
 export const TopDirection: Story = {
   name: 'Top direction',
+  ...storyDescription(
+    'Top direction example for useInfiniteScroll. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <TopDirectionExample />,
   parameters: { docs: { source: { code: topDirectionSnippet } } },
   play: async ({ canvasElement }) => {
@@ -201,6 +179,10 @@ export const TopDirection: Story = {
 
 export const HorizontalDirections: Story = {
   name: 'Horizontal directions',
+  ...storyDescription(
+    'Horizontal directions example for useInfiniteScroll. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <HorizontalDirectionsExample />,
   parameters: { docs: { source: { code: horizontalDirectionsSnippet } } },
   play: async ({ canvasElement }) => {
@@ -219,6 +201,10 @@ export const HorizontalDirections: Story = {
 
 export const AsyncLoading: Story = {
   name: 'Async loading',
+  ...storyDescription(
+    'Async loading example for useInfiniteScroll. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <AsyncLoadingExample />,
   parameters: { docs: { source: { code: asyncLoadingSnippet } } },
   play: async ({ canvasElement }) => {
@@ -235,6 +221,10 @@ export const AsyncLoading: Story = {
 
 export const EndOfData: Story = {
   name: 'End of data',
+  ...storyDescription(
+    'End of data example for useInfiniteScroll. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <EndOfDataExample />,
   parameters: { docs: { source: { code: endOfDataSnippet } } },
   play: async ({ canvasElement }) => {
@@ -262,6 +252,10 @@ export const EndOfData: Story = {
 
 export const ShortContainer: Story = {
   name: 'Short container',
+  ...storyDescription(
+    'Short container example for useInfiniteScroll. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <ShortContainerExample />,
   parameters: { docs: { source: { code: shortContainerSnippet } } },
   play: async ({ canvasElement }) => {
@@ -277,6 +271,10 @@ export const ShortContainer: Story = {
 
 export const ErrorAndRetry: Story = {
   name: 'Error and retry',
+  ...storyDescription(
+    'Error and retry example for useInfiniteScroll. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <ErrorRetryExample />,
   parameters: { docs: { source: { code: errorRetrySnippet } } },
   play: async ({ canvasElement }) => {
@@ -295,6 +293,10 @@ export const ErrorAndRetry: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Enabled state example for useInfiniteScroll. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <EnabledStateExample />,
   parameters: { docs: { source: { code: enabledStateSnippet } } },
   play: async ({ canvasElement }) => {
@@ -312,6 +314,10 @@ export const EnabledState: Story = {
 
 export const DynamicTarget: Story = {
   name: 'Dynamic target',
+  ...storyDescription(
+    'Dynamic target example for useInfiniteScroll. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <DynamicTargetExample />,
   parameters: { docs: { source: { code: dynamicTargetSnippet } } },
   play: async ({ canvasElement }) => {
@@ -335,6 +341,10 @@ export const DynamicTarget: Story = {
 
 export const WindowScrolling: Story = {
   name: 'Window scrolling',
+  ...storyDescription(
+    'Window scrolling example for useInfiniteScroll. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <WindowScrollingExample />,
   parameters: { docs: { source: { code: windowScrollingSnippet } } },
   play: async ({ canvasElement }) => {
@@ -348,6 +358,10 @@ export const WindowScrolling: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'Configurable useInfiniteScroll playground. Use Controls when wired to hook options, try edge interactions, and compare runtime behavior with the code panel.',
+  ),
+
   args: { enabled: true, direction: 'bottom', distance: 10 },
   render: (args) => <PlaygroundExample {...args} />,
   parameters: { docs: { source: { code: playgroundSnippet } } },

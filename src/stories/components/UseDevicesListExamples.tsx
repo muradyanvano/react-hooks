@@ -11,18 +11,15 @@ import {
   type PermissionOutcome,
 } from './mediaDevicesMock'
 import {
-  camerasSnippet,
   dashboardSnippet,
   deviceChangesSnippet,
   enabledSnippet,
   liveHardwareSnippet,
-  microphonesSnippet,
   overviewSnippet,
   permissionDeniedSnippet,
   permissionWorkflowSnippet,
   playgroundSnippet,
   refreshSnippet,
-  speakersSnippet,
 } from './useDevicesList.snippets'
 
 type BrowserPermissionLabel = PermissionState | 'unsupported' | 'unknown'
@@ -374,129 +371,6 @@ function DashboardBody() {
           </select>
         </label>
       </div>
-    </ExampleShowcase>
-  )
-}
-
-export function CamerasExample() {
-  return (
-    <WithMediaDevicesMock
-      initialDevices={DEFAULT_LABELED_DEVICES}
-      permissionGrantedLabels
-    >
-      {() => <CamerasBody />}
-    </WithMediaDevicesMock>
-  )
-}
-
-function CamerasBody() {
-  const { videoInputs } = useDevicesList()
-  return (
-    <ExampleShowcase
-      hookName="useDevicesList"
-      title="Cameras"
-      description="Video input devices in browser-provided order."
-      instruction="Review camera cards. IDs are shortened for display; full labels remain accessible."
-      code={camerasSnippet}
-    >
-      <ul className="grid gap-3 sm:grid-cols-2" data-testid="camera-list">
-        {videoInputs.map((device) => (
-          <li
-            key={device.deviceId}
-            className="rounded-xl border border-slate-200 bg-slate-50 p-3"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <p className="font-semibold text-slate-900">
-                {deviceLabel(device.label, 'Unnamed camera')}
-              </p>
-              <DeviceKindBadge kind={device.kind} />
-            </div>
-            <p className="mt-1 text-xs text-slate-500" title={device.deviceId}>
-              {shortId(device.deviceId)}
-            </p>
-          </li>
-        ))}
-      </ul>
-    </ExampleShowcase>
-  )
-}
-
-export function MicrophonesExample() {
-  return (
-    <WithMediaDevicesMock
-      initialDevices={DEFAULT_LABELED_DEVICES}
-      permissionGrantedLabels
-    >
-      {() => <MicrophonesBody />}
-    </WithMediaDevicesMock>
-  )
-}
-
-function MicrophonesBody() {
-  const { audioInputs } = useDevicesList()
-  return (
-    <ExampleShowcase
-      hookName="useDevicesList"
-      title="Microphones"
-      description="Audio input devices. This hook does not provide live volume levels."
-      instruction="Inspect microphone labels. A “Default” label in mock data is illustrative only."
-      code={microphonesSnippet}
-    >
-      <ul className="space-y-2" data-testid="mic-list">
-        {audioInputs.map((device) => (
-          <li
-            key={device.deviceId}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2"
-          >
-            <span className="text-sm font-semibold text-slate-900">
-              {deviceLabel(device.label, 'Microphone (label unavailable)')}
-            </span>
-            {device.label.toLowerCase().includes('default') ? (
-              <span className="text-xs font-semibold text-indigo-700">
-                Default (mock)
-              </span>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </ExampleShowcase>
-  )
-}
-
-export function SpeakersExample() {
-  return (
-    <WithMediaDevicesMock
-      initialDevices={DEFAULT_LABELED_DEVICES}
-      permissionGrantedLabels
-    >
-      {() => <SpeakersBody />}
-    </WithMediaDevicesMock>
-  )
-}
-
-function SpeakersBody() {
-  const { audioOutputs } = useDevicesList()
-  return (
-    <ExampleShowcase
-      hookName="useDevicesList"
-      title="Speakers"
-      description="Audio-output enumeration varies across browsers and platforms. This hook does not change the active system output."
-      instruction="Review enumerated speakers when the browser exposes them."
-      code={speakersSnippet}
-    >
-      <p className="mb-3 text-sm text-slate-600">
-        Support for <code>audiooutput</code> devices is browser-dependent.
-      </p>
-      <ul className="space-y-2" data-testid="speaker-list">
-        {audioOutputs.map((device) => (
-          <li
-            key={device.deviceId}
-            className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-900"
-          >
-            {deviceLabel(device.label, 'Speaker (label unavailable)')}
-          </li>
-        ))}
-      </ul>
     </ExampleShowcase>
   )
 }

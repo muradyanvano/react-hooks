@@ -1,4 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import {
   expect,
   fireEvent,
@@ -28,99 +31,22 @@ import {
   releaseMetricsSnippet,
   selfSnippet,
 } from './components/useOnLongPress.snippets'
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
 
 const meta = {
   title: 'Hooks/useOnLongPress',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Invokes a handler after a sustained pointer press on a referenced element. Uses Pointer Events only (\`pointerdown\` / \`pointermove\` / \`pointerup\` / \`pointercancel\`).
-
-\`\`\`ts
-import { useOnLongPress } from '@muradyanvano/react-hooks'
-
-useOnLongPress<T extends Element>(
-  ref: RefObject<T | null>,
-  handler: UseOnLongPressHandler,
-  options?: UseOnLongPressOptions<T>,
-): void
-\`\`\`
-
-**Defaults:** \`{ enabled: true, delay: 500, distanceThreshold: 10, button: 0, self: false, preventDefault: false, stopPropagation: false, capture: false }\`
-
-**Accessibility:** Long press must never be the only way to perform an essential action. Provide an equivalent standard control for keyboard users and people who cannot hold a timed press.
-
-**Click behavior:** This hook does not suppress the click that may follow pointerup. Coordinate click and long-press actions in your own UI.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      description: 'When false, no target listener is registered.',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    delay: {
-      control: { type: 'number', min: 0, max: 2000, step: 50 },
-      description: 'Hold duration in milliseconds (playground uses a number).',
-      table: { defaultValue: { summary: '500' } },
-    },
-    distanceThreshold: {
-      control: { type: 'number', min: 0, max: 100, step: 1 },
-      description: 'Cancel pending press after this movement (px).',
-      table: { defaultValue: { summary: '10' } },
-    },
-    button: {
-      control: { type: 'number', min: 0, max: 2, step: 1 },
-      description: 'Required pointer button.',
-      table: { defaultValue: { summary: '0' } },
-    },
-    self: {
-      control: 'boolean',
-      description: 'When true, only presses on the exact target are accepted.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    preventDefault: {
-      control: 'boolean',
-      description: 'Call preventDefault on accepted pointerdown.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    stopPropagation: {
-      control: 'boolean',
-      description: 'Call stopPropagation on accepted pointerdown.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    capture: {
-      control: 'boolean',
-      description: 'Capture-phase pointerdown registration.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    onLongPress: {
-      action: 'longPress',
-      description: 'Fires when the long-press handler runs.',
-    },
-  },
-  args: {
-    enabled: true,
-    delay: 500,
-    distanceThreshold: 10,
-    button: 0,
-    self: false,
-    preventDefault: false,
-    stopPropagation: false,
-    capture: false,
-    onLongPress: fn(),
-  },
   tags: ['autodocs'],
+  ...createHookStoryMeta('useOnLongPress', PlaygroundExample, {
+    argTypes: {
+      onLongPress: {
+        action: 'longPress',
+        description: 'Fires when a long press is recognized.',
+      },
+    },
+    args: {
+      onLongPress: fn(),
+    },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -135,7 +61,7 @@ async function expectCodeDisclosure(canvas: ReturnType<typeof within>) {
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
   await expect(canvas.getByTestId('code-panel')).toBeVisible()
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   await userEvent.keyboard('{Tab}')
   await expect(canvas.getByTestId('copy-code')).toHaveFocus()
@@ -200,6 +126,10 @@ async function holdUntil(
 
 export const Overview: Story = {
   name: 'Overview',
+  ...storyDescription(
+    'Press-and-hold actions that still need a normal click path. Hold the target past the delay, then try a short click for the alternate action. Long-press does not auto-suppress click — examples keep both outcomes explicit and keyboard-reachable.',
+  ),
+
   render: (args) => (
     <OverviewExample delay={150} onLongPress={args.onLongPress} />
   ),
@@ -234,6 +164,10 @@ export const Overview: Story = {
 
 export const DelayComparison: Story = {
   name: 'Delay comparison',
+  ...storyDescription(
+    'Delay comparison example for useOnLongPress. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <DelayComparisonExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -252,6 +186,10 @@ export const DelayComparison: Story = {
 
 export const MovementCancellation: Story = {
   name: 'Movement cancellation',
+  ...storyDescription(
+    'Movement cancellation example for useOnLongPress. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => (
     <MovementCancellationExample delay={200} distanceThreshold={10} />
   ),
@@ -305,6 +243,10 @@ export const MovementCancellation: Story = {
 
 export const ReleaseMetrics: Story = {
   name: 'Release metrics',
+  ...storyDescription(
+    'Release metrics example for useOnLongPress. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <ReleaseMetricsExample delay={150} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -339,6 +281,10 @@ export const ReleaseMetrics: Story = {
 
 export const SelfAndDescendants: Story = {
   name: 'Self and descendants',
+  ...storyDescription(
+    'Self and descendants example for useOnLongPress. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <SelfAndDescendantsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -381,6 +327,10 @@ export const SelfAndDescendants: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Enabled state example for useOnLongPress. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <EnabledStateExample delay={200} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -424,6 +374,10 @@ export const EnabledState: Story = {
 
 export const PointerTypes: Story = {
   name: 'Pointer types and dynamic delay',
+  ...storyDescription(
+    'Pointer types and dynamic delay example for useOnLongPress. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <PointerTypesExample delayMs={120} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -497,6 +451,10 @@ export const PointerTypes: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'Configurable useOnLongPress playground. Use Controls when wired to hook options, try edge interactions, and compare runtime behavior with the code panel.',
+  ),
+
   render: (args) => <PlaygroundExample {...args} delay={150} />,
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement)

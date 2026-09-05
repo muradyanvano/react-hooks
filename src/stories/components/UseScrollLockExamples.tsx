@@ -8,7 +8,7 @@ import {
   type RefObject,
 } from 'react'
 
-import { useScrollLock } from '../../hooks/useScrollLock/useScrollLock'
+import { useScrollLock } from '@muradyanvano/react-hooks'
 import { ExampleShowcase, StatusPanel } from './ExampleShowcase'
 import {
   documentTargetSnippet,

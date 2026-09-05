@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -38,48 +43,12 @@ import {
 
 const meta = {
   title: 'Hooks/useScrollLock',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Locks scrolling on an element, \`window\`, or \`document\` target by applying inline \`overflow: hidden\`.
-
-\`\`\`ts
-import { useScrollLock } from '@muradyanvano/react-hooks'
-
-useScrollLock(ref, initialLocked?: boolean): { isLocked, lock, unlock, toggle }
-\`\`\`
-
-**Defaults:** \`initialLocked = false\`
-
-**Return:** \`{ isLocked, lock, unlock, toggle }\`
-
-\`isLocked\` is requested state for this hook instance. Multiple instances may lock the same resolved element; the original inline overflow is restored only when the final owner releases.
-
-After imperative \`ref.current\` assignment, a later React commit is required before the lock can attach to the new target.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useScrollLock', PlaygroundExample, {
     a11y: {
       test: 'error',
     },
-  },
-  argTypes: {
-    initialLocked: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'false' } },
-    },
-  },
-  args: {
-    initialLocked: false,
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -95,7 +64,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -133,8 +102,12 @@ function iframeScrollRoot(iframe: HTMLIFrameElement): HTMLElement | null {
   return null
 }
 
-export const ScrollLock: Story = {
-  name: 'Scroll lock',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Temporarily freeze scroll while preserving position — modals and drawers. Lock, attempt to scroll, then Unlock and confirm position returns. Finish every play unlocked; page locks belong in isolated iframes.',
+  ),
+
   render: () => <ScrollLockExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -196,6 +169,10 @@ export const ScrollLock: Story = {
 
 export const ModalPageLock: Story = {
   name: 'Modal page lock',
+  ...storyDescription(
+    'Modal page lock example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <ModalPageLockExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -245,6 +222,10 @@ export const ModalPageLock: Story = {
 
 export const MultipleOwners: Story = {
   name: 'Multiple owners',
+  ...storyDescription(
+    'Multiple owners example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <MultipleOwnersExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -277,6 +258,10 @@ export const MultipleOwners: Story = {
 
 export const InitialLocked: Story = {
   name: 'Initial locked',
+  ...storyDescription(
+    'Initial locked example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <InitialLockedExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -303,6 +288,10 @@ export const InitialLocked: Story = {
 
 export const ExistingOverflow: Story = {
   name: 'Existing overflow',
+  ...storyDescription(
+    'Existing overflow example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <ExistingOverflowExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -326,6 +315,10 @@ export const ExistingOverflow: Story = {
 
 export const ImportantPriority: Story = {
   name: 'Important priority',
+  ...storyDescription(
+    'Important priority example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <ImportantPriorityExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -354,6 +347,10 @@ export const ImportantPriority: Story = {
 
 export const DynamicTarget: Story = {
   name: 'Dynamic target',
+  ...storyDescription(
+    'Dynamic target example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <DynamicTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -385,6 +382,10 @@ export const DynamicTarget: Story = {
 
 export const LateTarget: Story = {
   name: 'Late target',
+  ...storyDescription(
+    'Late target example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <LateTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -413,6 +414,10 @@ export const LateTarget: Story = {
 
 export const WindowTarget: Story = {
   name: 'Window target',
+  ...storyDescription(
+    'Window target example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <WindowTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -445,6 +450,10 @@ export const WindowTarget: Story = {
 
 export const DocumentTarget: Story = {
   name: 'Document target',
+  ...storyDescription(
+    'Document target example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <DocumentTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -477,6 +486,10 @@ export const DocumentTarget: Story = {
 
 export const SvgTarget: Story = {
   name: 'SVG target',
+  ...storyDescription(
+    'SVG target example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <SvgTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -500,6 +513,10 @@ export const SvgTarget: Story = {
 
 export const ScrollPosition: Story = {
   name: 'Scroll position',
+  ...storyDescription(
+    'Scroll position example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <ScrollPositionExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -542,6 +559,10 @@ export const ScrollPosition: Story = {
 
 export const ExternalStyles: Story = {
   name: 'External styles',
+  ...storyDescription(
+    'External styles example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <ExternalStylesExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -573,6 +594,10 @@ export const ExternalStyles: Story = {
 
 export const UnmountCleanup: Story = {
   name: 'Unmount cleanup',
+  ...storyDescription(
+    'Unmount cleanup example for useScrollLock. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <UnmountCleanupExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -599,6 +624,10 @@ export const UnmountCleanup: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'Configurable useScrollLock playground. Use Controls when wired to hook options, try edge interactions, and compare runtime behavior with the code panel.',
+  ),
+
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await userEvent.click(canvas.getByTestId('play-mount'))

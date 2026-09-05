@@ -1,4 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -53,69 +56,31 @@ import {
   themePreferenceSnippet,
   twoComponentsSnippet,
 } from './components/useCookies.snippets'
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
 
 const meta = {
   title: 'Hooks/useCookies',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useCookies', PlaygroundExample, {
+    argTypes: {
+      playgroundDeps: {
+        control: 'object',
+        description:
+          'Dependency list passed to useCookies in the playground story.',
       },
-      description: {
-        component: `
-Read and write browser cookies reactively with SSR injection, same-document sync, Cookie Store observation, and shared polling fallback.
-
-\`\`\`ts
-import { useCookies } from '@muradyanvano/react-hooks'
-
-useCookies(dependencies?: readonly string[] | null, options?: UseCookiesOptions): {
-  get,
-  getAll,
-  set,
-  remove,
-  refresh,
-  addChangeListener,
-  removeChangeListener,
-  isSupported,
-  isReady,
-  error,
-}
-\`\`\`
-
-**Defaults:** \`{ doNotParse: false, autoUpdateDependencies: false, watch: true, pollingInterval: 1000 }\`
-
-**Hydration:** Without \`initialCookies\`, the first client render uses an empty snapshot (\`isReady: false\`) until \`document.cookie\` is read in an effect.
-
-Cookies are not Web Storage. JavaScript cannot read or create HttpOnly cookies. Use valid cookie-name tokens (no \`:\`, spaces, or \`;\`).
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
+      doNotParse: { control: 'boolean' },
+      autoUpdateDependencies: { control: 'boolean' },
+      watch: { control: 'boolean' },
+      pollingInterval: { control: 'number' },
     },
-    a11y: {
-      test: 'error',
+    args: {
+      playgroundDeps: PLAYGROUND_DEFAULT_DEPS,
+      doNotParse: false,
+      autoUpdateDependencies: false,
+      watch: true,
+      pollingInterval: 1000,
     },
-  },
-  argTypes: {
-    playgroundDeps: {
-      control: 'object',
-      description:
-        'Dependency list passed to useCookies in the playground story.',
-    },
-    doNotParse: { control: 'boolean' },
-    autoUpdateDependencies: { control: 'boolean' },
-    watch: { control: 'boolean' },
-    pollingInterval: { control: 'number' },
-  },
-  args: {
-    playgroundDeps: PLAYGROUND_DEFAULT_DEPS,
-    doNotParse: false,
-    autoUpdateDependencies: false,
-    watch: true,
-    pollingInterval: 1000,
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -131,7 +96,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -172,8 +137,11 @@ function cookiePresent(name: string): boolean {
   })
 }
 
-export const LocalePreferences: Story = {
-  name: 'Locale preferences',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Locale and preference cookies with readable table + raw document.cookie. Change language/currency, inspect attributes, then reset/remove with matching path. Use valid cookie-name tokens; never store secrets.',
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -219,6 +187,9 @@ export const LocalePreferences: Story = {
 
 export const BasicCookie: Story = {
   name: 'Basic cookie',
+  ...storyDescription(
+    'A form field that should remember its value across a page reload, like a name field on a multi-step signup, needs somewhere to persist outside component state. Typing into the input writes a cookie on every change. Removing the cookie clears both the stored value and the underlying document.cookie entry, so no stale value survives the removal.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <BasicCookieExample />
@@ -246,6 +217,9 @@ export const BasicCookie: Story = {
 
 export const AllCookies: Story = {
   name: 'All cookies',
+  ...storyDescription(
+    "A cookie consent banner or debug panel often needs to enumerate every cookie present, not just one the app manages itself. Clicking the two seed buttons writes two independent cookies outside the hook's own key. The hook's returned collection reflects both entries, so its count updates to match whatever cookies exist in the document — including ones it didn't set.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <AllCookiesExample />
@@ -268,6 +242,9 @@ export const AllCookies: Story = {
 
 export const JsonPreferences: Story = {
   name: 'JSON preferences',
+  ...storyDescription(
+    'Storing structured preferences, such as notification settings, in a cookie still means the raw string has to become a usable value on every read. Toggling the checkbox writes an updated object to the cookie. The hook parses the raw JSON automatically, so the notifications field reflects the new boolean without a manual JSON.parse call in the consumer.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <JsonPreferencesExample />
@@ -294,6 +271,9 @@ export const JsonPreferences: Story = {
 
 export const DoNotParse: Story = {
   name: 'doNotParse',
+  ...storyDescription(
+    'Some cookies are written by external code as raw strings and should stay untouched rather than being coerced to booleans or numbers. Writing "true" externally here is read two ways: the default hook parses it into the boolean true, while a doNotParse: true instance keeps it as the literal string "true". The distinction matters whenever a cookie\'s raw format needs to survive round-trips unmodified.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <DoNotParseExample />
@@ -320,6 +300,9 @@ export const DoNotParse: Story = {
 
 export const CookieAttributes: Story = {
   name: 'Cookie attributes',
+  ...storyDescription(
+    "Session-only cookies, secure cookies, and cookies scoped to a subpath all rely on attributes that never appear in the parsed value itself. Setting the session cookie here writes it with explicit attributes rather than relying on defaults. The raw document.cookie view confirms the attributes were applied, even though the hook's returned value only ever exposes the cookie's content.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <CookieAttributesExample />
@@ -346,6 +329,9 @@ export const CookieAttributes: Story = {
 
 export const ThemePreference: Story = {
   name: 'Theme preference',
+  ...storyDescription(
+    "A theme toggle needs to persist across reloads while updating the UI immediately on click, with no separate save step. Clicking Dark writes the new theme to the cookie in the same action that updates local state. The preview card re-renders to match instantly, and the choice survives a reload because it's already stored, not just held in memory.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <ThemePreferenceExample />
@@ -370,6 +356,9 @@ export const ThemePreference: Story = {
 
 export const ConsentPreference: Story = {
   name: 'Consent preference',
+  ...storyDescription(
+    'A consent banner must not write any cookies before the user has explicitly agreed. The disclaimer stays visible until the user acts. Clicking to accept analytics only then writes the corresponding cookie, so no tracking-adjacent cookie exists prior to consent.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <ConsentPreferenceExample />
@@ -392,6 +381,9 @@ export const ConsentPreference: Story = {
 
 export const Dependencies: Story = {
   name: 'Dependencies',
+  ...storyDescription(
+    "A component watching one cookie shouldn't re-render every time an unrelated cookie in the same document changes. Setting cookie B here leaves the render count untouched, because this hook instance only watches cookie A. Setting cookie A updates the watched value and increments the render count, confirming updates are scoped to the declared dependencies.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <DependenciesExample />
@@ -431,6 +423,9 @@ export const Dependencies: Story = {
 
 export const AutomaticDependencies: Story = {
   name: 'Automatic dependencies',
+  ...storyDescription(
+    'Manually listing every cookie key a component depends on is easy to get wrong as an app grows. With automatic dependency tracking, the hook infers what to watch from how the value is read rather than requiring an explicit list. Writing an unrelated cookie leaves the render count unchanged, while writing the tracked cookie updates the value and triggers a re-render.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <AutomaticDependenciesExample />
@@ -468,6 +463,9 @@ export const AutomaticDependencies: Story = {
 
 export const TwoComponents: Story = {
   name: 'Two components',
+  ...storyDescription(
+    "Two independent widgets on the same page, such as a header search box and a sidebar filter, sometimes need to stay in sync through a shared cookie rather than prop drilling. Typing in one editor's input writes to the shared cookie key. The second editor, backed by the same key, reflects the update immediately, since both hook instances read the same document.cookie value.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <TwoComponentsExample />
@@ -491,6 +489,9 @@ export const TwoComponents: Story = {
 
 export const ExternalChange: Story = {
   name: 'External change',
+  ...storyDescription(
+    "Cookies written by a third-party script or a server redirect aren't visible to a hook instance unless it's told to look. With watch disabled, simulating an external write to the cookie leaves the hook's reported value unchanged. Only calling refresh() explicitly re-reads document.cookie and picks up the externally written value.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <ExternalChangeExample />
@@ -500,10 +501,13 @@ export const ExternalChange: Story = {
     const canvas = within(canvasElement)
 
     await waitForReady(canvas, 'external-ready')
-    await userEvent.click(canvas.getByTestId('external-simulate'))
     await waitFor(() => {
       expect(canvas.getByTestId('external-value')).toHaveTextContent('none')
     })
+
+    await userEvent.click(canvas.getByTestId('external-simulate'))
+    // watch: false — external document.cookie writes stay invisible until refresh().
+    await expect(canvas.getByTestId('external-value')).toHaveTextContent('none')
 
     await userEvent.click(canvas.getByTestId('external-refresh'))
     await waitFor(() => {
@@ -519,6 +523,9 @@ export const ExternalChange: Story = {
 
 export const PollingFallback: Story = {
   name: 'Polling fallback',
+  ...storyDescription(
+    'Browsers without native cookie change events still need some way to detect edits made outside the current tab or by non-hook code. This instance falls back to interval polling instead of an event-based watcher. An externally written cookie value is picked up within the polling interval rather than instantly, trading a small delay for compatibility.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <PollingFallbackExample />
@@ -550,6 +557,9 @@ export const PollingFallback: Story = {
 
 export const CookieStoreEvents: Story = {
   name: 'Cookie Store events',
+  ...storyDescription(
+    'The Cookie Store API can push a change notification the moment any cookie is written, including from other same-origin scripts, without polling. Setting the cookie via the hook updates the value immediately through this event-based path. Writing to the same cookie externally also surfaces through the Cookie Store change event, so both hook-driven and third-party writes are picked up without a refresh call.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <CookieStoreEventsExample />
@@ -578,6 +588,9 @@ export const CookieStoreEvents: Story = {
 
 export const RemovalPath: Story = {
   name: 'Removal path',
+  ...storyDescription(
+    "Cookies scoped to a specific path can only be removed by a matching path, an easy mistake when removal code doesn't mirror how the cookie was set. Removing with a mismatched path here leaves the cookie present. Removing with the path that matches the original scope actually deletes it, showing why removal options must mirror the cookie's original attributes.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <RemovalPathExample />
@@ -609,6 +622,9 @@ export const RemovalPath: Story = {
 
 export const JsonParseErrorRecovery: Story = {
   name: 'JSON parse error recovery',
+  ...storyDescription(
+    'A cookie corrupted by a browser extension or manual editing can break JSON.parse on every subsequent read until something intervenes. Saving malformed JSON here surfaces a parse error and an alert instead of throwing uncaught. Repairing the value clears the error state and rewrites a valid cookie, showing how a consumer can recover from bad stored data rather than crashing.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <JsonParseErrorRecoveryExample />
@@ -637,6 +653,9 @@ export const JsonParseErrorRecovery: Story = {
 
 export const CookieUnavailable: Story = {
   name: 'Cookie unavailable',
+  ...storyDescription(
+    'Cookies can be entirely unavailable — disabled by browser settings or a restrictive iframe sandbox — and the hook still needs to behave predictably rather than throwing. This story simulates that unsupported environment, so the hook reports supported: false and shows a warning. Typing still updates local state as an in-memory fallback, but an error is surfaced since nothing was actually persisted to a cookie.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <CookieUnavailableExample />
@@ -664,6 +683,9 @@ export const CookieUnavailable: Story = {
 
 export const SsrInitialCookies: Story = {
   name: 'SSR initial cookies',
+  ...storyDescription(
+    "Server-rendered pages that read cookies for personalization need the first client render to match the server's markup, not flash from empty to populated. This story seeds cookies before render to simulate that server-provided initial state. The hook reflects the locale and currency values immediately, without a visible flash while effects run after hydration.",
+  ),
   render: () => (
     <WithSeed
       seed={() => {
@@ -692,6 +714,9 @@ export const SsrInitialCookies: Story = {
 
 export const CustomDocument: Story = {
   name: 'Custom document',
+  ...storyDescription(
+    "An editor embedded in an iframe, like a sandboxed rich-text widget, has its own document.cookie separate from the host page's. This instance is configured to read and write cookies against that iframe's document explicitly. Typing into the iframe's input writes to its isolated cookie store, leaving the host page's cookies untouched.",
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <CustomDocumentExample />
@@ -738,6 +763,9 @@ export const CustomDocument: Story = {
 
 export const ChangeListeners: Story = {
   name: 'Change listeners',
+  ...storyDescription(
+    'A cookie consent widget or session tracker sometimes needs to react to every write, removal, or external change as it happens, not just read the current value. Registering a change listener here logs each mutation to a running event list. Setting, removing, and externally writing the cookie each produce their own logged event, confirming the listener fires for hook-driven and outside changes alike.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <ChangeListenersExample />
@@ -775,6 +803,9 @@ export const ChangeListeners: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useCookies Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: () => (
     <WithSeed seed={() => clearAllStoryCookies()}>
       <PlaygroundExample />

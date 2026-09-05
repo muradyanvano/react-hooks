@@ -3,6 +3,7 @@ import { useCallback, useState, type ReactNode } from 'react'
 import { useTextSelection } from '@muradyanvano/react-hooks'
 
 import { ExampleShowcase, StatusPanel } from './ExampleShowcase'
+import { BrowserFrame, CodeValue, MetricGrid, MetricTile } from './ui'
 import * as snippets from './useTextSelection.snippets'
 
 function Snapshot({
@@ -29,12 +30,16 @@ function Shell({
   description,
   instruction,
   code,
+  layout = 'split' as const,
+  aside,
   children,
 }: {
   title: string
   description: string
   instruction: string
   code: string
+  layout?: 'split' | 'inspector' | 'single' | 'form'
+  aside?: ReactNode
   children: ReactNode
 }) {
   return (
@@ -44,9 +49,56 @@ function Shell({
       description={description}
       instruction={instruction}
       code={code}
+      layout={layout}
+      aside={aside}
     >
       {children}
     </ExampleShowcase>
+  )
+}
+
+function GeometryInspector({
+  text,
+  rangeCount,
+  rects,
+}: {
+  text: string
+  rangeCount: number
+  rects: ReadonlyArray<Pick<DOMRect, 'top' | 'left' | 'width' | 'height'>>
+}) {
+  const preview = rects.slice(0, 4).map((rect, index) => (
+    <li key={index} className="font-mono text-[11px] text-slate-700">
+      #{index + 1}: x={Math.round(rect.left)}, y={Math.round(rect.top)}, w=
+      {Math.round(rect.width)}, h={Math.round(rect.height)}
+    </li>
+  ))
+
+  return (
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+        Selection geometry
+      </p>
+      <MetricGrid columns={3}>
+        <MetricTile label="Characters" value={text.length} />
+        <MetricTile label="Ranges" value={rangeCount} />
+        <MetricTile label="Rects" value={rects.length} />
+      </MetricGrid>
+      {rects.length > 0 ? (
+        <ul className="space-y-1 rounded-lg border border-slate-200 bg-white p-2">
+          {preview}
+        </ul>
+      ) : (
+        <p className="text-sm text-slate-500">
+          Select text to inspect client rectangles.
+        </p>
+      )}
+      {text ? (
+        <div>
+          <p className="text-xs font-medium text-slate-500">Selected text</p>
+          <CodeValue value={text} />
+        </div>
+      ) : null}
+    </div>
   )
 }
 
@@ -65,67 +117,57 @@ function SelectionSurface({
 }) {
   const value = useTextSelection({ enabled })
   return (
-    <Shell {...{ title, description, instruction, code }}>
-      <article className="space-y-4 rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-sky-50 p-5">
-        <p
-          className="font-serif text-lg leading-8 text-slate-800"
-          data-testid="selection-reading-surface"
-        >
-          Select any portion of this calm reading surface. The snapshot
-          preserves every character, including whitespace and Unicode: café,
-          世界, and ✨.
-        </p>
-        <p className="text-sm leading-6 text-slate-600">
-          Native browser selections can span lines and may expose more than one
-          range in browsers that support it.
-        </p>
-        <p
-          aria-live="polite"
-          data-testid="text-selection-text"
-          className="rounded-lg bg-white p-3 text-sm text-slate-700 shadow-sm"
-        >
-          {value.text ? `Selected: ${value.text}` : 'Nothing selected'}
-        </p>
-        <Snapshot
-          text={value.text}
-          ranges={value.ranges.length}
-          rects={value.rects.length}
-        />
-      </article>
+    <Shell {...{ title, description, instruction, code }} layout="inspector">
+      <BrowserFrame url="https://reading.local/article">
+        <article className="space-y-4">
+          <p
+            className="font-serif text-lg leading-8 text-slate-800"
+            data-testid="selection-reading-surface"
+          >
+            Select any portion of this calm reading surface. The snapshot
+            preserves every character, including whitespace and Unicode: café,
+            世界, and ✨.
+          </p>
+          <p className="text-sm leading-6 text-slate-600">
+            Native browser selections can span lines and may expose more than
+            one range in browsers that support it.
+          </p>
+        </article>
+      </BrowserFrame>
+      <p
+        aria-live="polite"
+        data-testid="text-selection-text"
+        className="rounded-lg bg-white p-3 text-sm text-slate-700 shadow-sm ring-1 ring-slate-200"
+      >
+        {value.text ? `Selected: ${value.text}` : 'Nothing selected'}
+      </p>
+      <Snapshot
+        text={value.text}
+        ranges={value.ranges.length}
+        rects={value.rects.length}
+      />
     </Shell>
   )
 }
 
 export function TextSelectionInspectorExample() {
   const value = useTextSelection()
+
   return (
     <Shell
       title="Text selection inspector"
       description="A quiet reading surface that reports the browser’s current selection, its ranges, and its client rectangles without changing the selection."
       instruction="Select a phrase in the passage. The inspector updates on the document selectionchange event."
       code={snippets.inspectorSnippet}
-    >
-      <div className="grid gap-4 lg:grid-cols-[1fr_14rem]">
-        <article className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-sky-50 p-6 shadow-sm">
-          <p
-            className="font-serif text-xl leading-9 text-slate-800"
-            data-testid="selection-reading-surface"
-          >
-            Reading rewards attention: choose a sentence, a word, or a line
-            break, and let the native selection describe what is actually
-            highlighted.
-          </p>
-          <p className="mt-4 text-sm leading-6 text-slate-600">
-            The hook reports text exactly as the platform returns it; it does
-            not trim or normalize your selection.
-          </p>
-        </article>
+      layout="inspector"
+      aside={
         <StatusPanel
           items={[
             {
               label: 'Text',
               value: value.text || 'empty',
               testId: 'selection-inspector-text',
+              mode: 'block',
             },
             {
               label: 'Ranges',
@@ -139,7 +181,36 @@ export function TextSelectionInspectorExample() {
             },
           ]}
         />
+      }
+    >
+      <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(14rem,20rem)]">
+        <BrowserFrame url="https://reading.local/inspector">
+          <article className="rounded-lg bg-gradient-to-br from-indigo-50 via-white to-sky-50 p-5">
+            <h3 className="text-sm font-semibold tracking-wide text-indigo-700 uppercase">
+              Fictional essay
+            </h3>
+            <p
+              className="mt-3 font-serif text-xl leading-9 text-slate-800"
+              data-testid="selection-reading-surface"
+            >
+              Reading rewards attention: choose a sentence, a word, or a line
+              break, and let the native selection describe what is actually
+              highlighted.
+            </p>
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              The hook reports text exactly as the platform returns it; it does
+              not trim or normalize your selection.
+            </p>
+          </article>
+        </BrowserFrame>
+
+        <GeometryInspector
+          text={value.text}
+          rangeCount={value.ranges.length}
+          rects={value.rects}
+        />
       </div>
+
       <Snapshot
         text={value.text}
         ranges={value.ranges.length}
@@ -219,6 +290,7 @@ export function EnabledStateExample() {
       description="Disabling detaches observation and returns an empty snapshot. Enabling performs a fresh sync."
       instruction="Toggle observation, then select text."
       code={snippets.enabledSnippet}
+      layout="form"
     >
       <button
         type="button"
@@ -255,6 +327,7 @@ function IframeExample({ dynamic = false }: { dynamic?: boolean }) {
       description="Selection is observed in the selected same-origin iframe document only."
       instruction="Use the fixture to set a deterministic iframe selection."
       code={dynamic ? snippets.dynamicSnippet : snippets.iframeSnippet}
+      layout="form"
     >
       <div className="space-y-3">
         <iframe
@@ -334,6 +407,7 @@ export function ClearingSelectionExample() {
       description="The browser clears selection; the hook reflects the next selectionchange."
       instruction="Select text, then use Clear selection."
       code={snippets.clearingSnippet}
+      layout="single"
     >
       <button
         type="button"
@@ -358,6 +432,7 @@ export function PlaygroundExample({ enabled = true }: { enabled?: boolean }) {
       description="Mount the observer explicitly to keep Docs idle."
       instruction="Mount, then select passage text."
       code={snippets.playgroundSnippet}
+      layout="inspector"
     >
       <button
         type="button"

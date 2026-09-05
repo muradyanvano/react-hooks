@@ -1,4 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -11,7 +14,6 @@ import {
   OverviewExample,
   PlaygroundExample,
   SearchFocusExample,
-  type ValidationMode,
 } from './components/UseOnStartTypingExamples'
 import {
   characterValidationSnippet,
@@ -24,62 +26,22 @@ import {
   playgroundSnippet,
   searchFocusSnippet,
 } from './components/useOnStartTyping.snippets'
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
 
 const meta = {
   title: 'Hooks/useOnStartTyping',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Detects when a user begins typing while focus is outside an editable element. Commonly used to focus a search field.
-
-\`\`\`ts
-import { useOnStartTyping } from '@muradyanvano/react-hooks'
-
-useOnStartTyping(
-  handler: UseOnStartTypingHandler,
-  options?: UseOnStartTypingOptions,
-): void
-\`\`\`
-
-**Defaults:** \`{ enabled: true }\` with an ASCII alphanumeric character validator and a DOM editable-element detector.
-
-**Default keys:** Latin letters and digits only. Shift is allowed. Ctrl / Alt / Meta, \`repeat\`, and \`isComposing\` are rejected.
-
-**Editable protection:** \`<input>\`, \`<textarea>\`, \`<select>\`, contenteditable regions (including open shadow roots when detectable). Nested \`contenteditable="false"\` islands are non-editable.
-
-**Important:** The hook does not call \`preventDefault\`, so the initial character may continue into a newly focused input.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useOnStartTyping', PlaygroundExample, {
+    argTypes: {
+      onAccepted: {
+        action: 'accepted',
+        description: 'Fires when typing intent is accepted.',
       },
     },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      description: 'When false, no document listener is registered.',
-      table: { defaultValue: { summary: 'true' } },
+    args: {
+      onAccepted: fn(),
     },
-    mode: {
-      control: 'select',
-      options: ['alphanumeric', 'digits', 'letters'] satisfies ValidationMode[],
-      description:
-        'Serializable character-validation mode mapped to a predicate.',
-      table: { defaultValue: { summary: 'alphanumeric' } },
-    },
-    onAccepted: { action: 'accepted' },
-  },
-  args: {
-    enabled: true,
-    mode: 'alphanumeric' as ValidationMode,
-    onAccepted: fn(),
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -96,7 +58,7 @@ async function expectCodeDisclosure(
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
   await expect(canvas.getByTestId('code-panel')).toBeVisible()
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   const writeText = fn(async () => undefined)
   Object.defineProperty(navigator, 'clipboard', {
@@ -126,6 +88,10 @@ function dispatchKey(key: string, init: KeyboardEventInit = {}): void {
 
 export const Overview: Story = {
   name: 'Overview',
+  ...storyDescription(
+    'Search and command surfaces that should steal focus when the user starts typing printable characters. Type while the page is focused and watch the search field activate; editable fields block the shortcut. This is typing-intent, not a general shortcut map.',
+  ),
+
   render: () => <OverviewExample />,
   parameters: {
     docs: {
@@ -147,6 +113,10 @@ export const Overview: Story = {
 
 export const SearchFocus: Story = {
   name: 'Search focus',
+  ...storyDescription(
+    'Search focus example for useOnStartTyping. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <SearchFocusExample />,
   parameters: {
     docs: {
@@ -168,6 +138,10 @@ export const SearchFocus: Story = {
 
 export const CommandPalette: Story = {
   name: 'Command palette',
+  ...storyDescription(
+    'Command palette example for useOnStartTyping. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <CommandPaletteExample />,
   parameters: {
     docs: {
@@ -190,6 +164,10 @@ export const CommandPalette: Story = {
 
 export const EditableProtection: Story = {
   name: 'Editable protection',
+  ...storyDescription(
+    'Editable protection example for useOnStartTyping. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <EditableProtectionExample />,
   parameters: {
     docs: {
@@ -226,6 +204,10 @@ export const EditableProtection: Story = {
 
 export const CharacterValidation: Story = {
   name: 'Character validation',
+  ...storyDescription(
+    'Character validation example for useOnStartTyping. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <CharacterValidationExample />,
   parameters: {
     docs: {
@@ -245,6 +227,10 @@ export const CharacterValidation: Story = {
 
 export const ModifierKeys: Story = {
   name: 'Modifier keys',
+  ...storyDescription(
+    'Modifier keys example for useOnStartTyping. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <ModifierKeysExample />,
   parameters: {
     docs: {
@@ -267,6 +253,10 @@ export const ModifierKeys: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Enabled state example for useOnStartTyping. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <EnabledStateExample />,
   parameters: {
     docs: {
@@ -294,6 +284,10 @@ export const EnabledState: Story = {
 
 export const Contenteditable: Story = {
   name: 'Contenteditable',
+  ...storyDescription(
+    'Contenteditable example for useOnStartTyping. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <ContenteditableExample />,
   parameters: {
     docs: {
@@ -318,6 +312,10 @@ export const Contenteditable: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'Configurable useOnStartTyping playground. Use Controls when wired to hook options, try edge interactions, and compare runtime behavior with the code panel.',
+  ),
+
   render: (args) => <PlaygroundExample {...args} />,
   parameters: {
     docs: {

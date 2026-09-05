@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -48,74 +53,48 @@ import {
 
 const meta = {
   title: 'Hooks/useNProgress',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useNProgress', PlaygroundExample, {
+    argTypes: {
+      trickle: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'true' } },
       },
-      description: {
-        component: `
-Package-native top-of-page progress indicator with shared document-level ownership.
-
-\`\`\`ts
-import { useNProgress } from '@muradyanvano/react-hooks'
-
-useNProgress(currentProgress?, options?): { isLoading, progress, start, set, increment, done, remove }
-\`\`\`
-
-**Defaults:** \`minimum: 0.08\`, \`speed: 200\`, \`trickle: true\`, \`trickleSpeed: 200\`, \`showSpinner: true\`, \`color: '#4f46e5'\`, \`height: 3\`, \`zIndex: 1031\`, \`removeDelay: 200\`
-
-Multiple hook instances in the same \`(document, parent)\` pair share one visual bar. The displayed progress is the minimum across all active owners.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
+      showSpinner: {
+        control: 'boolean',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      color: {
+        control: 'color',
+        table: { defaultValue: { summary: '#4f46e5' } },
+      },
+      height: {
+        control: { type: 'range', min: 1, max: 10, step: 0.5 },
+        table: { defaultValue: { summary: '3' } },
+      },
+      speed: {
+        control: { type: 'range', min: 50, max: 800, step: 50 },
+        table: { defaultValue: { summary: '200' } },
+      },
+      minimum: {
+        control: { type: 'range', min: 0.01, max: 0.5, step: 0.01 },
+        table: { defaultValue: { summary: '0.08' } },
+      },
+      removeDelay: {
+        control: { type: 'range', min: 0, max: 500, step: 50 },
+        table: { defaultValue: { summary: '200' } },
       },
     },
-    a11y: {
-      test: 'error',
+    args: {
+      trickle: true,
+      showSpinner: true,
+      color: '#4f46e5',
+      height: 3,
+      speed: 200,
+      minimum: 0.08,
+      removeDelay: 200,
     },
-  },
-  argTypes: {
-    trickle: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    showSpinner: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    color: {
-      control: 'color',
-      table: { defaultValue: { summary: '#4f46e5' } },
-    },
-    height: {
-      control: { type: 'range', min: 1, max: 10, step: 0.5 },
-      table: { defaultValue: { summary: '3' } },
-    },
-    speed: {
-      control: { type: 'range', min: 50, max: 800, step: 50 },
-      table: { defaultValue: { summary: '200' } },
-    },
-    minimum: {
-      control: { type: 'range', min: 0.01, max: 0.5, step: 0.01 },
-      table: { defaultValue: { summary: '0.08' } },
-    },
-    removeDelay: {
-      control: { type: 'range', min: 0, max: 500, step: 50 },
-      table: { defaultValue: { summary: '200' } },
-    },
-  },
-  args: {
-    trickle: true,
-    showSpinner: true,
-    color: '#4f46e5',
-    height: 3,
-    speed: 200,
-    minimum: 0.08,
-    removeDelay: 200,
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -133,7 +112,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -175,8 +154,11 @@ async function waitForIdle(
 
 // ─── Stories ──────────────────────────────────────────────────────────────────
 
-export const RouteTransition: Story = {
-  name: 'Route transition',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Route-transition progress owned inside a contained parent, not document.body. Trigger navigation and watch trickle/done without leaking roots into Storybook chrome. Finish plays with no leftover timers or nodes.',
+  ),
   render: () => <RouteTransitionExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -218,6 +200,9 @@ export const RouteTransition: Story = {
 
 export const StartAndDone: Story = {
   name: 'Start and done',
+  ...storyDescription(
+    'Start and done with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <StartAndDoneExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -248,6 +233,9 @@ export const StartAndDone: Story = {
 
 export const Determinate: Story = {
   name: 'Determinate progress',
+  ...storyDescription(
+    'Determinate progress with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <DeterminateExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -265,6 +253,9 @@ export const Determinate: Story = {
 
 export const Declarative: Story = {
   name: 'Declarative progress',
+  ...storyDescription(
+    'Declarative progress with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <DeclarativeExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -303,6 +294,9 @@ export const Declarative: Story = {
 
 export const Trickle: Story = {
   name: 'Trickle progress',
+  ...storyDescription(
+    'Trickle progress with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <TrickleExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -333,6 +327,9 @@ export const Trickle: Story = {
 
 export const Increment: Story = {
   name: 'Increment',
+  ...storyDescription(
+    'Increment with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <IncrementExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -357,6 +354,9 @@ export const Increment: Story = {
 
 export const ForcedCompletion: Story = {
   name: 'Forced completion',
+  ...storyDescription(
+    'Forced completion with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ForcedDoneExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -380,6 +380,9 @@ export const ForcedCompletion: Story = {
 
 export const ImmediateRemove: Story = {
   name: 'Immediate remove',
+  ...storyDescription(
+    'Immediate remove with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ImmediateRemoveExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -399,6 +402,9 @@ export const ImmediateRemove: Story = {
 
 export const MultipleOwners: Story = {
   name: 'Multiple owners',
+  ...storyDescription(
+    'Multiple owners with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <MultipleOwnersExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -428,6 +434,9 @@ export const MultipleOwners: Story = {
 
 export const CustomContainer: Story = {
   name: 'Custom container',
+  ...storyDescription(
+    'Custom container: bind useNProgress to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <CustomContainerExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -456,6 +465,9 @@ export const CustomContainer: Story = {
 
 export const MultipleContainers: Story = {
   name: 'Multiple containers',
+  ...storyDescription(
+    'Multiple containers with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <MultipleContainersExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -491,6 +503,9 @@ export const MultipleContainers: Story = {
 
 export const Spinner: Story = {
   name: 'Spinner',
+  ...storyDescription(
+    'Spinner with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <SpinnerExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -516,6 +531,9 @@ export const Spinner: Story = {
 
 export const VisualCustomization: Story = {
   name: 'Visual customization',
+  ...storyDescription(
+    'Visual customization: bind useNProgress to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <VisualCustomizationExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -536,6 +554,9 @@ export const VisualCustomization: Story = {
 
 export const ReducedMotion: Story = {
   name: 'Reduced motion',
+  ...storyDescription(
+    'Reduced motion with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ReducedMotionExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -555,6 +576,9 @@ export const ReducedMotion: Story = {
 
 export const DynamicTarget: Story = {
   name: 'Dynamic target',
+  ...storyDescription(
+    'Dynamic target: bind useNProgress to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <DynamicTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -587,6 +611,9 @@ export const DynamicTarget: Story = {
 
 export const AsyncSave: Story = {
   name: 'Async save',
+  ...storyDescription(
+    'Async save with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <AsyncSaveExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -623,6 +650,9 @@ export const AsyncSave: Story = {
 
 export const ConcurrentRequests: Story = {
   name: 'Concurrent requests',
+  ...storyDescription(
+    'Concurrent requests: reproduce the race or permission edge for useNProgress with the on-canvas controls. Confirm newer requests win or aborts clear state as documented, then inspect Show code for ownership rules.',
+  ),
   render: () => <ConcurrentRequestsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -651,6 +681,9 @@ export const ConcurrentRequests: Story = {
 
 export const StrictCleanup: Story = {
   name: 'Strict cleanup',
+  ...storyDescription(
+    'Strict cleanup with useNProgress: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <StrictCleanupExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -681,6 +714,9 @@ export const StrictCleanup: Story = {
 
 export const SsrBehavior: Story = {
   name: 'SSR behavior',
+  ...storyDescription(
+    'SSR-safe useNProgress usage: confirm the demo stays idle without browser globals at import time and hydrates without duplicate subscriptions. Inspect status after mount and open Show code for the consumer-safe import pattern.',
+  ),
   render: () => <SsrBehaviorExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -700,6 +736,9 @@ export const SsrBehavior: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useNProgress Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 

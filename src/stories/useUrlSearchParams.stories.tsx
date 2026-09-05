@@ -1,4 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -24,36 +27,12 @@ import {
   UrlParameterEditorExample,
 } from './components/UseUrlSearchParamsExamples'
 import * as snippets from './components/useUrlSearchParams.snippets'
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
 
 const meta = {
   title: 'Hooks/useUrlSearchParams',
-  component: UrlParameterEditorExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Observe and update URL search parameters for \`history\`, \`hash\`, and \`hash-params\` modes with immutable snapshots and explicit controls.
-
-\`\`\`ts
-import { useUrlSearchParams } from '@muradyanvano/react-hooks'
-
-useUrlSearchParams(mode?, options?): UseUrlSearchParamsReturn
-\`\`\`
-
-**Defaults:** \`mode: 'history'\`, \`enabled: true\`, \`write: true\`, \`writeMode: 'replace'\`, \`removeNullishValues: true\`, \`removeFalsyValues: false\`
-
-Demos write only isolated same-origin iframe History stacks. Storybook manager/preview routes are never mutated. Unrelated \`pushState\`/\`replaceState\` calls do not emit \`popstate\` — call \`refresh()\` when integrating with external routers.
-        `,
-      },
-    },
-    a11y: {
-      test: 'error',
-    },
-  },
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useUrlSearchParams', UrlParameterEditorExample),
 } satisfies Meta<typeof UrlParameterEditorExample>
 
 export default meta
@@ -69,7 +48,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  const highlighted = await canvas.findByTestId('highlighted-code')
+  const highlighted = await waitForDisclosedCode(canvas)
   await expect(highlighted).toBeVisible()
   await expect(highlighted.textContent?.trim().length ?? 0).toBeGreaterThan(0)
 
@@ -100,8 +79,11 @@ async function waitReady(canvas: ReturnType<typeof within>) {
   })
 }
 
-export const UrlParameterEditor: Story = {
-  name: 'URL parameter editor',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Edit query keys inside an isolated iframe History so the manager URL stays clean. Add/remove rows, toggle push vs replace, and use Demo previous — not the browser Back button.',
+  ),
   render: () => <UrlParameterEditorExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -151,6 +133,9 @@ export const UrlParameterEditor: Story = {
 
 export const BasicHistory: Story = {
   name: 'Basic history mode',
+  ...storyDescription(
+    'Basic history mode with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <BasicHistoryExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -169,6 +154,9 @@ export const BasicHistory: Story = {
 
 export const ProductFilters: Story = {
   name: 'Product filters',
+  ...storyDescription(
+    'Product filters with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ProductFiltersExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -188,6 +176,9 @@ export const ProductFilters: Story = {
 
 export const SearchPagination: Story = {
   name: 'Search and pagination',
+  ...storyDescription(
+    'Search and pagination with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <SearchPaginationExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -202,6 +193,9 @@ export const SearchPagination: Story = {
 
 export const RepeatedTags: Story = {
   name: 'Repeated tags',
+  ...storyDescription(
+    'Repeated tags with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <RepeatedTagsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -223,6 +217,9 @@ export const RepeatedTags: Story = {
 
 export const EmptyAndBare: Story = {
   name: 'Empty and bare values',
+  ...storyDescription(
+    'Empty and bare values with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <EmptyBareExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -237,6 +234,9 @@ export const EmptyAndBare: Story = {
 
 export const PushVersusReplace: Story = {
   name: 'Push versus replace',
+  ...storyDescription(
+    'Push versus replace: compare both configurations side by side and note how useUrlSearchParams options change observable behavior. Interact with each variant, then confirm Show code documents the option you intend to ship.',
+  ),
   render: () => <PushVersusReplaceExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -253,6 +253,9 @@ export const PushVersusReplace: Story = {
 
 export const BrowserBackForward: Story = {
   name: 'Demo previous parameter state',
+  ...storyDescription(
+    'Demo previous parameter state with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <BackForwardExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -275,6 +278,9 @@ export const BrowserBackForward: Story = {
 
 export const ReadOnlyUrl: Story = {
   name: 'Read-only URL with write false',
+  ...storyDescription(
+    'Read-only URL with write false with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ReadOnlyExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -292,6 +298,9 @@ export const ReadOnlyUrl: Story = {
 
 export const DisabledLocalEditing: Story = {
   name: 'Disabled local editing',
+  ...storyDescription(
+    'Disabled local editing with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <DisabledEditingExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -309,6 +318,9 @@ export const DisabledLocalEditing: Story = {
 
 export const InitialValuesAndReset: Story = {
   name: 'Initial values and reset',
+  ...storyDescription(
+    'Initial values and reset with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <InitialResetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -327,6 +339,9 @@ export const InitialValuesAndReset: Story = {
 
 export const RemoveNullishValues: Story = {
   name: 'Remove nullish values',
+  ...storyDescription(
+    'Remove nullish values with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <RemoveNullishExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -341,6 +356,9 @@ export const RemoveNullishValues: Story = {
 
 export const RemoveFalsyValues: Story = {
   name: 'Remove falsy values',
+  ...storyDescription(
+    'Remove falsy values with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <RemoveFalsyExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -355,6 +373,9 @@ export const RemoveFalsyValues: Story = {
 
 export const HashRouteMode: Story = {
   name: 'Hash route mode',
+  ...storyDescription(
+    'Hash route mode with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <HashRouteExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -372,6 +393,9 @@ export const HashRouteMode: Story = {
 
 export const HashParametersMode: Story = {
   name: 'Hash parameters mode',
+  ...storyDescription(
+    'Hash parameters mode with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <HashParamsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -389,6 +413,9 @@ export const HashParametersMode: Story = {
 
 export const CustomStringifier: Story = {
   name: 'Custom stringifier',
+  ...storyDescription(
+    'Custom stringifier: bind useUrlSearchParams to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <CustomStringifyExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -403,6 +430,9 @@ export const CustomStringifier: Story = {
 
 export const MultipleSynchronized: Story = {
   name: 'Multiple synchronized components',
+  ...storyDescription(
+    'Multiple synchronized components with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <MultiSyncExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -416,6 +446,9 @@ export const MultipleSynchronized: Story = {
 
 export const DynamicMode: Story = {
   name: 'Dynamic mode',
+  ...storyDescription(
+    'Dynamic mode with useUrlSearchParams: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <DynamicModeExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -430,6 +463,9 @@ export const DynamicMode: Story = {
 
 export const CustomIframeWindow: Story = {
   name: 'Custom iframe window',
+  ...storyDescription(
+    'Custom iframe window: bind useUrlSearchParams to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <CustomIframeWindowExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -446,6 +482,9 @@ export const CustomIframeWindow: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useUrlSearchParams Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: () => <PlaygroundExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)

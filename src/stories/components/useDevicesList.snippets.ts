@@ -81,58 +81,6 @@ export function DeviceDashboard() {
   )
 }`
 
-export const camerasSnippet = `import { useDevicesList } from '@muradyanvano/react-hooks'
-
-export function CameraList() {
-  const { videoInputs } = useDevicesList()
-
-  return (
-    <ul>
-      {videoInputs.map((device) => (
-        <li key={device.deviceId}>
-          <strong>{device.label || 'Unnamed camera'}</strong>
-          <span>{device.deviceId.slice(0, 12)}…</span>
-        </li>
-      ))}
-    </ul>
-  )
-}`
-
-export const microphonesSnippet = `import { useDevicesList } from '@muradyanvano/react-hooks'
-
-export function MicrophoneList() {
-  const { audioInputs } = useDevicesList()
-
-  return (
-    <ul>
-      {audioInputs.map((device) => (
-        <li key={device.deviceId}>
-          {device.label || 'Microphone (label unavailable)'}
-        </li>
-      ))}
-    </ul>
-  )
-}`
-
-export const speakersSnippet = `import { useDevicesList } from '@muradyanvano/react-hooks'
-
-export function SpeakerList() {
-  const { audioOutputs } = useDevicesList()
-
-  return (
-    <section>
-      <p>Audio-output enumeration varies by browser and platform.</p>
-      <ul>
-        {audioOutputs.map((device) => (
-          <li key={device.deviceId}>
-            {device.label || 'Speaker (label unavailable)'}
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}`
-
 export const deviceChangesSnippet = `import { useDevicesList } from '@muradyanvano/react-hooks'
 
 export function DeviceChangeMonitor() {

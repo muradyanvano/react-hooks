@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -42,57 +47,31 @@ import {
 
 const meta = {
   title: 'Hooks/useWebSocket',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useWebSocket', PlaygroundExample, {
+    argTypes: {
+      url: {
+        control: 'text',
+        description: 'Mock WebSocket endpoint for the playground.',
+        table: { defaultValue: { summary: 'wss://storybook.example/chat' } },
       },
-      description: {
-        component: `
-WebSocket helper with send buffering, optional auto-reconnect, and heartbeat.
-
-\`\`\`ts
-import { useWebSocket } from '@muradyanvano/react-hooks'
-
-useWebSocket<T>(url, options?): UseWebSocketReturn<T>
-\`\`\`
-
-**Defaults:** \`{ immediate: true, autoConnect: true, autoClose: true, autoReconnect: false, heartbeat: false }\`
-
-**Live vs. mocked:** The **Live connection** story uses the real \`WebSocket\` constructor with \`immediate: false\` — it is the only story that may reach an external server when you click Connect. Every other story uses a deterministic Storybook-only mock so CI never opens real network connections.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
+      immediate: {
+        control: 'boolean',
+        description: 'Connect on mount when a URL is present.',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      autoReconnect: {
+        control: 'boolean',
+        description: 'Enable automatic reconnect in the playground.',
+        table: { defaultValue: { summary: 'false' } },
       },
     },
-    a11y: {
-      test: 'error',
+    args: {
+      url: 'wss://storybook.example/chat',
+      immediate: false,
+      autoReconnect: false,
     },
-  },
-  argTypes: {
-    url: {
-      control: 'text',
-      description: 'Mock WebSocket endpoint for the playground.',
-      table: { defaultValue: { summary: 'wss://storybook.example/chat' } },
-    },
-    immediate: {
-      control: 'boolean',
-      description: 'Connect on mount when a URL is present.',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    autoReconnect: {
-      control: 'boolean',
-      description: 'Enable automatic reconnect in the playground.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-  },
-  args: {
-    url: 'wss://storybook.example/chat',
-    immediate: false,
-    autoReconnect: false,
-  },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -106,7 +85,7 @@ async function expectCodeDisclosure(
   await expect(toggle).toHaveAttribute('aria-expanded', 'false')
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   const writeText = fn(async () => undefined)
   Object.defineProperty(navigator, 'clipboard', {
@@ -132,8 +111,11 @@ async function waitForStatus(
   )
 }
 
-export const WebSocketDashboard: Story = {
-  name: 'WebSocket dashboard',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Buffered realtime dashboards on a mocked WebSocket. Connect, send, and inspect reconnect/heartbeat status without network I/O. Live connection is manual-only with an editable wss URL.',
+  ),
   render: () => <DashboardExample />,
   parameters: { docs: { source: { code: dashboardSnippet } } },
   play: async ({ canvasElement }) => {
@@ -156,6 +138,9 @@ export const WebSocketDashboard: Story = {
 
 export const LiveConnection: Story = {
   name: 'Live connection',
+  ...storyDescription(
+    'useWebSocket Live connection: automated tests inspect idle UI only and never trigger real camera, microphone, screen-share, EyeDropper, fullscreen, or network prompts.',
+  ),
   render: () => <LiveConnectionExample />,
   parameters: { docs: { source: { code: liveConnectionSnippet } } },
   play: async ({ canvasElement }) => {
@@ -175,6 +160,9 @@ export const LiveConnection: Story = {
 
 export const ManualConnection: Story = {
   name: 'Manual connection',
+  ...storyDescription(
+    'Manual connection with useWebSocket: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ManualConnectionExample />,
   parameters: { docs: { source: { code: manualConnectionSnippet } } },
   play: async ({ canvasElement }) => {
@@ -197,6 +185,9 @@ export const ManualConnection: Story = {
 
 export const SendBuffer: Story = {
   name: 'Send buffer',
+  ...storyDescription(
+    'Send buffer with useWebSocket: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <SendBufferExample />,
   parameters: { docs: { source: { code: sendBufferSnippet } } },
   play: async ({ canvasElement }) => {
@@ -219,6 +210,9 @@ export const SendBuffer: Story = {
 
 export const UrlSwitching: Story = {
   name: 'URL switching',
+  ...storyDescription(
+    'URL switching with useWebSocket: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <UrlSwitchingExample />,
   parameters: { docs: { source: { code: urlSwitchingSnippet } } },
   play: async ({ canvasElement }) => {
@@ -247,6 +241,9 @@ export const UrlSwitching: Story = {
 
 export const Protocols: Story = {
   name: 'Protocols',
+  ...storyDescription(
+    'Protocols with useWebSocket: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ProtocolsExample />,
   parameters: { docs: { source: { code: protocolsSnippet } } },
   play: async ({ canvasElement }) => {
@@ -263,6 +260,9 @@ export const Protocols: Story = {
 
 export const ConnectionCallbacks: Story = {
   name: 'Connection callbacks',
+  ...storyDescription(
+    'Connection callbacks with useWebSocket: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ConnectionCallbacksExample />,
   parameters: { docs: { source: { code: connectionCallbacksSnippet } } },
   play: async ({ canvasElement }) => {
@@ -284,6 +284,9 @@ export const ConnectionCallbacks: Story = {
 
 export const AutomaticReconnect: Story = {
   name: 'Automatic reconnect',
+  ...storyDescription(
+    'Automatic reconnect with useWebSocket: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <AutomaticReconnectExample />,
   parameters: { docs: { source: { code: automaticReconnectSnippet } } },
   play: async ({ canvasElement }) => {
@@ -306,6 +309,9 @@ export const AutomaticReconnect: Story = {
 
 export const BackoffStrategy: Story = {
   name: 'Backoff strategy',
+  ...storyDescription(
+    'Backoff strategy with useWebSocket: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <BackoffStrategyExample />,
   parameters: { docs: { source: { code: backoffStrategySnippet } } },
   play: async ({ canvasElement }) => {
@@ -325,6 +331,9 @@ export const BackoffStrategy: Story = {
 
 export const RetriesExhausted: Story = {
   name: 'Retries exhausted',
+  ...storyDescription(
+    'Retries exhausted — trigger the failure path for useWebSocket and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <RetriesExhaustedExample />,
   parameters: { docs: { source: { code: retriesExhaustedSnippet } } },
   play: async ({ canvasElement }) => {
@@ -352,6 +361,9 @@ export const RetriesExhausted: Story = {
 
 export const Heartbeat: Story = {
   name: 'Heartbeat',
+  ...storyDescription(
+    'Heartbeat with useWebSocket: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <HeartbeatExample />,
   parameters: { docs: { source: { code: heartbeatSnippet } } },
   play: async ({ canvasElement }) => {
@@ -372,6 +384,9 @@ export const Heartbeat: Story = {
 
 export const HeartbeatTimeout: Story = {
   name: 'Heartbeat timeout',
+  ...storyDescription(
+    'Heartbeat timeout with useWebSocket: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <HeartbeatTimeoutExample />,
   parameters: { docs: { source: { code: heartbeatTimeoutSnippet } } },
   play: async ({ canvasElement }) => {
@@ -387,6 +402,9 @@ export const HeartbeatTimeout: Story = {
 
 export const ExplicitClose: Story = {
   name: 'Explicit close',
+  ...storyDescription(
+    'Explicit close with useWebSocket: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <ExplicitCloseExample />,
   parameters: { docs: { source: { code: explicitCloseSnippet } } },
   play: async ({ canvasElement }) => {
@@ -406,6 +424,9 @@ export const ExplicitClose: Story = {
 
 export const BinaryMessages: Story = {
   name: 'Binary messages',
+  ...storyDescription(
+    'Binary messages with useWebSocket: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <BinaryMessagesExample />,
   parameters: { docs: { source: { code: binaryMessagesSnippet } } },
   play: async ({ canvasElement }) => {
@@ -421,6 +442,9 @@ export const BinaryMessages: Story = {
 
 export const ConnectionError: Story = {
   name: 'Connection error',
+  ...storyDescription(
+    'Connection error — trigger the failure path for useWebSocket and confirm the UI surfaces a recoverable error without crashing the story. Reset or retry when available, then check Show code for honest error handling.',
+  ),
   render: () => <ConnectionErrorExample />,
   parameters: { docs: { source: { code: connectionErrorSnippet } } },
   play: async ({ canvasElement }) => {
@@ -440,6 +464,9 @@ export const ConnectionError: Story = {
 
 export const LifecycleCleanup: Story = {
   name: 'Lifecycle cleanup',
+  ...storyDescription(
+    'Lifecycle cleanup with useWebSocket: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <LifecycleCleanupExample />,
   parameters: { docs: { source: { code: lifecycleCleanupSnippet } } },
   play: async ({ canvasElement }) => {
@@ -472,6 +499,9 @@ export const LifecycleCleanup: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useWebSocket Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: (args) => <PlaygroundExample {...args} />,
   parameters: { docs: { source: { code: playgroundSnippet } } },
   play: async ({ canvasElement }) => {

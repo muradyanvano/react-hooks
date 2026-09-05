@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import {
   expect,
   fireEvent,
@@ -31,73 +36,45 @@ import {
 
 const meta = {
   title: 'Hooks/useOnKeyStroke',
-  component: OverviewExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Registers a keyboard listener for matching key strokes. Default target is \`window\` when \`target\` is omitted.
-
-\`\`\`ts
-import { useOnKeyStroke } from '@muradyanvano/react-hooks'
-
-useOnKeyStroke(
-  key: KeyStrokeFilter,
-  handler: UseOnKeyStrokeHandler,
-  options?: UseOnKeyStrokeOptions,
-): void
-\`\`\`
-
-**Defaults:** \`{ enabled: true, eventType: 'keydown', dedupe: false, capture: false, passive: false }\`
-
-**Filter:** \`true\` (all keys), a key string, an array of keys, or a predicate.
-
-Each example below includes its own Show code / Hide code control and Copy code button. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      description: 'When false, no listener is registered.',
-      table: { defaultValue: { summary: 'true' } },
-    },
-    eventType: {
-      control: 'inline-radio',
-      options: ['keydown', 'keyup'],
-      description: 'Keyboard event to listen for.',
-      table: { defaultValue: { summary: 'keydown' } },
-    },
-    dedupe: {
-      control: 'boolean',
-      description: 'When true, ignore events where event.repeat is true.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    capture: {
-      control: 'boolean',
-      description: 'Use capture-phase listener registration.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-    passive: {
-      control: 'boolean',
-      description: 'Register a passive listener.',
-      table: { defaultValue: { summary: 'false' } },
-    },
-  },
-  args: {
-    enabled: true,
-    eventType: 'keydown',
-    dedupe: false,
-    capture: false,
-    passive: false,
-  },
   tags: ['autodocs'],
-} satisfies Meta
+  ...createHookStoryMeta('useOnKeyStroke', OverviewExample, {
+    argTypes: {
+      enabled: {
+        control: 'boolean',
+        description: 'When false, no listener is registered.',
+        table: { defaultValue: { summary: 'true' } },
+      },
+      eventType: {
+        control: 'inline-radio',
+        options: ['keydown', 'keyup'],
+        description: 'Keyboard event to listen for.',
+        table: { defaultValue: { summary: 'keydown' } },
+      },
+      dedupe: {
+        control: 'boolean',
+        description: 'When true, ignore events where event.repeat is true.',
+        table: { defaultValue: { summary: 'false' } },
+      },
+      capture: {
+        control: 'boolean',
+        description: 'Use capture-phase listener registration.',
+        table: { defaultValue: { summary: 'false' } },
+      },
+      passive: {
+        control: 'boolean',
+        description: 'Register a passive listener.',
+        table: { defaultValue: { summary: 'false' } },
+      },
+    },
+    args: {
+      enabled: true,
+      eventType: 'keydown',
+      dedupe: false,
+      capture: false,
+      passive: false,
+    },
+  }),
+} satisfies Meta<typeof OverviewExample>
 
 export default meta
 
@@ -114,7 +91,7 @@ async function expectCodeDisclosure(
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
   await expect(canvas.getByTestId('code-panel')).toBeVisible()
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   const writeText = fn(async () => undefined)
   Object.defineProperty(navigator, 'clipboard', {
@@ -133,6 +110,9 @@ async function expectCodeDisclosure(
 
 export const Overview: Story = {
   name: 'Overview',
+  ...storyDescription(
+    'Global or scoped keyboard shortcuts with exact event.key matching. Focus the demo and press the documented keys to see strokes logged without combination-string parsing. Use predicates to skip editable fields; the hook does not preventDefault for you.',
+  ),
   render: () => <OverviewExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -191,6 +171,9 @@ export const Overview: Story = {
 
 export const CommandShortcut: Story = {
   name: 'Command shortcut',
+  ...storyDescription(
+    'Command shortcut with useOnKeyStroke: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <CommandShortcutExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -238,6 +221,9 @@ export const CommandShortcut: Story = {
 
 export const MultipleKeys: Story = {
   name: 'Multiple keys',
+  ...storyDescription(
+    'Multiple keys with useOnKeyStroke: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <MultipleKeysExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -274,6 +260,9 @@ export const MultipleKeys: Story = {
 
 export const RepeatedEvents: Story = {
   name: 'Repeated events',
+  ...storyDescription(
+    'Repeated events with useOnKeyStroke: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <RepeatedEventsExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -313,6 +302,9 @@ export const RepeatedEvents: Story = {
 
 export const CustomTarget: Story = {
   name: 'Custom target',
+  ...storyDescription(
+    'Custom target: bind useOnKeyStroke to a custom target or browsing context and confirm events stay scoped there — not the Storybook manager. Drive the demo controls, watch status, and keep fixtures cleaned up after interaction.',
+  ),
   render: () => <CustomTargetExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -348,6 +340,9 @@ export const CustomTarget: Story = {
 
 export const KeyupOnly: Story = {
   name: 'Keyup',
+  ...storyDescription(
+    'Keyup with useOnKeyStroke: perform the named interaction and watch status reflect hook state (not mock chrome alone). Open Show code to copy the consumer snippet for this scenario, and leave timers, streams, and locks idle when finished.',
+  ),
   render: () => <KeyupExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -378,6 +373,9 @@ export const KeyupOnly: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled',
+  ...storyDescription(
+    'Toggle enabled for useOnKeyStroke and confirm listeners or work stop without leaking when off, then resume cleanly when on. Use the canvas controls and status readouts to verify the lifecycle. Show code should match the gated subscription pattern.',
+  ),
   render: () => <EnabledStateExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -409,6 +407,9 @@ export const EnabledState: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'useOnKeyStroke Playground: experiment with Controls and edge cases. Docs stay idle (autoplay off). Compare runtime feedback with the curated code panel.',
+  ),
   render: (args) => (
     <PlaygroundExample
       enabled={args.enabled ?? true}
@@ -459,6 +460,9 @@ export const Playground: Story = {
 
 export const PlaygroundPaused: Story = {
   name: 'Playground paused',
+  ...storyDescription(
+    'Docs-safe playground for useOnKeyStroke: mount when ready, tune controls, and observe live status without auto-starting privileged work. Copy the curated snippet from Show code when the behavior matches your app.',
+  ),
   args: {
     enabled: false,
   },

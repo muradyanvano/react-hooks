@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { waitForDisclosedCode } from './components/expectCodeDisclosure'
+
+import { createHookStoryMeta } from './docs/createHookStoryMeta'
+import { storyDescription } from './docs/storyDescription'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import {
@@ -30,41 +35,8 @@ import {
 
 const meta = {
   title: 'Hooks/useFocusWithin',
-  component: PlaygroundExample,
-  parameters: {
-    layout: 'fullscreen',
-    docs: {
-      canvas: {
-        sourceState: 'none',
-      },
-      description: {
-        component: `
-Tracks whether a referenced element or any DOM descendant currently contains focus, aligned with CSS \`:focus-within\`.
-
-\`\`\`ts
-import { useFocusWithin } from '@muradyanvano/react-hooks'
-
-useFocusWithin<T extends Element>(
-  ref: RefObject<T | null>,
-  options?: UseFocusWithinOptions,
-): UseFocusWithinReturn
-\`\`\`
-
-**Defaults:** \`{ enabled: true }\`
-
-**Read-only:** This hook does not move focus. Use \`useFocus\` when you need direct-focus tracking or imperative focus methods.
-
-Each example includes Show code / Hide code and Copy code. Example styling uses Tailwind for documentation only; the hooks package does not require Tailwind.
-        `,
-      },
-    },
-  },
-  argTypes: {
-    enabled: {
-      control: 'boolean',
-      table: { defaultValue: { summary: 'true' } },
-    },
-  },
+  tags: ['autodocs'],
+  ...createHookStoryMeta('useFocusWithin', PlaygroundExample),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta
@@ -80,7 +52,7 @@ async function expectCodeDisclosure(
 
   await userEvent.click(toggle)
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  await expect(await canvas.findByTestId('highlighted-code')).toBeVisible()
+  await expect(await waitForDisclosedCode(canvas)).toBeVisible()
 
   const writeText = fn(async () => undefined)
   Object.defineProperty(navigator, 'clipboard', {
@@ -94,8 +66,12 @@ async function expectCodeDisclosure(
   await userEvent.click(toggle)
 }
 
-export const FocusInForm: Story = {
-  name: 'Focus in form',
+export const Overview: Story = {
+  name: 'Overview',
+  ...storyDescription(
+    'Form-level focus-within that stays true while tabbing between fields. Tab through First Name → Password and confirm the status stays true until focus leaves the form. Portals outside the subtree do not count.',
+  ),
+
   render: () => <FocusInFormExample />,
   parameters: { docs: { source: { code: focusInFormSnippet } } },
   play: async ({ canvasElement }) => {
@@ -140,6 +116,10 @@ export const FocusInForm: Story = {
 
 export const FieldGroup: Story = {
   name: 'Field group',
+  ...storyDescription(
+    'Field group example for useFocusWithin. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <FieldGroupExample />,
   parameters: { docs: { source: { code: fieldGroupSnippet } } },
   play: async ({ canvasElement }) => {
@@ -156,6 +136,10 @@ export const FieldGroup: Story = {
 
 export const MovingWithin: Story = {
   name: 'Moving within',
+  ...storyDescription(
+    'Moving within example for useFocusWithin. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <MovingWithinExample />,
   parameters: { docs: { source: { code: movingWithinSnippet } } },
   play: async ({ canvasElement }) => {
@@ -177,6 +161,10 @@ export const MovingWithin: Story = {
 
 export const TargetFocus: Story = {
   name: 'Target focus',
+  ...storyDescription(
+    'Target focus example for useFocusWithin. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <TargetFocusExample />,
   parameters: { docs: { source: { code: targetFocusSnippet } } },
   play: async ({ canvasElement }) => {
@@ -193,6 +181,10 @@ export const TargetFocus: Story = {
 
 export const NestedControls: Story = {
   name: 'Nested controls',
+  ...storyDescription(
+    'Nested controls example for useFocusWithin. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <NestedControlsExample />,
   parameters: { docs: { source: { code: nestedControlsSnippet } } },
   play: async ({ canvasElement }) => {
@@ -210,6 +202,10 @@ export const NestedControls: Story = {
 
 export const DynamicTarget: Story = {
   name: 'Dynamic target',
+  ...storyDescription(
+    'Dynamic target example for useFocusWithin. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <DynamicTargetExample />,
   parameters: { docs: { source: { code: dynamicTargetSnippet } } },
   play: async ({ canvasElement }) => {
@@ -233,6 +229,10 @@ export const DynamicTarget: Story = {
 
 export const EnabledState: Story = {
   name: 'Enabled state',
+  ...storyDescription(
+    'Enabled state example for useFocusWithin. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <EnabledStateExample />,
   parameters: { docs: { source: { code: enabledStateSnippet } } },
   play: async ({ canvasElement }) => {
@@ -261,6 +261,10 @@ export const EnabledState: Story = {
 
 export const PortalBoundary: Story = {
   name: 'Portal boundary',
+  ...storyDescription(
+    'Portal boundary example for useFocusWithin. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <PortalBoundaryExample />,
   parameters: { docs: { source: { code: portalBoundarySnippet } } },
   play: async ({ canvasElement }) => {
@@ -283,6 +287,10 @@ export const PortalBoundary: Story = {
 
 export const SvgGroup: Story = {
   name: 'SVG group',
+  ...storyDescription(
+    'SVG group example for useFocusWithin. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <SvgGroupExample />,
   parameters: { docs: { source: { code: svgGroupSnippet } } },
   play: async ({ canvasElement }) => {
@@ -298,6 +306,10 @@ export const SvgGroup: Story = {
 
 export const CustomDocument: Story = {
   name: 'Custom document',
+  ...storyDescription(
+    'Custom document example for useFocusWithin. Try the interactive controls shown in the canvas and observe the status panel, counters, or event log for resulting hook behavior.',
+  ),
+
   render: () => <CustomDocumentExample />,
   parameters: { docs: { source: { code: customDocumentSnippet } } },
   play: async ({ canvasElement }) => {
@@ -325,6 +337,10 @@ export const CustomDocument: Story = {
 
 export const Playground: Story = {
   name: 'Playground',
+  ...storyDescription(
+    'Configurable useFocusWithin playground. Use Controls when wired to hook options, try edge interactions, and compare runtime behavior with the code panel.',
+  ),
+
   args: { enabled: true },
   render: (args) => <PlaygroundExample {...args} />,
   parameters: { docs: { source: { code: playgroundSnippet } } },
