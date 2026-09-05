@@ -5,7 +5,7 @@ Production-oriented React hooks for React 18 and 19 — strongly typed, ESM-only
 [![CI](https://github.com/muradyanvano1995/react-hooks/actions/workflows/ci.yml/badge.svg)](https://github.com/muradyanvano1995/react-hooks/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/@muradyanvano/react-hooks.svg)](https://www.npmjs.com/package/@muradyanvano/react-hooks)
 [![npm downloads](https://img.shields.io/npm/dm/@muradyanvano/react-hooks.svg)](https://www.npmjs.com/package/@muradyanvano/react-hooks)
-[![license](https://img.shields.io/npm/l/@muradyanvano/react-hooks.svg)](./LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Storybook](https://img.shields.io/badge/docs-Storybook-ff4785.svg)](https://muradyanvano1995.github.io/react-hooks/)
 
 ## Installation
