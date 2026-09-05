@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync, renameSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -10,7 +10,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const requireJson = createRequire(import.meta.url)
 
 describe('release validation', () => {
-  it('passes validate-release for the current package metadata', () => {
+  it('passes validate-release without a built dist tree', () => {
     const result = spawnSync(
       process.execPath,
       [join(root, 'scripts/validate-release.mjs')],
@@ -21,6 +21,31 @@ describe('release validation', () => {
     )
     expect(result.status, result.stderr || result.stdout).toBe(0)
     expect(result.stdout).toContain('validate-release: ok')
+  }, 30_000)
+
+  it('requires dist when --require-publishable is set and dist is missing', () => {
+    const distDir = join(root, 'dist')
+    const backupDir = join(root, 'dist.validate-release-backup')
+    const hadDist = existsSync(distDir)
+    if (hadDist) {
+      renameSync(distDir, backupDir)
+    }
+    try {
+      const result = spawnSync(
+        process.execPath,
+        [join(root, 'scripts/validate-release.mjs'), '--require-publishable'],
+        {
+          cwd: root,
+          encoding: 'utf8',
+        },
+      )
+      expect(result.status).not.toBe(0)
+      expect(result.stderr + result.stdout).toMatch(/dist\/ is missing/)
+    } finally {
+      if (hadDist && existsSync(backupDir)) {
+        renameSync(backupDir, distDir)
+      }
+    }
   }, 30_000)
 
   it('rejects a mismatched release tag', () => {

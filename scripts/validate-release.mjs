@@ -168,12 +168,20 @@ function listFilesRecursive(dir, base = dir, acc = []) {
   return acc
 }
 
-function assertDistAllowlist() {
+function assertDistAllowlist({ requirePublishable }) {
   const distDir = join(root, 'dist')
   if (!existsSync(distDir)) {
-    fail(
-      'dist/ is missing; run npm run build:lib first for tarball path checks',
-    )
+    // Unit tests run before build:lib in `npm run verify`; only publishable
+    // / post-build validation requires a built dist tree.
+    if (requirePublishable) {
+      fail(
+        'dist/ is missing; run npm run build:lib before publishable validation',
+      )
+    } else {
+      console.log(
+        'validate-release: dist/ absent; skipping dist allowlist (ok before build)',
+      )
+    }
     return
   }
   const files = listFilesRecursive(distDir)
@@ -197,7 +205,7 @@ function assertDistAllowlist() {
   }
 }
 
-function assertTarballListing(pkg) {
+function assertTarballListing(pkg, { requirePublishable }) {
   const result = spawnSync('npm', ['pack', '--dry-run', '--json'], {
     cwd: root,
     encoding: 'utf8',
@@ -221,10 +229,12 @@ function assertTarballListing(pkg) {
     fail('npm pack listing contained no files')
     return
   }
+  const normalizedFiles = []
   for (const file of files) {
     const normalized = String(file)
       .replace(/\\/g, '/')
       .replace(/^package\//, '')
+    normalizedFiles.push(normalized)
     const allowed =
       ALLOWED_TARBALL_PATHS.has(normalized) ||
       ALLOWED_TARBALL_PREFIXES.some((prefix) => normalized.startsWith(prefix))
@@ -240,6 +250,13 @@ function assertTarballListing(pkg) {
         fail(
           `tarball path looks like forbidden content (${forbidden}): ${normalized}`,
         )
+      }
+    }
+  }
+  if (requirePublishable) {
+    for (const required of ['dist/index.js', 'dist/index.d.ts']) {
+      if (!normalizedFiles.includes(required)) {
+        fail(`publishable tarball is missing required file: ${required}`)
       }
     }
   }
@@ -305,34 +322,40 @@ function assertWorkflowSafety() {
   }
 }
 
-function assertPublicExportsFromSource() {
+function assertPublicExportsFromSource({ requirePublishable }) {
   const indexSource = readFileSync(join(root, 'src', 'index.ts'), 'utf8')
   if (/export\s+default/.test(indexSource)) {
     fail('src/index.ts must not have a default export')
   }
   const distEntry = join(root, 'dist', 'index.js')
-  if (existsSync(distEntry)) {
-    const distUrl = pathToFileURL(distEntry).href
-    const mod = spawnSync(
-      process.execPath,
-      [
-        '--input-type=module',
-        '-e',
-        `import * as entry from ${JSON.stringify(distUrl)}; const keys = Object.keys(entry).sort(); console.log(JSON.stringify(keys)); if ('default' in entry) process.exit(2)`,
-      ],
-      { encoding: 'utf8' },
-    )
-    if (mod.status === 2) {
-      fail('dist/index.js must not expose a default export')
-    } else if (mod.status !== 0) {
-      fail(`failed to import dist/index.js: ${mod.stderr || mod.stdout}`)
-    } else {
-      const keys = JSON.parse(mod.stdout.trim())
-      if (JSON.stringify(keys) !== JSON.stringify(EXPECTED_EXPORT_KEYS)) {
-        fail(
-          `public export keys changed unexpectedly.\nexpected: ${EXPECTED_EXPORT_KEYS.join(', ')}\nactual: ${keys.join(', ')}`,
-        )
-      }
+  if (!existsSync(distEntry)) {
+    if (requirePublishable) {
+      fail(
+        'dist/index.js is missing; run npm run build:lib before publishable validation',
+      )
+    }
+    return
+  }
+  const distUrl = pathToFileURL(distEntry).href
+  const mod = spawnSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '-e',
+      `import * as entry from ${JSON.stringify(distUrl)}; const keys = Object.keys(entry).sort(); console.log(JSON.stringify(keys)); if ('default' in entry) process.exit(2)`,
+    ],
+    { encoding: 'utf8' },
+  )
+  if (mod.status === 2) {
+    fail('dist/index.js must not expose a default export')
+  } else if (mod.status !== 0) {
+    fail(`failed to import dist/index.js: ${mod.stderr || mod.stdout}`)
+  } else {
+    const keys = JSON.parse(mod.stdout.trim())
+    if (JSON.stringify(keys) !== JSON.stringify(EXPECTED_EXPORT_KEYS)) {
+      fail(
+        `public export keys changed unexpectedly.\nexpected: ${EXPECTED_EXPORT_KEYS.join(', ')}\nactual: ${keys.join(', ')}`,
+      )
     }
   }
 }
@@ -356,10 +379,10 @@ function main() {
   if (options.requireTag) {
     assertTagMatchesVersion(pkg, options.tag)
   }
-  assertDistAllowlist()
-  assertTarballListing(pkg)
+  assertDistAllowlist(options)
+  assertTarballListing(pkg, options)
   assertWorkflowSafety()
-  assertPublicExportsFromSource()
+  assertPublicExportsFromSource(options)
   assertPagesArtifactHint()
 
   if (process.exitCode) {

@@ -47,7 +47,8 @@ jobs:
         run: npm run pack:dry-run
 
       - name: Release validation
-        run: npm run validate:release
+        # Post-build: require dist outputs in the publishable tarball.
+        run: node scripts/validate-release.mjs --require-publishable
 
       - name: Audit production dependencies
         run: npm audit --omit=dev

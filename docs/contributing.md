@@ -13,19 +13,19 @@ Node must satisfy `engines.node` (`^20.19.0 || >=22.12.0`). The repository pins 
 
 ## Useful scripts
 
-| Script                     | Purpose                                                     |
-| -------------------------- | ----------------------------------------------------------- |
-| `npm run storybook`        | Local Storybook                                             |
-| `npm run build:storybook`  | Static Storybook build                                      |
-| `npm run test:storybook`   | Storybook browser interaction/a11y checks                   |
-| `npm run test:layout`      | Multi-viewport Storybook layout audit (slow)                |
-| `npm run test:reset`       | Reset-after-play browser audit                              |
-| `npm run test:ssr:react18` | Packed-consumer SSR check against React 18                  |
-| `npm run build:lib`        | ESM library + declarations                                  |
-| `npm run pack:dry-run`     | Inspect publish tarball                                     |
-| `npm run verify`           | Format, typecheck, lint, unit tests, lib + Storybook builds |
-| `npm run verify:ci`        | `verify` + Storybook browser tests + React 18 SSR           |
-| `npm run validate:release` | Package metadata / allowlist / workflow safety checks       |
+| Script                     | Purpose                                                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `npm run storybook`        | Local Storybook                                                                                       |
+| `npm run build:storybook`  | Static Storybook build                                                                                |
+| `npm run test:storybook`   | Storybook browser interaction/a11y checks                                                             |
+| `npm run test:layout`      | Multi-viewport Storybook layout audit (slow)                                                          |
+| `npm run test:reset`       | Reset-after-play browser audit                                                                        |
+| `npm run test:ssr:react18` | Packed-consumer SSR check against React 18                                                            |
+| `npm run build:lib`        | ESM library + declarations                                                                            |
+| `npm run pack:dry-run`     | Inspect publish tarball                                                                               |
+| `npm run verify`           | Format, typecheck, lint, unit tests, lib + Storybook builds                                           |
+| `npm run verify:ci`        | `verify` + Storybook browser tests + React 18 SSR                                                     |
+| `npm run validate:release` | Package metadata / allowlist / workflow safety checks (add `--require-publishable` after `build:lib`) |
 
 ## Guidelines
 
