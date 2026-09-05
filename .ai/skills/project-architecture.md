@@ -8,7 +8,7 @@
 - Keep React externalized; never bundle `react`, `react-dom`, or JSX runtimes.
 - Externalize intentional runtime dependencies such as `qrcode` (used by `useQRCode`) so Node/browser resolution and tree-shaking remain correct; do not inline Node-specific encoder internals into the library bundle.
 - Publish allowlist is controlled by `package.json` `files`; do not ship `.ai`, Storybook, Tailwind Storybook CSS, tests, coverage, source, demos, or tooling configs in the tarball.
-- CI lives in `.github/workflows/` (`ci.yml`, `layout-audit.yml`, `pages.yml`, `publish.yml`). npm publish uses Trusted Publishing (OIDC) — no `NPM_TOKEN`.
+- CI lives in `.github/workflows/` (`ci.yml`, `layout-audit.yml`, `pages.yml`, `publish.yml`). npm publish uses Trusted Publishing (OIDC) — no `NPM_TOKEN`. Browser jobs install Playwright Chromium after `npm ci`.
 - Do not add Changesets, semantic-release, Release Please, or other release frameworks unless requested.
 
 When architecture, conventions, API behavior, package usage or testing policy changes, update this skill if its instructions become stale.

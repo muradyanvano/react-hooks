@@ -11,6 +11,14 @@ npm run verify
 
 Node must satisfy `engines.node` (`^20.19.0 || >=22.12.0`). The repository pins `packageManager` to `npm@11.8.0`.
 
+Browser suites (`test:storybook`, `test:reset`, `test:layout`) need Playwright Chromium:
+
+```bash
+npx playwright install --with-deps chromium
+```
+
+CI installs this after `npm ci`.
+
 ## Useful scripts
 
 | Script                     | Purpose                                                                                               |
