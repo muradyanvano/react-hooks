@@ -41,6 +41,7 @@ Operational rules for the consumer-facing Storybook documentation environment.
 - Hide Storybook autodocs source when the custom code panel already shows the consumer snippet.
 - Highlight TSX with Shiki (or an official Storybook Source block if it meets the same bar). Keep highlighters development-only.
 - Add meaningful `play` interaction tests and accessibility checks for important stories, including disclosure and clipboard behavior.
+- After play finishes, demos must return to a clean idle UI. Project-wide: `.storybook/resetAfterPlayDecorator.tsx` remounts the React tree when the render phase becomes `played` / `errored` (decorator key remount — not `FORCE_REMOUNT`, so play does not re-run). Docs uses `parameters.docs.story.autoplay: false` so Documentation pages stay idle; Vitest and story-canvas play still run, then reset. Individual plays should still leave interactive state tidy before finishing (close code disclosure, unlock scroll, dismiss dialogs, re-enter page-leave frames, etc.).
 - Keep examples responsive across mobile, tablet, and desktop viewports.
 - Provide clean consumer source snippets that match the public API and do not claim npm publication.
 - Example styling may use Tailwind; the hooks package must not require Tailwind.

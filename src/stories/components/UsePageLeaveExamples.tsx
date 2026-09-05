@@ -1,4 +1,4 @@
-import { useCallback, useId, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useState, type ReactNode } from 'react'
 
 import { usePageLeave } from '@muradyanvano/react-hooks'
 
@@ -114,6 +114,38 @@ function useIframeWindow(testId: string) {
   return { pageWindow, iframe }
 }
 
+/** Story-only: distinguish idle (never entered) from true inside after mouseover. */
+function usePointerEntered(pageWindow: Window | null): boolean {
+  const [entered, setEntered] = useState(false)
+
+  useEffect(() => {
+    setEntered(false)
+    if (pageWindow == null) {
+      return
+    }
+
+    const onOver = () => {
+      setEntered(true)
+    }
+    pageWindow.addEventListener('mouseover', onOver)
+    return () => {
+      pageWindow.removeEventListener('mouseover', onOver)
+    }
+  }, [pageWindow])
+
+  return entered
+}
+
+function pageLeaveStatusLabel(hasLeft: boolean, hasEntered: boolean): string {
+  if (hasLeft) {
+    return 'Mouse left page'
+  }
+  if (hasEntered) {
+    return 'Inside page'
+  }
+  return 'Idle — pointer not in page'
+}
+
 function CursorArt() {
   return (
     <svg
@@ -150,11 +182,15 @@ function Snapshot({
 
 function StatusText({
   hasLeft,
+  hasEntered,
   testId = 'page-leave-status',
 }: {
   hasLeft: boolean
+  hasEntered: boolean
   testId?: string
 }) {
+  const label = pageLeaveStatusLabel(hasLeft, hasEntered)
+
   return (
     <p
       data-testid={testId}
@@ -162,10 +198,12 @@ function StatusText({
       className={`rounded-lg px-3 py-2 text-sm font-medium ${
         hasLeft
           ? 'bg-amber-50 text-amber-900 ring-1 ring-amber-200'
-          : 'bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200'
+          : hasEntered
+            ? 'bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200'
+            : 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
       }`}
     >
-      {hasLeft ? 'Mouse left page' : 'Inside page'}
+      {label}
     </p>
   )
 }
@@ -173,12 +211,13 @@ function StatusText({
 export function PageLeaveDetectorExample() {
   const { pageWindow, iframe } = useIframeWindow('page-leave-primary-iframe')
   const hasLeft = usePageLeave({ window: pageWindow })
+  const hasEntered = usePointerEntered(pageWindow)
 
   return (
     <Shell
       title="Page leave detector"
-      description="Observes mouse boundary events on an isolated same-origin iframe window — not the Storybook manager document."
-      instruction="Move your mouse outside this page (the framed surface). Re-enter to clear leave state. Automated tests dispatch native events on the iframe window."
+      description="Observes mouse boundary events on an isolated same-origin iframe window — not the Storybook manager document. Idle means the pointer has not entered this frame yet; hasLeft stays false until a real leave after enter."
+      instruction="Move into the framed page first, then outside it. Re-enter to clear leave state. Automated tests dispatch native events on the iframe window."
       badge={pageWindow ? 'Observing iframe' : 'Waiting for iframe'}
       code={snippets.pageLeaveDetectorSnippet}
       aside={
@@ -205,14 +244,14 @@ export function PageLeaveDetectorExample() {
           aria-label="Isolated demo page"
         >
           <p className="text-center text-sm font-semibold text-slate-800">
-            Move your mouse outside this page
+            Move into this page, then outside it
           </p>
           <div className="mt-3">
             <CursorArt />
           </div>
           <div className="mt-3">{iframe}</div>
         </div>
-        <StatusText hasLeft={hasLeft} />
+        <StatusText hasLeft={hasLeft} hasEntered={hasEntered} />
         <Snapshot hasLeft={hasLeft} />
       </div>
     </Shell>
@@ -222,6 +261,7 @@ export function PageLeaveDetectorExample() {
 export function BasicUsageExample() {
   const { pageWindow, iframe } = useIframeWindow('page-leave-basic-iframe')
   const hasLeft = usePageLeave({ window: pageWindow })
+  const hasEntered = usePointerEntered(pageWindow)
 
   return (
     <Shell
@@ -232,7 +272,11 @@ export function BasicUsageExample() {
     >
       <div className="space-y-3" data-testid="page-leave-basic">
         {iframe}
-        <StatusText hasLeft={hasLeft} testId="page-leave-basic-status" />
+        <StatusText
+          hasLeft={hasLeft}
+          hasEntered={hasEntered}
+          testId="page-leave-basic-status"
+        />
       </div>
     </Shell>
   )
@@ -241,6 +285,7 @@ export function BasicUsageExample() {
 export function ReEnteringExample() {
   const { pageWindow, iframe } = useIframeWindow('page-leave-reenter-iframe')
   const hasLeft = usePageLeave({ window: pageWindow })
+  const hasEntered = usePointerEntered(pageWindow)
 
   return (
     <Shell
@@ -251,7 +296,11 @@ export function ReEnteringExample() {
     >
       <div className="space-y-3" data-testid="page-leave-reenter">
         {iframe}
-        <StatusText hasLeft={hasLeft} testId="page-leave-reenter-status" />
+        <StatusText
+          hasLeft={hasLeft}
+          hasEntered={hasEntered}
+          testId="page-leave-reenter-status"
+        />
       </div>
     </Shell>
   )
@@ -260,6 +309,7 @@ export function ReEnteringExample() {
 export function InternalMovementExample() {
   const { pageWindow, iframe } = useIframeWindow('page-leave-internal-iframe')
   const hasLeft = usePageLeave({ window: pageWindow })
+  const hasEntered = usePointerEntered(pageWindow)
 
   return (
     <Shell
@@ -311,7 +361,11 @@ export function InternalMovementExample() {
             Simulate leave
           </button>
         </div>
-        <StatusText hasLeft={hasLeft} testId="page-leave-internal-status" />
+        <StatusText
+          hasLeft={hasLeft}
+          hasEntered={hasEntered}
+          testId="page-leave-internal-status"
+        />
       </div>
     </Shell>
   )
@@ -320,6 +374,7 @@ export function InternalMovementExample() {
 export function ExitIntentExample() {
   const { pageWindow, iframe } = useIframeWindow('page-leave-exit-iframe')
   const hasLeft = usePageLeave({ window: pageWindow })
+  const hasEntered = usePointerEntered(pageWindow)
   const [dismissed, setDismissed] = useState(false)
   const titleId = useId()
 
@@ -333,12 +388,16 @@ export function ExitIntentExample() {
     <Shell
       title="Exit-intent message"
       description="Ethical, dismissible reminder UI. No beforeunload, no focus theft, no fake urgency, and no navigation blocking."
-      instruction="Leave the framed page to reveal the message, then Dismiss."
+      instruction="Move into the framed page, leave it to reveal the message, then Dismiss."
       code={snippets.exitIntentSnippet}
     >
       <div className="space-y-3" data-testid="page-leave-exit">
         {iframe}
-        <StatusText hasLeft={hasLeft} testId="page-leave-exit-status" />
+        <StatusText
+          hasLeft={hasLeft}
+          hasEntered={hasEntered}
+          testId="page-leave-exit-status"
+        />
         {show ? (
           <div
             role="dialog"
@@ -372,12 +431,14 @@ export function ExitIntentExample() {
 export function PausingEffectExample() {
   const { pageWindow, iframe } = useIframeWindow('page-leave-pause-iframe')
   const hasLeft = usePageLeave({ window: pageWindow })
+  const hasEntered = usePointerEntered(pageWindow)
+  const effectActive = hasEntered && !hasLeft
 
   return (
     <Shell
       title="Pausing a visual effect"
       description="Pause decorative motion when the pointer leaves the page. Respects prefers-reduced-motion."
-      instruction="Leave the frame to pause the panel animation."
+      instruction="Move into the frame, then leave it to pause the panel animation."
       code={snippets.pausingEffectSnippet}
     >
       <div className="space-y-3" data-testid="page-leave-pause">
@@ -387,13 +448,17 @@ export function PausingEffectExample() {
           data-testid="page-leave-pause-panel"
           data-paused={hasLeft ? 'true' : 'false'}
           className={`h-16 rounded-xl bg-gradient-to-r from-indigo-400 via-sky-400 to-indigo-500 ${
-            hasLeft
-              ? ''
-              : 'motion-safe:animate-[pulse_1.6s_ease-in-out_infinite] motion-reduce:animate-none'
+            effectActive
+              ? 'motion-safe:animate-[pulse_1.6s_ease-in-out_infinite] motion-reduce:animate-none'
+              : ''
           }`}
         />
         <p data-testid="page-leave-pause-status" aria-live="polite">
-          {hasLeft ? 'Effect paused' : 'Effect running'}
+          {hasLeft
+            ? 'Effect paused'
+            : hasEntered
+              ? 'Effect running'
+              : 'Effect idle'}
         </p>
       </div>
     </Shell>
@@ -437,6 +502,7 @@ export function EnabledStateExample() {
   const { pageWindow, iframe } = useIframeWindow('page-leave-enabled-iframe')
   const [enabled, setEnabled] = useState(true)
   const hasLeft = usePageLeave({ window: pageWindow, enabled })
+  const hasEntered = usePointerEntered(pageWindow)
 
   return (
     <Shell
@@ -456,7 +522,11 @@ export function EnabledStateExample() {
           {enabled ? 'Disable' : 'Enable'}
         </button>
         <p data-testid="page-leave-enabled-flag">enabled: {String(enabled)}</p>
-        <StatusText hasLeft={hasLeft} testId="page-leave-enabled-status" />
+        <StatusText
+          hasLeft={hasLeft}
+          hasEntered={hasEntered}
+          testId="page-leave-enabled-status"
+        />
       </div>
     </Shell>
   )
@@ -465,6 +535,7 @@ export function EnabledStateExample() {
 export function InitialValueExample() {
   const { pageWindow, iframe } = useIframeWindow('page-leave-initial-iframe')
   const hasLeft = usePageLeave({ window: pageWindow, initialValue: true })
+  const hasEntered = usePointerEntered(pageWindow)
 
   return (
     <Shell
@@ -475,7 +546,11 @@ export function InitialValueExample() {
     >
       <div className="space-y-3" data-testid="page-leave-initial">
         {iframe}
-        <StatusText hasLeft={hasLeft} testId="page-leave-initial-status" />
+        <StatusText
+          hasLeft={hasLeft}
+          hasEntered={hasEntered}
+          testId="page-leave-initial-status"
+        />
         <Snapshot hasLeft={hasLeft} testId="page-leave-initial-snapshot" />
       </div>
     </Shell>
@@ -485,6 +560,7 @@ export function InitialValueExample() {
 export function CustomIframeExample() {
   const { pageWindow, iframe } = useIframeWindow('page-leave-custom-iframe')
   const hasLeft = usePageLeave({ window: pageWindow })
+  const hasEntered = usePointerEntered(pageWindow)
 
   return (
     <Shell
@@ -495,7 +571,11 @@ export function CustomIframeExample() {
     >
       <div className="space-y-3" data-testid="page-leave-custom">
         {iframe}
-        <StatusText hasLeft={hasLeft} testId="page-leave-custom-status" />
+        <StatusText
+          hasLeft={hasLeft}
+          hasEntered={hasEntered}
+          testId="page-leave-custom-status"
+        />
       </div>
     </Shell>
   )
@@ -509,6 +589,7 @@ export function DynamicWindowExample() {
   const hasLeft = usePageLeave({
     window: pageWindow,
   })
+  const hasEntered = usePointerEntered(pageWindow)
 
   return (
     <Shell
@@ -551,7 +632,11 @@ export function DynamicWindowExample() {
           </button>
         </div>
         <p data-testid="page-leave-dynamic-target">Observing: {target}</p>
-        <StatusText hasLeft={hasLeft} testId="page-leave-dynamic-status" />
+        <StatusText
+          hasLeft={hasLeft}
+          hasEntered={hasEntered}
+          testId="page-leave-dynamic-status"
+        />
       </div>
     </Shell>
   )
@@ -562,6 +647,8 @@ export function MultipleInstancesExample() {
   const b = useIframeWindow('page-leave-multi-b')
   const leftA = usePageLeave({ window: a.pageWindow })
   const leftB = usePageLeave({ window: b.pageWindow })
+  const enteredA = usePointerEntered(a.pageWindow)
+  const enteredB = usePointerEntered(b.pageWindow)
 
   return (
     <Shell
@@ -574,11 +661,19 @@ export function MultipleInstancesExample() {
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             {a.iframe}
-            <StatusText hasLeft={leftA} testId="page-leave-multi-a-status" />
+            <StatusText
+              hasLeft={leftA}
+              hasEntered={enteredA}
+              testId="page-leave-multi-a-status"
+            />
           </div>
           <div>
             {b.iframe}
-            <StatusText hasLeft={leftB} testId="page-leave-multi-b-status" />
+            <StatusText
+              hasLeft={leftB}
+              hasEntered={enteredB}
+              testId="page-leave-multi-b-status"
+            />
           </div>
         </div>
       </div>
@@ -589,6 +684,7 @@ export function MultipleInstancesExample() {
 export function TabVisibilityExample() {
   const { pageWindow, iframe } = useIframeWindow('page-leave-visibility-iframe')
   const hasLeft = usePageLeave({ window: pageWindow })
+  const hasEntered = usePointerEntered(pageWindow)
   const [hidden, setHidden] = useState(false)
 
   return (
@@ -627,7 +723,11 @@ export function TabVisibilityExample() {
         <p data-testid="page-leave-visibility-hidden">
           Simulated hidden: {String(hidden)}
         </p>
-        <StatusText hasLeft={hasLeft} testId="page-leave-visibility-status" />
+        <StatusText
+          hasLeft={hasLeft}
+          hasEntered={hasEntered}
+          testId="page-leave-visibility-status"
+        />
       </div>
     </Shell>
   )
@@ -636,6 +736,7 @@ export function TabVisibilityExample() {
 export function TouchLimitationExample() {
   const { pageWindow, iframe } = useIframeWindow('page-leave-touch-iframe')
   const hasLeft = usePageLeave({ window: pageWindow })
+  const hasEntered = usePointerEntered(pageWindow)
 
   return (
     <Shell
@@ -656,7 +757,11 @@ export function TouchLimitationExample() {
         >
           Simulate touchend
         </button>
-        <StatusText hasLeft={hasLeft} testId="page-leave-touch-status" />
+        <StatusText
+          hasLeft={hasLeft}
+          hasEntered={hasEntered}
+          testId="page-leave-touch-status"
+        />
       </div>
     </Shell>
   )
@@ -676,7 +781,11 @@ export function NullWindowExample() {
         <p className="text-sm text-slate-600">
           Explicit null disables browser resolution.
         </p>
-        <StatusText hasLeft={hasLeft} testId="page-leave-null-status" />
+        <StatusText
+          hasLeft={hasLeft}
+          hasEntered={false}
+          testId="page-leave-null-status"
+        />
         <Snapshot hasLeft={hasLeft} testId="page-leave-null-snapshot" />
       </div>
     </Shell>
@@ -697,6 +806,7 @@ export function PlaygroundExample({
     enabled: mounted && enabled,
     initialValue,
   })
+  const hasEntered = usePointerEntered(mounted ? pageWindow : null)
 
   return (
     <Shell
@@ -719,6 +829,7 @@ export function PlaygroundExample({
             {iframe}
             <StatusText
               hasLeft={hasLeft}
+              hasEntered={hasEntered}
               testId="page-leave-playground-status"
             />
             <Snapshot

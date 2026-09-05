@@ -1,9 +1,11 @@
 import type { Preview } from '@storybook/react-vite'
 import { fn } from 'storybook/test'
 
+import { resetAfterPlayDecorator } from './resetAfterPlayDecorator'
 import './preview.css'
 
 const preview: Preview = {
+  decorators: [resetAfterPlayDecorator],
   parameters: {
     layout: 'padded',
     controls: {
@@ -19,6 +21,10 @@ const preview: Preview = {
       toc: true,
       codePanel: {
         type: 'dynamic',
+      },
+      // Keep Docs canvases idle: play still runs on story view / Vitest.
+      story: {
+        autoplay: false,
       },
     },
     a11y: {

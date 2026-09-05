@@ -22,7 +22,7 @@ export function PageLeaveDetector() {
         srcDoc="<html><body><p>Demo page surface</p></body></html>"
         onLoad={(event) => setPageWindow(event.currentTarget.contentWindow)}
       />
-      <p>{hasLeft ? 'Mouse left page' : 'Inside page'}</p>
+      <p>{hasLeft ? 'Mouse left page' : 'Not left (idle or inside)'}</p>
       <pre>{JSON.stringify({ hasLeft }, null, 2)}</pre>
     </div>
   )
@@ -33,7 +33,7 @@ export const basicUsageSnippet = `import { usePageLeave } from '@muradyanvano/re
 export function BasicPageLeave() {
   const hasLeft = usePageLeave()
 
-  return <p>{hasLeft ? 'Mouse left page' : 'Inside page'}</p>
+  return <p>{hasLeft ? 'Mouse left page' : 'Not left (idle or inside)'}</p>
 }`
 
 export const reEnteringSnippet = `import { usePageLeave } from '@muradyanvano/react-hooks'
@@ -83,7 +83,7 @@ export function ExitIntentMessage() {
           </button>
         </div>
       ) : null}
-      <p>{hasLeft ? 'Mouse left page' : 'Inside page'}</p>
+      <p>{hasLeft ? 'Mouse left page' : 'Not left (idle or inside)'}</p>
     </div>
   )
 }`
@@ -133,7 +133,7 @@ export function EnabledPageLeave() {
       <button type="button" onClick={() => setEnabled((value) => !value)}>
         {enabled ? 'Disable' : 'Enable'}
       </button>
-      <p>{hasLeft ? 'Mouse left page' : 'Inside page'}</p>
+      <p>{hasLeft ? 'Mouse left page' : 'Not left (idle or inside)'}</p>
     </div>
   )
 }`
@@ -143,7 +143,7 @@ export const initialValueSnippet = `import { usePageLeave } from '@muradyanvano/
 export function InitialLeftState() {
   const hasLeft = usePageLeave({ initialValue: true })
 
-  return <p>{hasLeft ? 'Starts left' : 'Inside page'}</p>
+  return <p>{hasLeft ? 'Starts left' : 'Not left (idle or inside)'}</p>
 }`
 
 export const customIframeSnippet = `import { useState } from 'react'
@@ -244,7 +244,7 @@ export function TouchDeviceLimitation() {
         This hook listens only to mouse boundary events. Touch-only devices may
         never update leave state.
       </p>
-      <p>{hasLeft ? 'Mouse left page' : 'Inside page'}</p>
+      <p>{hasLeft ? 'Mouse left page' : 'Not left (idle or inside)'}</p>
     </div>
   )
 }`

@@ -168,7 +168,7 @@ export const PageLeaveDetector: Story = {
     const win = await waitForIframeWindow(canvas, 'page-leave-primary-iframe')
 
     await expect(canvas.getByTestId('page-leave-status')).toHaveTextContent(
-      'Inside page',
+      'Idle — pointer not in page',
     )
     await expect(canvas.getByTestId('page-leave-snapshot')).toHaveTextContent(
       '"hasLeft": false',
@@ -251,12 +251,17 @@ export const InternalMovement: Story = {
     dispatchInternal(win)
     await expect(
       canvas.getByTestId('page-leave-internal-status'),
-    ).toHaveTextContent('Inside page')
+    ).toHaveTextContent('Idle — pointer not in page')
     await userEvent.click(canvas.getByTestId('page-leave-internal-move'))
     await expect(
       canvas.getByTestId('page-leave-internal-status'),
-    ).toHaveTextContent('Inside page')
+    ).toHaveTextContent('Idle — pointer not in page')
     dispatchEnter(win)
+    await waitFor(() => {
+      expect(
+        canvas.getByTestId('page-leave-internal-status'),
+      ).toHaveTextContent('Inside page')
+    })
     await userEvent.click(canvas.getByTestId('page-leave-internal-leave'))
     await waitFor(() => {
       expect(
@@ -474,7 +479,7 @@ export const MultipleInstances: Story = {
         'Mouse left page',
       )
       expect(canvas.getByTestId('page-leave-multi-b-status')).toHaveTextContent(
-        'Inside page',
+        'Idle — pointer not in page',
       )
     })
     dispatchEnterThenLeave(winB)
@@ -512,11 +517,11 @@ export const TabVisibilityIsDifferent: Story = {
     await userEvent.click(canvas.getByTestId('page-leave-sim-blur'))
     await expect(
       canvas.getByTestId('page-leave-visibility-status'),
-    ).toHaveTextContent('Inside page')
+    ).toHaveTextContent('Idle — pointer not in page')
     await userEvent.click(canvas.getByTestId('page-leave-sim-visible'))
     await expect(
       canvas.getByTestId('page-leave-visibility-status'),
-    ).toHaveTextContent('Inside page')
+    ).toHaveTextContent('Idle — pointer not in page')
     await expectCodeDisclosure(canvas, tabVisibilitySnippet)
   },
 }
@@ -531,7 +536,7 @@ export const TouchDeviceLimitation: Story = {
     await userEvent.click(canvas.getByTestId('page-leave-sim-touch'))
     await expect(
       canvas.getByTestId('page-leave-touch-status'),
-    ).toHaveTextContent('Inside page')
+    ).toHaveTextContent('Idle — pointer not in page')
     await expectCodeDisclosure(canvas, touchLimitationSnippet)
   },
 }
@@ -544,7 +549,7 @@ export const UnsupportedOrNullWindow: Story = {
     const canvas = within(canvasElement)
     await expect(
       canvas.getByTestId('page-leave-null-status'),
-    ).toHaveTextContent('Inside page')
+    ).toHaveTextContent('Idle — pointer not in page')
     await expect(
       canvas.getByTestId('page-leave-null-snapshot'),
     ).toHaveTextContent('"hasLeft": false')
@@ -553,7 +558,7 @@ export const UnsupportedOrNullWindow: Story = {
     )
     await expect(
       canvas.getByTestId('page-leave-null-status'),
-    ).toHaveTextContent('Inside page')
+    ).toHaveTextContent('Idle — pointer not in page')
     await expectCodeDisclosure(canvas, nullWindowSnippet)
   },
 }

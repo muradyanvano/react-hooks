@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Storybook: remount each story canvas after play (`played` / `errored`) so examples reset to idle UI for every hook; disable Docs autoplay so Documentation pages stay clean
 - `usePageLeave`: ignore qualifying `mouseout` until the observed window has received a `mouseover` (prevents iframe attach/load spurious “left” state)
 - `useQRCode`: resolve `toDataURL` for both named and `default`-wrapped dynamic-import shapes from `qrcode`
 - `useQRCode`: distinguish invalid option signatures that share an error message so `onError` re-notifies
