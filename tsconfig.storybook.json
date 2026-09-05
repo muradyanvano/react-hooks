@@ -19,6 +19,7 @@
     "skipLibCheck": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
     "paths": {
       "@muradyanvano/react-hooks": ["./src/index.ts"]
     }

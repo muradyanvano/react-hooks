@@ -46,5 +46,6 @@
 - Setup lives in `vitest.setup.ts` (unit) and `.storybook/vitest.setup.ts` (Storybook).
 - Coverage via `npm run test:coverage` covers library source only.
 - Release safety: `npm run validate:release` (`scripts/validate-release.mjs`) asserts package metadata, tarball allowlist, workflow token-free publish constraints, and public export keys. Dist allowlist/export checks are skipped when `dist/` is absent (unit tests run before `build:lib` in `verify`); use `--require-publishable` after a library build (CI/publish). `publish.yml` must run `npm run build:lib` before `--require-publishable` (clean checkouts have no committed `dist/`), keep a single standalone Build library step, and only publish after that validation. Unit coverage lives in `src/test/validate-release.test.ts`.
+- Package version display sync: `src/test/package-version-display.test.ts` asserts `package.json` / lockfile alignment, Storybook `packageMetadata` derived from `package.json`, no hardcoded Storybook/README current-version pins, and that `docs/public-api.md` status matches the package version.
 
 When architecture, conventions, API behavior, package usage or testing policy changes, update this skill if its instructions become stale.

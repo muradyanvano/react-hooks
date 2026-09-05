@@ -7,6 +7,7 @@ import {
   hookDocsPath,
   hooksByCategory,
 } from './catalog'
+import { PACKAGE_NAME, PACKAGE_STATUS_LABEL } from './packageMetadata'
 import type { HookCategory, HookDocumentation } from './types'
 
 function normalizeQuery(value: string): string {
@@ -47,7 +48,7 @@ export function IntroductionPage() {
           React hooks library
         </p>
         <h1 className="text-4xl font-semibold tracking-tight">
-          @muradyanvano/react-hooks
+          {PACKAGE_NAME}
         </h1>
         <p className="max-w-2xl text-lg leading-8 text-slate-600">
           Production-oriented React hooks for React 18 and 19. This Storybook
@@ -55,10 +56,10 @@ export function IntroductionPage() {
         </p>
         <div className="flex flex-wrap gap-2">
           <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
-            1.0.0 · stable
+            {PACKAGE_STATUS_LABEL}
           </span>
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-            @muradyanvano/react-hooks
+            {PACKAGE_NAME}
           </span>
           <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
             {HOOK_COUNT} public hooks

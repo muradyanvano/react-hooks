@@ -2,6 +2,7 @@ import { Meta } from '@storybook/addon-docs/blocks'
 
 import { CodeBlock } from './components/CodeBlock'
 import { HOOK_COUNT } from './docs/catalog'
+import { PACKAGE_INSTALL_COMMAND, PACKAGE_NAME } from './docs/packageMetadata'
 import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
 
 <Meta title="Getting Started" />
@@ -10,14 +11,14 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
   <header className="space-y-3 border-b border-slate-200 pb-6">
     <h1 className="text-3xl font-semibold tracking-tight">Getting started</h1>
     <p className="text-base leading-7 text-slate-600">
-      Install <code>@muradyanvano/react-hooks</code> from npm and explore the{' '}
+      Install <code>{PACKAGE_NAME}</code> from npm and explore the{' '}
       {HOOK_COUNT} public hooks in this Storybook.
     </p>
   </header>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Installation</h2>
-  <CodeBlock code="npm install @muradyanvano/react-hooks" language="bash" />
+  <CodeBlock code={PACKAGE_INSTALL_COMMAND} language="bash" />
   <p className="text-sm leading-7 text-slate-600">
     Hosted documentation:{' '}
     <a

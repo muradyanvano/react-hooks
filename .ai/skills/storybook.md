@@ -5,6 +5,7 @@ Operational rules for the consumer-facing Storybook documentation environment.
 ## Documentation architecture (Phase 3)
 
 - Hook metadata lives in `src/stories/docs/catalog.ts` (`HOOK_CATALOG`) — never parse `README.md` at runtime.
+- Package name/version/status labels for Storybook docs come from `src/stories/docs/packageMetadata.ts` (imports root `package.json`). Do not hardcode release versions in Introduction, Getting Started, or hook documentation pages. Keep this helper Storybook-only — never import it from `src/index.ts` or library hooks.
 - Custom docs pages: `src/stories/docs/HookDocumentationPage.tsx` via `createHookStoryMeta()` in `src/stories/docs/createHookStoryMeta.tsx`.
 - Story titles: `Hooks/useHookName` (no space after `Hooks/`). Every hook story file must declare literal `title: 'Hooks/useHookName'` and `tags: ['autodocs']` in the CSF meta object (Storybook’s static indexer cannot see values only inside `createHookStoryMeta()` spreads). Then spread `createHookStoryMeta(...)` for docs page, component description, and canvas `sourceState: 'none'`.
 - Showcase surfaces mark `data-showcase` on `ExampleShowcase` / `StatusPanel` for layout audits; intentional horizontal scrollers use `data-allow-h-scroll`.

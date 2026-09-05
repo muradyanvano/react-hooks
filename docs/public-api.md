@@ -1,6 +1,6 @@
 # Public API
 
-Status: stable `1.0.0`. Authoritative public API reference for
+Status: stable `1.0.1`. Authoritative public API reference for
 `@muradyanvano/react-hooks`. Interactive examples live in
 [Storybook](https://muradyanvano1995.github.io/react-hooks/).
 
@@ -2608,7 +2608,7 @@ Methods exist and are no-ops until mount. Do not subscribe or emit during render
 
 ### Stability
 
-Stable `1.0.0` public API. Follow [Semantic Versioning](https://semver.org/) for
+Stable `1.0.1` public API. Follow [Semantic Versioning](https://semver.org/) for
 future changes.
 
 ## Storybook
