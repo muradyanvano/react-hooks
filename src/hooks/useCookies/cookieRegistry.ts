@@ -148,6 +148,13 @@ function reconcileObservation(
 ): void {
   const store = resolveCookieStore(documentRef)
   const pollNeed = computePollingNeed(entry)
+  const shouldObserveExternalChanges = pollNeed.needsPolling
+
+  if (!shouldObserveExternalChanges) {
+    clearPoller(entry)
+    detachCookieStore(entry)
+    return
+  }
 
   if (store != null) {
     clearPoller(entry)

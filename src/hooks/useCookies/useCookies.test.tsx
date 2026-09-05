@@ -438,4 +438,52 @@ describe('useCookies cookieStore events', () => {
     unmount()
     expect(listeners.size).toBe(0)
   })
+
+  it('ignores Cookie Store change events when watch is false', async () => {
+    const name = key('store-watch-off')
+    const listeners = new Set<(event: unknown) => void>()
+    const store = {
+      addEventListener: (_type: string, listener: (event: unknown) => void) => {
+        listeners.add(listener)
+      },
+      removeEventListener: (
+        _type: string,
+        listener: (event: unknown) => void,
+      ) => {
+        listeners.delete(listener)
+      },
+    }
+    const previous = Object.getOwnPropertyDescriptor(window, 'cookieStore')
+    Object.defineProperty(window, 'cookieStore', {
+      configurable: true,
+      value: store,
+    })
+
+    try {
+      const { result, unmount } = renderHook(() =>
+        useCookies([name], { watch: false }),
+      )
+      await waitFor(() => expect(result.current.isReady).toBe(true))
+      expect(listeners.size).toBe(0)
+
+      document.cookie = `${encodeURIComponent(name)}=from-store; Path=/`
+      act(() => {
+        for (const listener of listeners) {
+          listener({
+            changed: [{ name }],
+            deleted: [],
+          })
+        }
+      })
+      await waitFor(() => expect(result.current.get(name)).toBeUndefined())
+
+      unmount()
+    } finally {
+      if (previous == null) {
+        Reflect.deleteProperty(window, 'cookieStore')
+      } else {
+        Object.defineProperty(window, 'cookieStore', previous)
+      }
+    }
+  })
 })
