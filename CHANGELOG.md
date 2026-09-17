@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-09-17
+
+Patch release after the GitHub account rename `muradyanvano1995` → `muradyanvano`.
+
+### Changed
+
+- Package `repository`, `bugs`, and `homepage` metadata now point at `muradyanvano/react-hooks` and `https://muradyanvano.github.io/react-hooks/`
+- README badges, docs, Storybook links, and agent guidance updated to the new GitHub owner and Pages URL
+- Release docs: Trusted Publisher owner is `muradyanvano`; note that an account rename requires revoking and recreating the Trusted Publisher
+
+### Notes
+
+- npm package identity remains `@muradyanvano/react-hooks`
+- Public hook APIs and runtime behavior are unchanged from `1.0.1`
+- Publishing still uses token-free npm Trusted Publishing via GitHub Actions OIDC (`publish.yml`, environment `npm`)
+
 ## [1.0.1] - 2026-09-06
 
 Release-maintenance patch to validate the corrected npm Trusted Publishing path.
