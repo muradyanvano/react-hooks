@@ -2,7 +2,7 @@
 
 Status: stable `1.0.1`. Authoritative public API reference for
 `@muradyanvano/react-hooks`. Interactive examples live in
-[Storybook](https://muradyanvano1995.github.io/react-hooks/).
+[Storybook](https://muradyanvano.github.io/react-hooks/).
 
 ## Package entry
 
@@ -2614,7 +2614,7 @@ future changes.
 ## Storybook
 
 Interactive documentation lives in Storybook
-([GitHub Pages](https://muradyanvano1995.github.io/react-hooks/) or
+([GitHub Pages](https://muradyanvano.github.io/react-hooks/) or
 `npm run storybook` locally). Stories import the public package entry and are
 excluded from the npm tarball. Each example provides Show code / Hide code and
 Copy code for a curated consumer TypeScript snippet. Example styling uses

@@ -7,12 +7,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/muradyanvano1995/react-hooks.git"
+    "url": "git+https://github.com/muradyanvano/react-hooks.git"
   },
   "bugs": {
-    "url": "https://github.com/muradyanvano1995/react-hooks/issues"
+    "url": "https://github.com/muradyanvano/react-hooks/issues"
   },
-  "homepage": "https://muradyanvano1995.github.io/react-hooks/",
+  "homepage": "https://muradyanvano.github.io/react-hooks/",
   "keywords": [
     "react",
     "react-hooks",

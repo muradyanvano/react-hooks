@@ -7,7 +7,7 @@ Related: [Contributing](./contributing.md) · [Changelog](../CHANGELOG.md)
 ## Prerequisites
 
 - You own or control the npm scope `@muradyanvano`.
-- You can push to `muradyanvano1995/react-hooks` and manage repository environments.
+- You can push to `muradyanvano/react-hooks` and manage repository environments.
 - Local Node/npm satisfy repository engines (`npm@11.8.0` via `packageManager`, Node `^20.19.0 || >=22.12.0`; CI uses Node 24).
 
 ### Verify npm scope ownership (required before first publish)
@@ -57,14 +57,16 @@ Trusted Publishing can only be configured on an **existing** package page. The f
 
 4. **Configure npm Trusted Publishing** on https://www.npmjs.com/package/@muradyanvano/react-hooks → **Settings** → **Trusted Publisher**:
 
-   | Field                | Value              |
-   | -------------------- | ------------------ |
-   | Provider             | GitHub Actions     |
-   | Organization or user | `muradyanvano1995` |
-   | Repository           | `react-hooks`      |
-   | Workflow filename    | `publish.yml`      |
-   | Environment          | `npm`              |
-   | Allowed action       | `npm publish`      |
+   | Field                | Value          |
+   | -------------------- | -------------- |
+   | Provider             | GitHub Actions |
+   | Organization or user | `muradyanvano` |
+   | Repository           | `react-hooks`  |
+   | Workflow filename    | `publish.yml`  |
+   | Environment          | `npm`          |
+   | Allowed action       | `npm publish`  |
+
+   After a GitHub **account rename**, replace any Trusted Publisher still tied to the old owner: revoke/delete the old configuration and create a new one with the table above (in-place edit may not refresh the binding). Do not store `NPM_TOKEN`.
 
 5. **Create the annotated tag and GitHub Release** (after the package exists on npm):
 
@@ -107,7 +109,7 @@ Prerelease GitHub Releases do **not** publish stable packages (`publish.yml` ign
 3. Protect the `github-pages` environment so only the `main` branch (and required reviewers, if desired) can deploy.
 4. After the first successful `pages.yml` run, confirm:
 
-   https://muradyanvano1995.github.io/react-hooks/
+   https://muradyanvano.github.io/react-hooks/
 
 Storybook is built with `STORYBOOK_BASE_PATH=/react-hooks/` so assets resolve under the repository subpath. Do not change the library Vite `base` for this.
 

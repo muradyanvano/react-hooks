@@ -3,7 +3,7 @@ import { create } from 'storybook/theming'
 export default create({
   base: 'light',
   brandTitle: '@muradyanvano/react-hooks',
-  brandUrl: 'https://github.com/muradyanvano1995/react-hooks',
+  brandUrl: 'https://github.com/muradyanvano/react-hooks',
   brandTarget: '_blank',
   colorPrimary: '#4f46e5',
   colorSecondary: '#4f46e5',

@@ -43,7 +43,7 @@ Keep the toggle control inside the referenced container so the default `pointerd
 
 ## Next steps
 
-- Browse interactive examples in [Storybook](https://muradyanvano1995.github.io/react-hooks/)
+- Browse interactive examples in [Storybook](https://muradyanvano.github.io/react-hooks/)
 - Read the [public API reference](./public-api.md)
 - Review [SSR guidance](./guides/ssr.md) before using hooks in server-rendered apps
 - See category guides for [browser APIs](./guides/browser-apis.md), [storage and cookies](./guides/storage-and-cookies.md), and [media and permissions](./guides/media-and-permissions.md)

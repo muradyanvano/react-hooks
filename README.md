@@ -2,11 +2,11 @@
 
 Production-oriented React hooks for React 18 and 19 — strongly typed, ESM-only, SSR-safe to import, and StrictMode-safe.
 
-[![CI](https://github.com/muradyanvano1995/react-hooks/actions/workflows/ci.yml/badge.svg)](https://github.com/muradyanvano1995/react-hooks/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/github/package-json/v/muradyanvano1995/react-hooks?label=npm)](https://www.npmjs.com/package/@muradyanvano/react-hooks)
+[![CI](https://github.com/muradyanvano/react-hooks/actions/workflows/ci.yml/badge.svg)](https://github.com/muradyanvano/react-hooks/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/github/package-json/v/muradyanvano/react-hooks?label=npm)](https://www.npmjs.com/package/@muradyanvano/react-hooks)
 [![npm downloads](https://img.shields.io/npm/dm/@muradyanvano/react-hooks.svg)](https://www.npmjs.com/package/@muradyanvano/react-hooks)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Storybook](https://img.shields.io/badge/docs-Storybook-ff4785.svg)](https://muradyanvano1995.github.io/react-hooks/)
+[![Storybook](https://img.shields.io/badge/docs-Storybook-ff4785.svg)](https://muradyanvano.github.io/react-hooks/)
 
 ## Installation
 
@@ -86,15 +86,15 @@ Keep the trigger inside the referenced container so the default `pointerdown` li
 
 ## Documentation
 
-| Resource                                                     | Description                                   |
-| ------------------------------------------------------------ | --------------------------------------------- |
-| [Storybook](https://muradyanvano1995.github.io/react-hooks/) | Interactive examples and docs                 |
-| [Public API](./docs/public-api.md)                           | Authoritative signatures, types, and behavior |
-| [Getting started](./docs/getting-started.md)                 | Install, peers, and first usage               |
-| [SSR guide](./docs/guides/ssr.md)                            | Server rendering and Client Components        |
-| [Release guide](./docs/releasing.md)                         | First release and later releases              |
-| [Changelog](./CHANGELOG.md)                                  | Version history                               |
-| [Contributing](./docs/contributing.md)                       | Local development and verification            |
+| Resource                                                 | Description                                   |
+| -------------------------------------------------------- | --------------------------------------------- |
+| [Storybook](https://muradyanvano.github.io/react-hooks/) | Interactive examples and docs                 |
+| [Public API](./docs/public-api.md)                       | Authoritative signatures, types, and behavior |
+| [Getting started](./docs/getting-started.md)             | Install, peers, and first usage               |
+| [SSR guide](./docs/guides/ssr.md)                        | Server rendering and Client Components        |
+| [Release guide](./docs/releasing.md)                     | First release and later releases              |
+| [Changelog](./CHANGELOG.md)                              | Version history                               |
+| [Contributing](./docs/contributing.md)                   | Local development and verification            |
 
 Additional guides: [browser APIs](./docs/guides/browser-apis.md), [storage and cookies](./docs/guides/storage-and-cookies.md), [media and permissions](./docs/guides/media-and-permissions.md).
 

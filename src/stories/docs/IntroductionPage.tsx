@@ -66,7 +66,7 @@ export function IntroductionPage() {
           </span>
           <a
             className="rounded-full bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-800 underline-offset-2 hover:underline"
-            href="https://muradyanvano1995.github.io/react-hooks/"
+            href="https://muradyanvano.github.io/react-hooks/"
             rel="noreferrer"
             target="_blank"
           >
