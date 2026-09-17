@@ -1,6 +1,6 @@
 # Browser APIs
 
-Related: [SSR](./ssr.md) · [Public API](../public-api.md) · [Storybook](https://muradyanvano1995.github.io/react-hooks/)
+Related: [SSR](./ssr.md) · [Public API](../public-api.md) · [Storybook](https://muradyanvano.github.io/react-hooks/)
 
 Several hooks wrap browser platform APIs. They share these boundaries:
 

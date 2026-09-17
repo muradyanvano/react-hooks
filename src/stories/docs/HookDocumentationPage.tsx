@@ -68,7 +68,7 @@ export function HookDocumentationPage({ hookName }: { hookName: HookName }) {
           Install from npm. Interactive documentation is also available on{' '}
           <a
             className="font-medium text-indigo-700 underline-offset-2 hover:underline"
-            href="https://muradyanvano1995.github.io/react-hooks/"
+            href="https://muradyanvano.github.io/react-hooks/"
             rel="noreferrer"
             target="_blank"
           >

@@ -79,7 +79,7 @@ describe('package version display sync', () => {
       /img\.shields\.io\/npm\/v\/@muradyanvano\/react-hooks/,
     )
     expect(readme).toMatch(
-      /img\.shields\.io\/github\/package-json\/v\/muradyanvano1995\/react-hooks\?label=npm/,
+      /img\.shields\.io\/github\/package-json\/v\/muradyanvano\/react-hooks\?label=npm/,
     )
   })
 

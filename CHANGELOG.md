@@ -36,7 +36,7 @@ First stable release of `@muradyanvano/react-hooks`.
 ### Changed
 
 - Version `0.1.0-beta.1` → `1.0.0`; removed `private: true`
-- Homepage set to https://muradyanvano1995.github.io/react-hooks/
+- Homepage set to https://muradyanvano.github.io/react-hooks/
 - Storybook Introduction / Getting Started / hook docs pages updated for the stable package and Pages URL
 - Storybook static builds accept `STORYBOOK_BASE_PATH` for repository-subpath hosting
 
