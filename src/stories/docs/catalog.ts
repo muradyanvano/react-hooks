@@ -1866,8 +1866,18 @@ export function hooksByCategory(category: HookCategory): HookDocumentation[] {
   return HOOK_CATALOG_LIST.filter((hook) => hook.category === category)
 }
 
-export function hookDocsPath(name: HookName): string {
-  return `?path=/docs/hooks-${name.toLowerCase()}--documentation`
+/**
+ * Manager URL for a docs entry, for links rendered inside the preview iframe
+ * with `target="_top"`. The leading `./` resolves against `iframe.html`'s
+ * directory, so it reaches the manager under any base path (`/` locally,
+ * `/react-hooks/` on GitHub Pages); a bare `?path=` would load `iframe.html`.
+ */
+export function storybookDocsHref(docsId: string): string {
+  return `./?path=/docs/${docsId}--documentation`
+}
+
+export function hookDocsPath(name: string): string {
+  return storybookDocsHref(`hooks-${name.toLowerCase()}`)
 }
 
 export const HOOK_COUNT = HOOK_NAMES.length

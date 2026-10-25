@@ -95,13 +95,62 @@ function UrlParameterEditorInner({ fixture }: { fixture: UrlWindowFixture }) {
   const [writeMode, setWriteMode] =
     useState<UseUrlSearchParamsWriteMode>('push')
   const [navStatus, setNavStatus] = useState('idle')
-  const [tick, setTick] = useState(0)
-  const { params, searchParams, isReady, set, append, remove, reset, clear } =
-    useUrlSearchParams('history', {
-      window: fixture.window,
-      writeMode,
-      initialValue: { foo: 'bar', library: 'awesome', biz: 'biz' },
+  const {
+    params,
+    searchParams,
+    isReady,
+    set,
+    setParams,
+    append,
+    remove,
+    reset,
+    clear,
+  } = useUrlSearchParams('history', {
+    window: fixture.window,
+    writeMode,
+    initialValue: { foo: 'bar', library: 'awesome', biz: 'biz' },
+  })
+
+  // Application-owned trail. Native history.back() inside a same-origin
+  // iframe walks the tab's joint session history and can navigate Storybook.
+  const serialized = searchParams.toString()
+  const [trail, setTrail] = useState<{ past: string[]; future: string[] }>({
+    past: [],
+    future: [],
+  })
+  const lastSerializedRef = useRef<string | null>(null)
+  const navigatingRef = useRef(false)
+
+  useEffect(() => {
+    const last = lastSerializedRef.current
+    lastSerializedRef.current = serialized
+    if (last === null || last === serialized) {
+      return
+    }
+    if (navigatingRef.current) {
+      navigatingRef.current = false
+      return
+    }
+    setTrail((current) => ({
+      past: [...current.past, last].slice(-20),
+      future: [],
+    }))
+  }, [serialized])
+
+  const applySerialized = (value: string) => {
+    const next: Record<string, string | string[]> = {}
+    new URLSearchParams(value).forEach((entry, key) => {
+      const existing = next[key]
+      next[key] =
+        existing === undefined
+          ? entry
+          : Array.isArray(existing)
+            ? [...existing, entry]
+            : [existing, entry]
     })
+    navigatingRef.current = true
+    setParams(next)
+  }
 
   const rows = useMemo(() => {
     const keys = Object.keys(params)
@@ -132,7 +181,7 @@ function UrlParameterEditorInner({ fixture }: { fixture: UrlWindowFixture }) {
     <Shell
       title="URL parameter editor"
       description="Live playground for history-mode search parameters inside an isolated same-origin iframe. Storybook’s own URL is never mutated."
-      instruction="Edit foo, add a parameter, append a repeated tag, remove a row, use Back/Forward, then Reset."
+      instruction="Edit foo, add a parameter, append a repeated tag, remove a row, step through Demo previous / Demo next, then Reset."
       badge={isReady ? 'Ready' : 'Hydrating'}
       code={snippets.editorSnippet}
       aside={
@@ -191,27 +240,43 @@ function UrlParameterEditorInner({ fixture }: { fixture: UrlWindowFixture }) {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            className="rounded-lg bg-slate-900 px-3 py-2 text-sm text-white"
-            data-testid="usp-back"
+            className="rounded-lg bg-slate-900 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
+            data-testid="usp-editor-previous"
+            disabled={trail.past.length === 0}
             onClick={() => {
-              setNavStatus('back')
-              fixture.window.history.back()
-              queueMicrotask(() => setTick((n) => n + 1))
+              const previous = trail.past.at(-1)
+              if (previous === undefined) {
+                return
+              }
+              setTrail((current) => ({
+                past: current.past.slice(0, -1),
+                future: [serialized, ...current.future],
+              }))
+              setNavStatus('demo previous')
+              applySerialized(previous)
             }}
           >
-            Back
+            Demo previous
           </button>
           <button
             type="button"
-            className="rounded-lg bg-slate-900 px-3 py-2 text-sm text-white"
-            data-testid="usp-forward"
+            className="rounded-lg bg-slate-900 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
+            data-testid="usp-editor-next"
+            disabled={trail.future.length === 0}
             onClick={() => {
-              setNavStatus('forward')
-              fixture.window.history.forward()
-              queueMicrotask(() => setTick((n) => n + 1))
+              const upcoming = trail.future[0]
+              if (upcoming === undefined) {
+                return
+              }
+              setTrail((current) => ({
+                past: [...current.past, serialized],
+                future: current.future.slice(1),
+              }))
+              setNavStatus('demo next')
+              applySerialized(upcoming)
             }}
           >
-            Forward
+            Demo next
           </button>
           <button
             type="button"
@@ -300,7 +365,6 @@ function UrlParameterEditorInner({ fixture }: { fixture: UrlWindowFixture }) {
                         } else {
                           set(row.key, next)
                         }
-                        setTick((n) => n + 1)
                       }}
                     />
                   </label>
@@ -317,7 +381,6 @@ function UrlParameterEditorInner({ fixture }: { fixture: UrlWindowFixture }) {
                       } else {
                         remove(row.key)
                       }
-                      setTick((n) => n + 1)
                     }}
                   >
                     Remove
@@ -333,8 +396,6 @@ function UrlParameterEditorInner({ fixture }: { fixture: UrlWindowFixture }) {
           className="overflow-x-auto rounded-lg bg-slate-50 p-3 text-xs text-slate-800"
         >
           {JSON.stringify(params, null, 2)}
-          {/* tick forces URL display refresh after history nav */}
-          <span className="sr-only">{tick}</span>
         </pre>
       </div>
     </Shell>

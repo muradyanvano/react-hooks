@@ -4,6 +4,14 @@ import { useOnKeyStroke } from '@muradyanvano/react-hooks'
 const ARROWS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'] as const
 const SIZE = 3
 
+function isEditableTarget(target: EventTarget | null) {
+  return (
+    target instanceof HTMLElement &&
+    (target.isContentEditable ||
+      ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
+  )
+}
+
 export function ArrowGridNavigator() {
   const [row, setRow] = useState(1)
   const [col, setCol] = useState(1)
@@ -11,6 +19,10 @@ export function ArrowGridNavigator() {
   const [eventCount, setEventCount] = useState(0)
 
   useOnKeyStroke([...ARROWS], (event) => {
+    // Leave caret movement in text fields alone.
+    if (isEditableTarget(event.target)) {
+      return
+    }
     event.preventDefault()
     setLastKey(event.key)
     setEventCount((count) => count + 1)
@@ -129,11 +141,24 @@ import { useOnKeyStroke } from '@muradyanvano/react-hooks'
 
 const MEDIA_KEYS = [' ', 'Enter'] as const
 
+function isInteractiveTarget(target: EventTarget | null) {
+  return (
+    target instanceof Element &&
+    target.closest(
+      'a[href], button, input, select, textarea, summary, [contenteditable="true"], [role="button"], [role="link"]',
+    ) !== null
+  )
+}
+
 export function MediaToggleKeys() {
   const [last, setLast] = useState('None yet')
   const [count, setCount] = useState(0)
 
   useOnKeyStroke([...MEDIA_KEYS], (event) => {
+    // Space/Enter must still activate buttons, links, and fields natively.
+    if (isInteractiveTarget(event.target)) {
+      return
+    }
     event.preventDefault()
     setLast(\`Matched: \${event.key === ' ' ? 'Space' : event.key}\`)
     setCount((value) => value + 1)
@@ -159,7 +184,8 @@ export const repeatedSnippet = `import { useState } from 'react'
 import { useOnKeyStroke } from '@muradyanvano/react-hooks'
 
 function dispatchArrowRight(repeat: boolean) {
-  window.dispatchEvent(
+  // Bubbles from <body> up to the window listener.
+  document.body.dispatchEvent(
     new KeyboardEvent('keydown', {
       key: 'ArrowRight',
       code: 'ArrowRight',

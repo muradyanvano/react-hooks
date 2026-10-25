@@ -6,8 +6,12 @@ addons.setConfig({
   sidebar: {
     showRoots: true,
   },
-  panelPosition: 'bottom',
-  enableShortcuts: true,
-  showToolbar: true,
-  initialActive: 'sidebar',
+  layout: {
+    panelPosition: 'bottom',
+    showToolbar: true,
+    initialActive: 'sidebar',
+  },
+  ui: {
+    enableShortcuts: true,
+  },
 })

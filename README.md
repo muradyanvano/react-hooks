@@ -19,7 +19,7 @@ npm install @muradyanvano/react-hooks
 | Requirement        | Value                               |
 | ------------------ | ----------------------------------- |
 | React (peer)       | `^18.0.0 \|\| ^19.0.0`              |
-| Module format      | ESM-only                            |
+| Module format      | ESM-only (no CommonJS `require()`)  |
 | Node (engines)     | `^20.19.0 \|\| >=22.12.0`           |
 | Runtime dependency | `qrcode` (used by `useQRCode` only) |
 

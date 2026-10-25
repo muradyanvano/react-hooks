@@ -142,23 +142,32 @@ export function SwitchableFocusTarget() {
   )
 }`
 
-export const alreadyFocusedSnippet = `import { useRef } from 'react'
+export const alreadyFocusedSnippet = `import { useRef, useState } from 'react'
 import { useFocus } from '@muradyanvano/react-hooks'
 
-export function AlreadyFocusedField() {
+function AlreadyFocusedField() {
   const inputRef = useRef<HTMLInputElement>(null)
+  // autoFocus runs during commit, before useFocus attaches listeners.
   const { focused } = useFocus(inputRef)
 
   return (
-    <input
-      ref={(node) => {
-        inputRef.current = node
-        node?.focus()
-      }}
-      type="text"
-      aria-label="Synchronized field"
-      data-focused={String(focused)}
-    />
+    <>
+      <input ref={inputRef} autoFocus type="text" aria-label="Synchronized field" />
+      <p>Hook reports {String(focused)}</p>
+    </>
+  )
+}
+
+export function AlreadyFocusedDemo() {
+  const [mounted, setMounted] = useState(false)
+
+  return (
+    <>
+      <button type="button" onClick={() => setMounted((value) => !value)}>
+        {mounted ? 'Unmount field' : 'Mount focused field'}
+      </button>
+      {mounted ? <AlreadyFocusedField /> : null}
+    </>
   )
 }`
 

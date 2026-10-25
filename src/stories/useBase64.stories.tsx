@@ -73,6 +73,42 @@ export const Overview: Story = {
       expect(canvas.getByTestId('base64-output')).not.toHaveTextContent('data:')
     })
 
+    // Regression: a rejected clipboard write shows feedback, not an
+    // unhandled rejection.
+    const clipboardDescriptor = Object.getOwnPropertyDescriptor(
+      navigator,
+      'clipboard',
+    )
+    const execCommand = document.execCommand.bind(document)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: () => Promise.reject(new Error('Document is not focused.')),
+      },
+    })
+    document.execCommand = () => false
+    try {
+      await userEvent.click(canvas.getByRole('button', { name: 'Copy output' }))
+      await expect(
+        await canvas.findByRole('button', { name: 'Copy failed' }),
+      ).toBeInTheDocument()
+    } finally {
+      document.execCommand = execCommand
+      if (clipboardDescriptor === undefined) {
+        delete (navigator as { clipboard?: unknown }).clipboard
+      } else {
+        Object.defineProperty(navigator, 'clipboard', clipboardDescriptor)
+      }
+    }
+    await waitFor(
+      () => {
+        expect(
+          canvas.getByRole('button', { name: 'Copy output' }),
+        ).toBeInTheDocument()
+      },
+      { timeout: 3000 },
+    )
+
     await expectCodeDisclosure(canvas, base64StudioSnippet)
   },
 }
@@ -122,7 +158,7 @@ export const UnicodeAndEmoji: Story = {
 export const DataUrlVersusPayload: Story = {
   name: 'Data URL versus payload',
   ...storyDescription(
-    'Some consumers need a data: URL for an <img src>, others just need the raw Base64 string for JSON or a header. This story sets dataUrl: false on the same source text used elsewhere. The output is the bare Base64 payload with no MIME prefix, letting you compare it directly against the data URL variant.',
+    'Some consumers need a data: URL for an `<img src>`, others just need the raw Base64 string for JSON or a header. This story sets dataUrl: false on the same source text used elsewhere. The output is the bare Base64 payload with no MIME prefix, letting you compare it directly against the data URL variant.',
   ),
 
   render: () => <DataUrlExample />,
@@ -185,7 +221,7 @@ export const FileAndBlob: Story = {
 export const ImagePreview: Story = {
   name: 'Image preview',
   ...storyDescription(
-    'Turning an already-loaded <img> into a data URL is useful for caching or export flows that avoid re-fetching the source. The source is a local SVG image element rather than a raw byte source. Encoding an image element is asynchronous, so the output only resolves to a data:image URL once the hook finishes reading the image data.',
+    'Turning an already-loaded `<img>` into a data URL is useful for caching or export flows that avoid re-fetching the source. The source is a local SVG image element rather than a raw byte source. Encoding an image element is asynchronous, so the output only resolves to a data:image URL once the hook finishes reading the image data.',
   ),
 
   render: () => <ImagePreviewExample />,
@@ -205,7 +241,7 @@ export const ImagePreview: Story = {
 export const CanvasArtwork: Story = {
   name: 'Canvas artwork',
   ...storyDescription(
-    'Exporting canvas drawings — charts, generated thumbnails — usually means turning pixels into a shareable string. This source is a <canvas> with locally drawn artwork and no explicit output type set. Canvas sources default to PNG, so the hook returns a data:image/png Base64 string representing the current canvas contents.',
+    'Exporting canvas drawings — charts, generated thumbnails — usually means turning pixels into a shareable string. This source is a `<canvas>` with locally drawn artwork and no explicit output type set. Canvas sources default to PNG, so the hook returns a data:image/png Base64 string representing the current canvas contents.',
   ),
 
   render: () => <CanvasArtworkExample />,

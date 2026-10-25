@@ -148,31 +148,45 @@ function overlayRectInContainer(
  */
 function HighlightOverlay({
   containerRef,
-  rect,
+  target,
   testId,
   color = 'indigo',
 }: {
   containerRef: RefObject<HTMLElement | null>
-  rect: DOMRect | null
+  target: Element | null
   testId: string
   color?: OverlayColor
 }) {
   const [localRect, setLocalRect] = useState<DOMRect | null>(null)
 
   useEffect(() => {
+    // Re-measure the live target: a stored DOMRect goes stale on resize/reflow.
     const updateRect = () => {
-      setLocalRect(overlayRectInContainer(containerRef.current, rect))
+      setLocalRect(
+        overlayRectInContainer(
+          containerRef.current,
+          target?.getBoundingClientRect() ?? null,
+        ),
+      )
     }
 
     updateRect()
     window.addEventListener('scroll', updateRect, true)
     window.addEventListener('resize', updateRect)
+    const observer =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(updateRect)
+    if (containerRef.current != null) {
+      observer?.observe(containerRef.current)
+    }
 
     return () => {
       window.removeEventListener('scroll', updateRect, true)
       window.removeEventListener('resize', updateRect)
+      observer?.disconnect()
     }
-  }, [containerRef, rect])
+  }, [containerRef, target])
 
   if (localRect == null) {
     return null
@@ -209,6 +223,21 @@ function Crosshair({
   testId: string
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [stageResizes, setStageResizes] = useState(0)
+
+  useEffect(() => {
+    const stage = stageRef.current
+    if (stage == null || typeof ResizeObserver === 'undefined') {
+      return
+    }
+    const observer = new ResizeObserver(() => {
+      setStageResizes((count) => count + 1)
+    })
+    observer.observe(stage)
+    return () => {
+      observer.disconnect()
+    }
+  }, [stageRef])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -230,8 +259,6 @@ function Crosshair({
     // calls without subtracting the stage's own offset first.
     canvas.width = Math.max(1, Math.round(width * devicePixelRatio))
     canvas.height = Math.max(1, Math.round(height * devicePixelRatio))
-    canvas.style.width = `${width}px`
-    canvas.style.height = `${height}px`
 
     const context = canvas.getContext('2d')
     if (context == null) {
@@ -267,14 +294,14 @@ function Crosshair({
     context.beginPath()
     context.arc(canvasX, canvasY, 3, 0, Math.PI * 2)
     context.fill()
-  }, [stageRef, x, y])
+  }, [stageRef, x, y, stageResizes])
 
   return (
     <canvas
       ref={canvasRef}
       data-testid={testId}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-30"
+      className="pointer-events-none absolute inset-0 z-30 h-full w-full"
     />
   )
 }
@@ -339,8 +366,6 @@ export function XYCoordinatesExample() {
     setX(-1000)
     setY(-1000)
   }, [])
-
-  const rect = element?.getBoundingClientRect() ?? null
 
   return (
     <ExampleShowcase
@@ -427,7 +452,7 @@ export function XYCoordinatesExample() {
         </div>
         <HighlightOverlay
           containerRef={stageRef}
-          rect={rect}
+          target={element}
           testId="xy-overlay"
         />
         <Crosshair stageRef={stageRef} x={x} y={y} testId="xy-crosshair" />
@@ -665,7 +690,7 @@ export function MultipleElementsExample() {
           <HighlightOverlay
             key={`${describeElement(node)}-${index}`}
             containerRef={stageRef}
-            rect={node.getBoundingClientRect()}
+            target={node}
             testId={`multi-overlay-${index}`}
             color={overlayColors[index % overlayColors.length] ?? 'indigo'}
           />
@@ -1383,8 +1408,6 @@ export function PlaygroundExample({
 
   const stack = isElementList(element) ? element : null
   const single = isElementList(element) ? null : element
-  const rect = single?.getBoundingClientRect() ?? null
-
   return (
     <ExampleShowcase
       hookName="useElementByPoint"
@@ -1415,38 +1438,46 @@ export function PlaygroundExample({
       }
     >
       <div
-        ref={stageRef}
-        data-testid="pg-stage"
-        className={stageClass}
-        style={PLAYGROUND_STAGE_SIZE}
+        role="region"
+        aria-label="Playground stage"
+        tabIndex={0}
+        data-allow-h-scroll
+        className="max-w-full overflow-x-auto rounded-xl focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
       >
-        <TargetBox
-          testId="pg-box-a"
-          label="Box A"
-          style={{
-            position: 'absolute',
-            left: 40,
-            top: 30,
-            width: 140,
-            height: 70,
-          }}
-        />
-        <TargetBox
-          testId="pg-box-b"
-          label="Box B"
-          style={{
-            position: 'absolute',
-            left: 220,
-            top: 130,
-            width: 140,
-            height: 70,
-          }}
-        />
-        <HighlightOverlay
-          containerRef={stageRef}
-          rect={rect}
-          testId="pg-overlay"
-        />
+        <div
+          ref={stageRef}
+          data-testid="pg-stage"
+          className={`${stageClass} shrink-0`}
+          style={PLAYGROUND_STAGE_SIZE}
+        >
+          <TargetBox
+            testId="pg-box-a"
+            label="Box A"
+            style={{
+              position: 'absolute',
+              left: 40,
+              top: 30,
+              width: 140,
+              height: 70,
+            }}
+          />
+          <TargetBox
+            testId="pg-box-b"
+            label="Box B"
+            style={{
+              position: 'absolute',
+              left: 220,
+              top: 130,
+              width: 140,
+              height: 70,
+            }}
+          />
+          <HighlightOverlay
+            containerRef={stageRef}
+            target={single}
+            testId="pg-overlay"
+          />
+        </div>
       </div>
     </ExampleShowcase>
   )

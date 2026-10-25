@@ -29,10 +29,12 @@ CI installs this after `npm ci`.
 | `npm run test:layout`      | Multi-viewport Storybook layout audit (slow)                                                          |
 | `npm run test:reset`       | Reset-after-play browser audit                                                                        |
 | `npm run test:ssr:react18` | Packed-consumer SSR check against React 18                                                            |
+| `npm run test:ssr:react19` | Packed-consumer SSR check against React 19                                                            |
+| `npm run test:consumer`    | Packed-consumer TypeScript (Bundler + NodeNext) and Node ESM import check                             |
 | `npm run build:lib`        | ESM library + declarations                                                                            |
 | `npm run pack:dry-run`     | Inspect publish tarball                                                                               |
 | `npm run verify`           | Format, typecheck, lint, unit tests, lib + Storybook builds                                           |
-| `npm run verify:ci`        | `verify` + Storybook browser tests + React 18 SSR                                                     |
+| `npm run verify:ci`        | `verify` + Storybook browser tests + React 18/19 SSR + packed consumer                                |
 | `npm run validate:release` | Package metadata / allowlist / workflow safety checks (add `--require-publishable` after `build:lib`) |
 
 ## Guidelines

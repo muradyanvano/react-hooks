@@ -38,7 +38,15 @@ import {
 const meta = {
   title: 'Hooks/useInfiniteScroll',
   tags: ['autodocs'],
-  ...createHookStoryMeta('useInfiniteScroll', PlaygroundExample),
+  ...createHookStoryMeta('useInfiniteScroll', PlaygroundExample, {
+    argTypes: {
+      direction: {
+        control: 'inline-radio',
+        options: ['top', 'right', 'bottom', 'left'],
+        description: 'Edge that triggers loading.',
+      },
+    },
+  }),
 } satisfies Meta<typeof PlaygroundExample>
 
 export default meta

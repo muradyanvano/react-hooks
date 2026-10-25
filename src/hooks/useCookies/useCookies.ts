@@ -119,6 +119,8 @@ export function useCookies(
     options?.pollingInterval,
   )
   const onErrorOption = options?.onError
+  const needsPolling =
+    watchOption && normalizeDependencies(dependencies) !== 'none'
 
   const hasInitialCookies = typeof initialCookies === 'string'
   const initialRaw = hasInitialCookies ? initialCookies : ''
@@ -303,9 +305,6 @@ export function useCookies(
     const targetDocument = resolveCookieDocument(documentOption)
     documentRef.current = targetDocument
 
-    const needsPolling =
-      watchOption && normalizeDependencies(dependencies) !== 'none'
-
     let unsubscribe: (() => void) | undefined
 
     if (targetDocument != null) {
@@ -379,14 +378,13 @@ export function useCookies(
   }, [
     applySnapshot,
     clearError,
-    dependencies,
     documentOption,
     flushPendingOperations,
     handleRegistryNotification,
     hasInitialCookies,
+    needsPolling,
     pollingIntervalOption,
     reportError,
-    watchOption,
   ])
 
   useEffect(() => {
@@ -395,8 +393,6 @@ export function useCookies(
     if (subscriber == null || targetDocument == null) {
       return
     }
-    const needsPolling =
-      watchOption && normalizeDependencies(dependencies) !== 'none'
     const nextInterval = pollingIntervalOption
     if (
       subscriber.needsPolling === needsPolling &&
@@ -407,7 +403,7 @@ export function useCookies(
     subscriber.needsPolling = needsPolling
     subscriber.pollingInterval = nextInterval
     reconcileCookieDocumentObservation(targetDocument)
-  }, [dependencies, pollingIntervalOption, watchOption])
+  }, [needsPolling, pollingIntervalOption])
 
   const get = useCallback(
     <T = unknown>(

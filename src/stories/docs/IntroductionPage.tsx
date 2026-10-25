@@ -6,6 +6,7 @@ import {
   HOOK_CATEGORIES,
   hookDocsPath,
   hooksByCategory,
+  storybookDocsHref,
 } from './catalog'
 import { PACKAGE_NAME, PACKAGE_STATUS_LABEL } from './packageMetadata'
 import type { HookCategory, HookDocumentation } from './types'
@@ -47,7 +48,7 @@ export function IntroductionPage() {
         <p className="text-xs font-semibold tracking-[0.16em] text-indigo-600 uppercase">
           React hooks library
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight">
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           {PACKAGE_NAME}
         </h1>
         <p className="max-w-2xl text-lg leading-8 text-slate-600">
@@ -79,18 +80,27 @@ export function IntroductionPage() {
         <h2 className="text-xl font-semibold">Principles</h2>
         <ul className="grid gap-3 sm:grid-cols-2">
           {[
-            'Strongly typed TypeScript APIs',
-            'SSR-safe module imports',
-            'StrictMode-safe effect cleanup',
-            'Tree-shakable ESM-only builds',
-            'Minimal runtime dependencies (`qrcode` for useQRCode)',
-            'React 18 and 19 peer support',
+            { key: 'types', label: 'Strongly typed TypeScript APIs' },
+            { key: 'ssr', label: 'SSR-safe module imports' },
+            { key: 'strict', label: 'StrictMode-safe effect cleanup' },
+            { key: 'esm', label: 'Tree-shakable ESM-only builds' },
+            {
+              key: 'deps',
+              label: (
+                <>
+                  Minimal runtime dependencies (
+                  <code className="font-mono text-xs">qrcode</code> for{' '}
+                  <code className="font-mono text-xs">useQRCode</code>)
+                </>
+              ),
+            },
+            { key: 'peers', label: 'React 18 and 19 peer support' },
           ].map((item) => (
             <li
-              key={item}
+              key={item.key}
               className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm"
             >
-              {item}
+              {item.label}
             </li>
           ))}
         </ul>
@@ -137,7 +147,7 @@ export function IntroductionPage() {
         <div className="flex flex-wrap gap-3">
           <a
             className="inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white no-underline"
-            href="?path=/docs/getting-started--documentation"
+            href={storybookDocsHref('getting-started')}
             target="_top"
           >
             Getting started

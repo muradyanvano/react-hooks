@@ -121,6 +121,24 @@ export const Overview: Story = {
       expect(/(?:^|&)biz=/.test(serialized)).toBe(false)
     })
 
+    // Regression: the editor's trail is app-owned; native history.back() in
+    // the iframe would walk the tab's joint session history.
+    const topHref = window.top?.location.href
+    await userEvent.click(canvas.getByTestId('usp-editor-previous'))
+    await waitFor(() => {
+      expect(canvas.getByTestId('usp-serialized')).toHaveTextContent('biz=biz')
+    })
+    await expect(canvas.getByTestId('usp-nav-status')).toHaveTextContent(
+      'demo previous',
+    )
+    await userEvent.click(canvas.getByTestId('usp-editor-next'))
+    await waitFor(() => {
+      const serialized = canvas.getByTestId('usp-serialized').textContent ?? ''
+      expect(/(?:^|&)biz=/.test(serialized)).toBe(false)
+    })
+    await expect(canvas.getByTestId('usp-editor-next')).toBeDisabled()
+    expect(window.top?.location.href).toBe(topHref)
+
     await userEvent.click(canvas.getByTestId('usp-write-push'))
     await userEvent.click(canvas.getByTestId('usp-reset'))
     await waitFor(() => {

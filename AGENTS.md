@@ -4,7 +4,7 @@ Operational guidance for coding agents working in `@muradyanvano/react-hooks`.
 
 ## Project
 
-Stable ESM-only React hooks library (`1.0.2`). React peer range: `^18.0.0 || ^19.0.0`.
+Stable ESM-only React hooks library (`1.0.3`). React peer range: `^18.0.0 || ^19.0.0`.
 
 Public entry: `src/index.ts` → `dist/index.js` + `dist/index.d.ts`.
 
@@ -114,7 +114,7 @@ Hook implementations: `src/hooks/<hookName>/<hookName>.ts` with `.test.tsx` and 
 ```bash
 npm install
 npm run verify      # format, typecheck, lint, unit tests, lib build, Storybook build
-npm run verify:ci   # verify + Storybook browser tests + React 18 SSR consumer check
+npm run verify:ci   # verify + Storybook browser tests + React 18/19 SSR + packed consumer checks
 ```
 
 Useful focused commands:
@@ -125,6 +125,8 @@ Useful focused commands:
 | `npm test`                 | Unit tests (Vitest, jsdom)                 |
 | `npm run test:storybook`   | Storybook interaction/a11y checks          |
 | `npm run test:ssr:react18` | Packed-consumer SSR check against React 18 |
+| `npm run test:ssr:react19` | Packed-consumer SSR check against React 19 |
+| `npm run test:consumer`    | Packed-consumer TypeScript + ESM import    |
 | `npm run build:lib`        | ESM library + declarations                 |
 | `npm run pack:dry-run`     | Inspect publish tarball                    |
 | `npm run validate:release` | Package/workflow release safety checks     |

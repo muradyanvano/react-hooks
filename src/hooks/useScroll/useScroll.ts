@@ -667,13 +667,14 @@ export function useScroll<T extends UseScrollTarget = HTMLElement>(
       }
     }
 
-    attachmentRef.current = {
+    const attachment: Attachment = {
       listenerTarget,
       onScroll,
       listenerOptions,
       observer,
       measureHandle: null,
     }
+    attachmentRef.current = attachment
     attachedTargetRef.current = target
 
     applyMeasurement(generation, target, null, {
@@ -682,7 +683,9 @@ export function useScroll<T extends UseScrollTarget = HTMLElement>(
     })
 
     return () => {
-      if (generation !== lifecycleGenerationRef.current) {
+      // The mount effect's cleanup bumps the lifecycle generation before this
+      // cleanup runs on unmount, so ownership is checked by attachment identity.
+      if (attachmentRef.current !== attachment) {
         return
       }
 

@@ -386,6 +386,36 @@ describe('useCookies', () => {
     expect(good).toHaveBeenCalled()
   })
 
+  it('keeps change listeners across re-renders with an inline dependency array', async () => {
+    const name = key('inline_deps')
+    const { result, rerender } = renderHook(() => useCookies([name]))
+    await waitFor(() => expect(result.current.isReady).toBe(true))
+
+    const listener = vi.fn()
+    result.current.addChangeListener(listener)
+    rerender()
+    rerender()
+
+    act(() => {
+      result.current.set(name, 'kept', { path: '/' })
+    })
+    expect(listener).toHaveBeenCalledWith(
+      expect.objectContaining({ name, value: 'kept' }),
+    )
+  })
+
+  it('does not resubscribe when re-rendered with an equal inline dependency array', async () => {
+    const name = key('inline_resub')
+    const { result, rerender } = renderHook(() => useCookies([name]))
+    await waitFor(() => expect(result.current.isReady).toBe(true))
+
+    const getCookie = vi.spyOn(Document.prototype, 'cookie', 'get')
+    rerender()
+    rerender()
+    expect(getCookie).not.toHaveBeenCalled()
+    getCookie.mockRestore()
+  })
+
   it('does not notify after unmount', async () => {
     const name = key('unmount')
     const { result, unmount } = renderHook(() => useCookies([name]))

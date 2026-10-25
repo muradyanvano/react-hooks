@@ -338,6 +338,27 @@ describe('useElementHover', () => {
       })
       expect(readHovered()).toBe(false)
     })
+
+    it.each([
+      ['enter', { delayEnter: 200 }, ['mouseenter'] as const],
+      ['leave', { delayLeave: 200 }, ['mouseenter', 'mouseleave'] as const],
+    ])(
+      'clears a pending delayed %s timer on unmount',
+      (_label, options, events) => {
+        const { unmount } = render(<Harness options={options} />)
+        const target = screen.getByTestId('target')
+
+        act(() => {
+          for (const type of events) {
+            dispatchMouseBoundary(target, type)
+          }
+        })
+        expect(vi.getTimerCount()).toBe(1)
+
+        unmount()
+        expect(vi.getTimerCount()).toBe(0)
+      },
+    )
   })
 
   describe('enabled lifecycle', () => {

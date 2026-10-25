@@ -269,10 +269,10 @@ export function DeterminateExample() {
               step="1"
               value={Math.round((progress ?? 0) * 100)}
               onChange={(e) => set(Number(e.target.value) / 100)}
-              className="w-full accent-indigo-600"
+              className="h-6 w-full cursor-pointer accent-indigo-600"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               data-testid="btn-reset"
@@ -409,7 +409,7 @@ export function TrickleExample() {
       code={trickleSnippet}
     >
       <ProgressContainer setParent={setParent}>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <button
             type="button"
             data-testid="btn-start"
@@ -884,7 +884,7 @@ export function SpinnerExample() {
             />
             Show spinner
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               data-testid="btn-start"
@@ -984,7 +984,7 @@ export function VisualCustomizationExample() {
               max="8"
               value={height}
               onChange={(e) => setHeight(Number(e.target.value))}
-              className="w-full accent-indigo-600"
+              className="h-6 w-full cursor-pointer accent-indigo-600"
             />
           </div>
           <div>
@@ -1003,11 +1003,11 @@ export function VisualCustomizationExample() {
               step="50"
               value={speed}
               onChange={(e) => setSpeed(Number(e.target.value))}
-              className="w-full accent-indigo-600"
+              className="h-6 w-full cursor-pointer accent-indigo-600"
             />
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             data-testid="btn-start"
@@ -1057,7 +1057,7 @@ export function ReducedMotionExample() {
             </code>{' '}
             automatically via the injected stylesheet.
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               data-testid="btn-start"
@@ -1103,7 +1103,7 @@ export function DynamicTargetExample() {
       code={dynamicTargetSnippet}
     >
       <div className="space-y-4">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             data-testid="btn-panel1"
@@ -1217,7 +1217,7 @@ export function AsyncSaveExample() {
                   ? '❌ Save failed'
                   : 'Ready to save'}
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               data-testid="btn-save"
@@ -1371,7 +1371,7 @@ export function StrictCleanupExample() {
     >
       <ProgressContainer setParent={setParent}>
         <div className="space-y-3">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               data-testid="btn-mount"
@@ -1418,7 +1418,7 @@ function MountableProgressComponent({
       <p className="text-sm text-slate-700" data-testid="mounted-status">
         Mounted — {isLoading ? 'Loading' : 'Idle'}
       </p>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           type="button"
           data-testid="btn-inner-start"
@@ -1462,7 +1462,7 @@ export function SsrBehaviorExample() {
             <strong>SSR idle state:</strong> isLoading = false, progress = null.
             After mount, imperative calls work normally.
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               data-testid="btn-start"

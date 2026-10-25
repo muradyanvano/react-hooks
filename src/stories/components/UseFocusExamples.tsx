@@ -411,41 +411,67 @@ export function DynamicTargetExample() {
   )
 }
 
-export function AlreadyFocusedExample() {
+function AlreadyFocusedField() {
   const inputRef = useRef<HTMLInputElement>(null)
   const { focused } = useFocus(inputRef)
 
   return (
-    <ExampleShowcase
-      hookName="useFocus"
-      title="Already focused"
-      description="When a target is focused before listeners attach, the hook synchronizes from ownerDocument.activeElement after commit."
-      instruction="Load the example — the field receives native focus once, then the hook reports true."
-      code={alreadyFocusedSnippet}
-      aside={
-        <StatusPanel
-          items={[
-            {
-              label: 'Focused',
-              value: String(focused),
-              testId: 'already-focused-value',
-            },
-          ]}
-        />
-      }
-    >
+    <div className="max-w-md space-y-2">
       <input
-        ref={(node) => {
-          inputRef.current = node
-          if (node != null && node.ownerDocument.activeElement !== node) {
-            node.focus()
-          }
-        }}
+        ref={inputRef}
+        autoFocus
         data-testid="already-focused-input"
         type="text"
         aria-label="Synchronized field"
         className={inputClass}
       />
+      <p className="text-sm text-slate-700">
+        Hook reports{' '}
+        <span className="font-mono" data-testid="already-focused-value">
+          {String(focused)}
+        </span>
+      </p>
+    </div>
+  )
+}
+
+export function AlreadyFocusedExample() {
+  const [mounted, setMounted] = useState(false)
+
+  return (
+    <ExampleShowcase
+      hookName="useFocus"
+      title="Already focused"
+      description="autoFocus focuses the field during React's commit, before useFocus attaches its listeners. The hook still reports true because it synchronizes from ownerDocument.activeElement after commit."
+      instruction="Click Mount focused field. The field mounts already focused and the hook reports true; click or Tab anywhere else and focus moves away normally."
+      code={alreadyFocusedSnippet}
+      aside={
+        <StatusPanel
+          items={[
+            {
+              label: 'Mounted',
+              value: String(mounted),
+              testId: 'already-mounted-value',
+            },
+          ]}
+        />
+      }
+    >
+      <button
+        type="button"
+        data-testid="already-toggle"
+        className={secondaryButtonClass}
+        onClick={() => setMounted((value) => !value)}
+      >
+        {mounted ? 'Unmount field' : 'Mount focused field'}
+      </button>
+      <div className="mt-4">
+        {mounted ? (
+          <AlreadyFocusedField />
+        ) : (
+          <p className="text-sm text-slate-600">Field is unmounted.</p>
+        )}
+      </div>
     </ExampleShowcase>
   )
 }

@@ -1,6 +1,6 @@
 # Public API
 
-Status: stable `1.0.2`. Authoritative public API reference for
+Status: stable `1.0.3`. Authoritative public API reference for
 `@muradyanvano/react-hooks`. Interactive examples live in
 [Storybook](https://muradyanvano.github.io/react-hooks/).
 
@@ -126,7 +126,7 @@ Safe to import and call during server rendering. Listeners are effect-only.
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useOnElementRemoval`
 
@@ -195,7 +195,7 @@ Not a replacement for React effect cleanup. When the observing component unmount
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useOnKeyStroke`
 
@@ -267,7 +267,7 @@ Safe to import and call during server rendering. Listeners are effect-only. No b
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useEventListener`
 
@@ -338,7 +338,7 @@ Omitted-window form is SSR-safe to call. Evaluating `document`/`window` as a cal
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useOnLongPress`
 
@@ -418,7 +418,7 @@ Import-safe and effect-only. No listeners or timers during server rendering. No 
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useOnStartTyping`
 
@@ -494,7 +494,7 @@ Import-safe and effect-only. No document listener during server rendering. No `u
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useDevicesList`
 
@@ -544,7 +544,7 @@ Unsupported empty state. No enumeration, permission, or listeners during server 
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useDisplayMedia`
 
@@ -601,7 +601,7 @@ Unsupported idle state (`isSupported: false`, `stream: null`, idle flags). `star
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useElementByPoint`
 
@@ -685,7 +685,7 @@ Safe to import and call during server rendering. `isSupported: false` and an emp
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useElementHover`
 
@@ -730,6 +730,7 @@ Registers native `mouseenter` and `mouseleave` directly on the resolved target. 
 - Reads `ref.current` after React commits; imperative ref assignment requires a later commit to synchronize.
 - Target replacement or `null` resets hover immediately (no `delayLeave`).
 - `enabled: false` detaches listeners, cancels timers, and resets to `false`.
+- Unmount detaches listeners and cancels any pending delayed transition timer.
 
 ### Removal detection
 
@@ -754,7 +755,7 @@ Safe to import and call during server rendering. Returns `false`; no listeners, 
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useFocus`
 
@@ -839,7 +840,7 @@ Safe during server rendering. No listeners or DOM method calls. No `useLayoutEff
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useFocusWithin`
 
@@ -919,7 +920,7 @@ Safe during server rendering. No listeners, microtasks, or DOM calls. No `useLay
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useInfiniteScroll`
 
@@ -993,7 +994,7 @@ Idle return `{ isLoading: false, error: null, check, reset }`. No listeners, obs
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useMouse`
 
@@ -1043,7 +1044,7 @@ Returns `{ x: initialValue.x, y: initialValue.y, sourceType: null }` with no lis
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useMousePressed`
 
@@ -1080,7 +1081,7 @@ Returns `{ pressed: initialValue, sourceType: null }` with no listeners.
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useParallax`
 
@@ -1126,7 +1127,7 @@ Returns `{ roll: 0, tilt: 0, source: 'mouse' }` with no listeners or measurement
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useScroll`
 
@@ -1197,7 +1198,7 @@ Returns idle state with no listeners, observers, timers, or measurements. Impera
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useScrollLock`
 
@@ -1271,7 +1272,7 @@ Safe to import and call during server rendering. Returns requested `isLocked` fr
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useUserMedia`
 
@@ -1333,7 +1334,7 @@ Idle unsupported return; no media request; methods are safe.
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useWebSocket`
 
@@ -1438,7 +1439,7 @@ Closed idle return (`data: null`, `status: 'CLOSED'`, `ws: null`); no WebSocket 
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useLocalStorage`
 
@@ -1524,7 +1525,7 @@ Default-first return with safe no-op controls; no Storage method calls, listener
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useSessionStorage`
 
@@ -1603,7 +1604,7 @@ Default-first return with safe no-op controls; no Storage method calls during re
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useCookies`
 
@@ -1687,6 +1688,7 @@ SSR without `initialCookies`: empty snapshot, `isReady = false`, `isSupported = 
 - Duplicate visible names: first occurrence wins.
 - With `doNotParse: false`, decoded values that are valid JSON become parsed primitives/objects (so `"true"` / `"42"` / `"null"` parse as JSON).
 - Registry is keyed by `Document`. Cookie Store change events are preferred; otherwise one shared poller per document uses the smallest active positive interval.
+- Passing a new `dependencies` array identity on each render (for example an inline literal) does not rebind the document subscription or clear `addChangeListener` registrations; only changes to `document`, `pollingInterval`, whether `initialCookies` is provided, or whether polling is needed (`watch` combined with empty vs non-empty dependencies) rebind.
 - No `httpOnly` option — client JavaScript cannot create or read HttpOnly cookies.
 
 ### Exported types
@@ -1701,7 +1703,7 @@ SSR without `initialCookies`: empty snapshot, `isReady = false`, `isSupported = 
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useJwt`
 
@@ -1805,7 +1807,7 @@ Leading/trailing whitespace around the entire token is trimmed. Whitespace insid
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ---
 
@@ -1915,7 +1917,7 @@ During server-side rendering, `useNProgress` returns `{ isLoading: false, progre
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ---
 
@@ -2017,7 +2019,7 @@ export interface UseQRCodeReturn {
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ---
 
@@ -2098,7 +2100,7 @@ export interface UseFaviconReturn {
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ---
 
@@ -2182,7 +2184,7 @@ export interface UseEyeDropperReturn {
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useFullscreen`
 
@@ -2261,7 +2263,7 @@ interface UseFullscreenReturn {
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useUrlSearchParams`
 
@@ -2376,7 +2378,7 @@ interface UseUrlSearchParamsReturn {
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `usePageLeave`
 
@@ -2417,7 +2419,7 @@ function usePageLeave(options?: UsePageLeaveOptions): UsePageLeaveReturn
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useTextSelection`
 
@@ -2467,7 +2469,7 @@ Empty snapshot with no selection access and no `useLayoutEffect`.
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useBase64`
 
@@ -2519,7 +2521,7 @@ Idle empty output; no auto-encode during render. DOM-only execute paths fail saf
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useDebounceFn`
 
@@ -2569,7 +2571,7 @@ Methods exist; no timers until `run`.
 
 ### Stability
 
-Unreleased beta API. May change before `0.1.0`.
+Stable since `1.0.0`. Breaking changes follow Semantic Versioning.
 
 ## `useEventBus`
 
@@ -2608,7 +2610,7 @@ Methods exist and are no-ops until mount. Do not subscribe or emit during render
 
 ### Stability
 
-Stable `1.0.2` public API. Follow [Semantic Versioning](https://semver.org/) for
+Stable `1.0.3` public API. Follow [Semantic Versioning](https://semver.org/) for
 future changes.
 
 ## Storybook

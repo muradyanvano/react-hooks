@@ -76,7 +76,8 @@ async function expectCodeDisclosure(
 }
 
 function dispatchKey(key: string, init: KeyboardEventInit = {}): void {
-  document.dispatchEvent(
+  // From <body> so Storybook's preview keydown handler sees an Element target.
+  document.body.dispatchEvent(
     new KeyboardEvent('keydown', {
       key,
       bubbles: true,
@@ -133,6 +134,42 @@ export const SearchFocus: Story = {
     await expect(canvas.getByTestId('search-focus-state')).toHaveTextContent(
       'Focused',
     )
+  },
+}
+
+/** Docs pages mount every example in one document; only the active one may react. */
+export const SharedPageIsolation: Story = {
+  name: 'Shared page isolation',
+  tags: ['!autodocs', '!dev'],
+  render: () => (
+    <>
+      <OverviewExample />
+      <SearchFocusExample />
+    </>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const overviewSearch = canvas.getByTestId('overview-search')
+    const kbSearch = canvas.getByTestId('kb-search')
+
+    dispatchKey('q')
+    await expect(overviewSearch).not.toHaveFocus()
+    await expect(kbSearch).not.toHaveFocus()
+
+    await userEvent.click(canvas.getByTestId('recent-heading'))
+    await userEvent.keyboard('a')
+    await waitFor(() => {
+      expect(kbSearch).toHaveFocus()
+    })
+    await expect(canvas.getByTestId('overview-count')).toHaveTextContent('0')
+
+    await userEvent.click(canvas.getByTestId('overview-reset'))
+    await userEvent.keyboard('q')
+    await waitFor(() => {
+      expect(overviewSearch).toHaveFocus()
+    })
+    await expect(canvas.getByTestId('overview-count')).toHaveTextContent('1')
+    overviewSearch.blur()
   },
 }
 

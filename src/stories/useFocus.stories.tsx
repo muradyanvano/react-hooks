@@ -212,11 +212,41 @@ export const AlreadyFocused: Story = {
   parameters: { docs: { source: { code: alreadyFocusedSnippet } } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
+    const ownerDocument = canvasElement.ownerDocument
+    expect(canvas.queryByTestId('already-focused-input')).toBeNull()
+    expect(ownerDocument.activeElement).not.toBe(
+      canvas.queryByTestId('already-focused-input'),
+    )
+
+    await userEvent.click(canvas.getByTestId('already-toggle'))
+    const field = await canvas.findByTestId('already-focused-input')
     await waitFor(() => {
+      expect(field).toHaveFocus()
       expect(canvas.getByTestId('already-focused-value')).toHaveTextContent(
         'true',
       )
     })
+
+    // Regression: re-renders caused by the blur must not pull focus back.
+    const toggle = canvas.getByTestId('already-toggle')
+    await userEvent.click(toggle)
+    await userEvent.click(toggle)
+    await waitFor(() =>
+      expect(canvas.getByTestId('already-focused-value')).toHaveTextContent(
+        'true',
+      ),
+    )
+    toggle.focus()
+    await waitFor(() =>
+      expect(canvas.getByTestId('already-focused-value')).toHaveTextContent(
+        'false',
+      ),
+    )
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(toggle).toHaveFocus()
+
+    await userEvent.click(toggle)
+    expect(canvas.queryByTestId('already-focused-input')).toBeNull()
     await expectCodeDisclosure(canvas, alreadyFocusedSnippet)
   },
 }

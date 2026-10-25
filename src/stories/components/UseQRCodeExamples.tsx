@@ -5,6 +5,7 @@ import {
   type UseQRCodeOptions,
 } from '@muradyanvano/react-hooks'
 
+import { writeClipboard } from './clipboard'
 import { ExampleShowcase, StatusPanel } from './ExampleShowcase'
 import {
   SAMPLE_GENERATOR_TEXT,
@@ -181,9 +182,15 @@ export function QrCodeGeneratorExample() {
   const charCount = text.length
   const byteCount = getByteLength(text)
 
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>(
+    'idle',
+  )
+
   const handleCopyDataUrl = async () => {
     if (!dataUrl) return
-    await navigator.clipboard.writeText(dataUrl)
+    const ok = await writeClipboard(dataUrl)
+    setCopyStatus(ok ? 'copied' : 'failed')
+    window.setTimeout(() => setCopyStatus('idle'), 1500)
   }
 
   return (
@@ -265,7 +272,11 @@ export function QrCodeGeneratorExample() {
           disabled={!dataUrl}
           onClick={() => void handleCopyDataUrl()}
         >
-          Copy data URL
+          {copyStatus === 'copied'
+            ? 'Copied data URL'
+            : copyStatus === 'failed'
+              ? 'Copy failed'
+              : 'Copy data URL'}
         </button>
         <a
           href={dataUrl || undefined}
@@ -313,7 +324,7 @@ export function PlainTextUnicodeExample() {
     >
       <TrustBanner />
       <div className="grid gap-4 md:grid-cols-2">
-        <section className="space-y-3 rounded-xl border border-slate-200 p-3">
+        <section className="min-w-0 space-y-3 rounded-xl border border-slate-200 p-3">
           <h3 className="text-sm font-semibold text-slate-900">Plain text</h3>
           <QrStatusText
             text={SAMPLE_PLAIN_TEXT}
@@ -327,13 +338,13 @@ export function PlainTextUnicodeExample() {
             testId="plain-qr"
           />
           <pre
-            className="font-mono text-xs text-slate-700"
+            className="font-mono text-xs break-words whitespace-pre-wrap text-slate-700"
             data-testid="plain-text"
           >
             {SAMPLE_PLAIN_TEXT}
           </pre>
         </section>
-        <section className="space-y-3 rounded-xl border border-slate-200 p-3">
+        <section className="min-w-0 space-y-3 rounded-xl border border-slate-200 p-3">
           <h3 className="text-sm font-semibold text-slate-900">Unicode</h3>
           <QrStatusText
             text={SAMPLE_UNICODE_TEXT}
@@ -347,7 +358,7 @@ export function PlainTextUnicodeExample() {
             testId="unicode-qr"
           />
           <pre
-            className="font-mono text-xs text-slate-700"
+            className="font-mono text-xs break-words whitespace-pre-wrap text-slate-700"
             data-testid="unicode-text"
           >
             {SAMPLE_UNICODE_TEXT}

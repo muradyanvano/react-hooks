@@ -1,7 +1,7 @@
-import { Primary, Stories, Title } from '@storybook/addon-docs/blocks'
+import { Stories, Title } from '@storybook/addon-docs/blocks'
 
 import { CodeBlock } from '../components/CodeBlock'
-import { getHookDoc } from './catalog'
+import { getHookDoc, hookDocsPath } from './catalog'
 import {
   PACKAGE_INSTALL_COMMAND,
   PACKAGE_STATUS_LABEL,
@@ -25,11 +25,33 @@ function Section({
   )
 }
 
+/** Renders catalog prose, turning Markdown-style `code` spans into <code>. */
+function InlineText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/`([^`]+)`/).map((part, index) =>
+        index % 2 === 1 ? (
+          <code
+            key={index}
+            className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[0.85em] text-slate-800"
+          >
+            {part}
+          </code>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  )
+}
+
 function BulletList({ items }: { items: string[] }) {
   return (
     <ul className="list-disc space-y-1.5 pl-5">
       {items.map((item) => (
-        <li key={item}>{item}</li>
+        <li key={item}>
+          <InlineText text={item} />
+        </li>
       ))}
     </ul>
   )
@@ -41,10 +63,14 @@ export function HookDocumentationPage({ hookName }: { hookName: HookName }) {
   return (
     <div className="sb-unstyled mx-auto max-w-3xl px-2 py-6 font-sans text-slate-900">
       <Title />
-      <p className="mb-6 text-base leading-7 text-slate-600">{doc.purpose}</p>
+      <p className="mb-6 text-base leading-7 text-slate-600">
+        <InlineText text={doc.purpose} />
+      </p>
 
       <Section title="Overview">
-        <p>{doc.overview}</p>
+        <p>
+          <InlineText text={doc.overview} />
+        </p>
       </Section>
 
       <Section title="When to use">
@@ -93,14 +119,18 @@ export function HookDocumentationPage({ hookName }: { hookName: HookName }) {
               <dt className="font-mono text-xs font-semibold text-indigo-700">
                 {param.name}
               </dt>
-              <dd className="mt-1 text-slate-700">{param.description}</dd>
+              <dd className="mt-1 text-slate-700">
+                <InlineText text={param.description} />
+              </dd>
             </div>
           ))}
         </dl>
       </Section>
 
       <Section title="Return values">
-        <p>{doc.returnValues}</p>
+        <p>
+          <InlineText text={doc.returnValues} />
+        </p>
       </Section>
 
       <Section title="Defaults">
@@ -112,15 +142,21 @@ export function HookDocumentationPage({ hookName }: { hookName: HookName }) {
       </Section>
 
       <Section title="SSR behavior">
-        <p>{doc.ssrBehavior}</p>
+        <p>
+          <InlineText text={doc.ssrBehavior} />
+        </p>
       </Section>
 
       <Section title="React Strict Mode behavior">
-        <p>{doc.strictModeBehavior}</p>
+        <p>
+          <InlineText text={doc.strictModeBehavior} />
+        </p>
       </Section>
 
       <Section title="Accessibility">
-        <p>{doc.accessibility}</p>
+        <p>
+          <InlineText text={doc.accessibility} />
+        </p>
       </Section>
 
       <Section title="Browser / platform limitations">
@@ -134,7 +170,7 @@ export function HookDocumentationPage({ hookName }: { hookName: HookName }) {
               <li key={related}>
                 <a
                   className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800 no-underline hover:bg-indigo-100"
-                  href={`?path=/docs/hooks-${related.toLowerCase()}--documentation`}
+                  href={hookDocsPath(related)}
                   target="_top"
                 >
                   {related}
@@ -150,7 +186,6 @@ export function HookDocumentationPage({ hookName }: { hookName: HookName }) {
           The primary example appears first. Additional stories demonstrate edge
           cases and integration patterns.
         </p>
-        <Primary />
         <Stories />
       </Section>
 

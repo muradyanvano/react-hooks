@@ -254,6 +254,16 @@ export const MultipleKeys: Story = {
       expect(canvas.getByTestId('multi-count')).toHaveTextContent('2')
     })
 
+    // Regression: Enter on a button must keep native activation.
+    const toggle = canvas.getByTestId('toggle-code')
+    toggle.focus()
+    await userEvent.keyboard('{Enter}')
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    await expect(canvas.getByTestId('multi-count')).toHaveTextContent('2')
+    await userEvent.keyboard('{Enter}')
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    toggle.blur()
+
     await expectCodeDisclosure(canvas, multipleKeysSnippet)
   },
 }
@@ -460,6 +470,7 @@ export const Playground: Story = {
 
 export const PlaygroundPaused: Story = {
   name: 'Playground paused',
+  tags: ['!autodocs', '!dev'],
   ...storyDescription(
     'Docs-safe playground for useOnKeyStroke: mount when ready, tune controls, and observe live status without auto-starting privileged work. Copy the curated snippet from Show code when the behavior matches your app.',
   ),

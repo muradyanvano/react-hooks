@@ -355,12 +355,11 @@ export function SvgLockTarget() {
       </button>
       <svg
         ref={svgRef}
-        viewBox="0 0 320 160"
         width="100%"
         height="160"
         style={{ overflow: 'auto', border: '1px solid #cbd5e1' }}
       >
-        <rect x="0" y="0" width="640" height="320" fill="#eef2ff" />
+        <rect x="0" y="0" width="100%" height="100%" fill="#eef2ff" />
         <text x="16" y="32">
           SVG scroll lock target
         </text>

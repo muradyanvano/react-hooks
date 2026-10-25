@@ -37,7 +37,7 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Verify (format, types, lint, unit, builds, Storybook tests, SSR)
+      - name: Verify (format, types, lint, unit, builds, Storybook tests, SSR, packed consumer)
         run: npm run verify:ci
 
       - name: Coverage
@@ -55,3 +55,36 @@ jobs:
 
       - name: Audit production dependencies
         run: npm audit --omit=dev
+
+  consumer:
+    name: Packed consumer (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['20.19', '22']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install package-lock npm
+        run: npm install -g npm@11.8.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Packed consumer typecheck and ESM import
+        run: npm run test:consumer
+
+      - name: React 18 packed SSR
+        run: npm run test:ssr:react18
+
+      - name: React 19 packed SSR
+        run: npm run test:ssr:react19

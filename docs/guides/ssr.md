@@ -28,10 +28,11 @@ Effects clean up on unmount. Under React StrictMode development remounts, hooks 
 
 ## Verification
 
-The repository includes a packed-consumer React 18 SSR check:
+The repository includes packed-consumer SSR checks against React 18 and React 19:
 
 ```bash
 npm run test:ssr:react18
+npm run test:ssr:react19
 ```
 
-This runs as part of `npm run verify:ci`.
+Both run as part of `npm run verify:ci`, and CI repeats them on every supported Node major.

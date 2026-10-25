@@ -714,7 +714,7 @@ function DeviceSelectionBody() {
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label
           htmlFor={cameraSelectId}
-          className="flex flex-col gap-1 text-sm font-semibold text-slate-800"
+          className="flex min-w-0 flex-col gap-1 text-sm font-semibold text-slate-800"
         >
           Camera
           <select
@@ -724,7 +724,7 @@ function DeviceSelectionBody() {
             onChange={(event) => {
               setVideoDeviceId(event.target.value)
             }}
-            className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-normal"
+            className="w-full min-w-0 rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-normal"
           >
             <option value="">Default camera</option>
             {cameras.map((device) => (
@@ -737,7 +737,7 @@ function DeviceSelectionBody() {
 
         <label
           htmlFor={micSelectId}
-          className="flex flex-col gap-1 text-sm font-semibold text-slate-800"
+          className="flex min-w-0 flex-col gap-1 text-sm font-semibold text-slate-800"
         >
           Microphone
           <select
@@ -747,7 +747,7 @@ function DeviceSelectionBody() {
             onChange={(event) => {
               setAudioDeviceId(event.target.value)
             }}
-            className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-normal"
+            className="w-full min-w-0 rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-normal"
           >
             <option value="">No microphone</option>
             {microphones.map((device) => (

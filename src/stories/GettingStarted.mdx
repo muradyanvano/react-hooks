@@ -10,16 +10,16 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
 <div className="sb-unstyled mx-auto max-w-3xl space-y-8 px-2 py-6 font-sans text-slate-900">
   <header className="space-y-3 border-b border-slate-200 pb-6">
     <h1 className="text-3xl font-semibold tracking-tight">Getting started</h1>
-    <p className="text-base leading-7 text-slate-600">
+    <div className="text-base leading-7 text-slate-600">
       Install <code>{PACKAGE_NAME}</code> from npm and explore the{' '}
       {HOOK_COUNT} public hooks in this Storybook.
-    </p>
+    </div>
   </header>
 
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Installation</h2>
   <CodeBlock code={PACKAGE_INSTALL_COMMAND} language="bash" />
-  <p className="text-sm leading-7 text-slate-600">
+  <div className="text-sm leading-7 text-slate-600">
     Hosted documentation:{' '}
     <a
       className="font-medium text-indigo-700 underline-offset-2 hover:underline"
@@ -29,7 +29,7 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
     >
       muradyanvano.github.io/react-hooks
     </a>
-  </p>
+  </div>
 </section>
 
 <section className="space-y-3">
@@ -69,14 +69,14 @@ import { gettingStartedSnippet } from './components/useOnClickOutside.snippets'
 <section className="space-y-3">
   <h2 className="text-xl font-semibold">Minimal example</h2>
   <CodeBlock code={gettingStartedSnippet} language="tsx" />
-  <p className="text-sm leading-7 text-slate-600">
+  <div className="text-sm leading-7 text-slate-600">
     Keep the trigger inside the referenced element when using the default{' '}
     <code>pointerdown</code> listener so opening does not immediately close.
-  </p>
-  <p className="text-xs leading-5 text-slate-500">
+  </div>
+  <div className="text-xs leading-5 text-slate-500">
     Example styling in Storybook uses Tailwind for documentation only. The hooks
     package does not require Tailwind.
-  </p>
+  </div>
 </section>
 
 <section className="space-y-3">

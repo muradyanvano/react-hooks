@@ -210,15 +210,14 @@ export function SvgToolbar() {
   const { focused } = useFocusWithin(svgRef)
 
   return (
-    <svg ref={svgRef} role="group" aria-label="Icon toolbar" tabIndex={-1}>
-      <title>Icon toolbar</title>
-      <rect width="100%" height="100%" fill="transparent" />
-      <circle cx="20" cy="20" r="12" role="button" tabIndex={0} aria-label="Circle tool" />
-      <circle cx="60" cy="20" r="12" role="button" tabIndex={0} aria-label="Square tool" />
-      <text x="0" y="48">
-        Focus within: {String(focused)}
-      </text>
-    </svg>
+    <div>
+      <svg ref={svgRef} role="group" aria-label="Icon toolbar" viewBox="0 0 120 60">
+        <title>Icon toolbar</title>
+        <circle cx="32" cy="30" r="18" role="button" tabIndex={0} aria-label="Circle tool" />
+        <rect x="70" y="12" width="36" height="36" rx="4" role="button" tabIndex={0} aria-label="Square tool" />
+      </svg>
+      <p>Focus within: {String(focused)}</p>
+    </div>
   )
 }`
 

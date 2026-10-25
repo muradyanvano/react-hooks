@@ -81,20 +81,6 @@ export function useElementHover<T extends Element>(
   })
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  useEffect(() => {
-    mountedRef.current = true
-    return () => {
-      mountedRef.current = false
-      const attachment = attachedListenersRef.current
-      if (attachment != null) {
-        attachment.element.removeEventListener('mouseenter', attachment.onEnter)
-        attachment.element.removeEventListener('mouseleave', attachment.onLeave)
-        attachedListenersRef.current = null
-      }
-      attachedElementRef.current = null
-    }
-  }, [])
-
   const setHovered = useCallback((value: boolean) => {
     if (!mountedRef.current) {
       return
@@ -116,6 +102,21 @@ export function useElementHover<T extends Element>(
     timerHostRef.current = null
     transitionGenerationRef.current += 1
   }, [])
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      clearPendingTransition()
+      const attachment = attachedListenersRef.current
+      if (attachment != null) {
+        attachment.element.removeEventListener('mouseenter', attachment.onEnter)
+        attachment.element.removeEventListener('mouseleave', attachment.onLeave)
+        attachedListenersRef.current = null
+      }
+      attachedElementRef.current = null
+    }
+  }, [clearPendingTransition])
 
   const resetHoverState = useCallback(() => {
     clearPendingTransition()

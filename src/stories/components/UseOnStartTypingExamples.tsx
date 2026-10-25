@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { useOnStartTyping } from '@muradyanvano/react-hooks'
 
 import { ExampleShowcase, StatusPanel } from './ExampleShowcase'
+import { useExampleScope } from './exampleScope'
 import {
   characterValidationSnippet,
   commandPaletteSnippet,
@@ -72,16 +73,21 @@ export function OverviewExample({
   const [focused, setFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const inputId = useId()
+  const scope = useExampleScope()
 
-  useOnStartTyping((event) => {
-    setLastKey(event.key)
-    setCount((value) => value + 1)
-    inputRef.current?.focus()
-    onAccepted?.(event)
-  })
+  useOnStartTyping(
+    (event) => {
+      setLastKey(event.key)
+      setCount((value) => value + 1)
+      inputRef.current?.focus()
+      onAccepted?.(event)
+    },
+    { enabled: scope.active },
+  )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnStartTyping"
       title="Global search"
       description="Start typing anywhere in the preview to focus the search field. The hook reports typing intent without calling preventDefault."
@@ -157,9 +163,14 @@ export function SearchFocusExample() {
   const inputRef = useRef<HTMLInputElement>(null)
   const inputId = useId()
 
-  useOnStartTyping(() => {
-    inputRef.current?.focus()
-  })
+  const scope = useExampleScope()
+
+  useOnStartTyping(
+    () => {
+      inputRef.current?.focus()
+    },
+    { enabled: scope.active },
+  )
 
   const results = RECENT_SEARCHES.filter((item) =>
     item.toLowerCase().includes(query.trim().toLowerCase()),
@@ -167,6 +178,7 @@ export function SearchFocusExample() {
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnStartTyping"
       title="Knowledge-base search"
       description="A documentation-style search card. Typing outside the field focuses the input so readers can jump into search immediately."
@@ -260,13 +272,18 @@ export function CommandPaletteExample() {
   const titleId = useId()
   const inputId = useId()
 
-  useOnStartTyping((event) => {
-    setOpen(true)
-    setStatus(`Opened with “${event.key}”`)
-    queueMicrotask(() => {
-      inputRef.current?.focus()
-    })
-  })
+  const scope = useExampleScope()
+
+  useOnStartTyping(
+    (event) => {
+      setOpen(true)
+      setStatus(`Opened with “${event.key}”`)
+      queueMicrotask(() => {
+        inputRef.current?.focus()
+      })
+    },
+    { enabled: scope.active },
+  )
 
   useEffect(() => {
     if (!open) {
@@ -289,6 +306,7 @@ export function CommandPaletteExample() {
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnStartTyping"
       title="Command palette"
       description="Valid typing outside editable fields opens a command menu and focuses its filter input. This demonstrates typing intent, not Ctrl/Cmd shortcuts."
@@ -374,13 +392,19 @@ export function EditableProtectionExample() {
   const [status, setStatus] = useState('Waiting for typing outside editables')
   const [count, setCount] = useState(0)
 
-  useOnStartTyping((event) => {
-    setStatus(`Accepted “${event.key}”`)
-    setCount((value) => value + 1)
-  })
+  const scope = useExampleScope()
+
+  useOnStartTyping(
+    (event) => {
+      setStatus(`Accepted “${event.key}”`)
+      setCount((value) => value + 1)
+    },
+    { enabled: scope.active },
+  )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnStartTyping"
       title="Editable protection"
       description="Typing inside inputs, textareas, selects, or contenteditable regions does not fire the handler. Non-editable focus targets still do."
@@ -462,18 +486,22 @@ export function CharacterValidationExample() {
   const [last, setLast] = useState('None yet')
   const [count, setCount] = useState(0)
 
+  const scope = useExampleScope()
+
   useOnStartTyping(
     (event) => {
       setLast(event.key)
       setCount((value) => value + 1)
     },
     {
+      enabled: scope.active,
       isTypedCharacterValid: (event) => /^\d$/.test(event.key),
     },
   )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnStartTyping"
       title="Character validation"
       description="A custom numeric-only validator replaces the default ASCII alphanumeric rule. Letters are rejected; digits are accepted."
@@ -522,12 +550,18 @@ export function CharacterValidationExample() {
 export function ModifierKeysExample() {
   const [log, setLog] = useState<string[]>([])
 
-  useOnStartTyping((event) => {
-    setLog((entries) => [`Accepted “${event.key}”`, ...entries].slice(0, 6))
-  })
+  const scope = useExampleScope()
+
+  useOnStartTyping(
+    (event) => {
+      setLog((entries) => [`Accepted “${event.key}”`, ...entries].slice(0, 6))
+    },
+    { enabled: scope.active },
+  )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnStartTyping"
       title="Modifier keys"
       description="The default validator allows Shift so uppercase letters work, and ignores Ctrl, Alt, and Meta combinations."
@@ -577,16 +611,19 @@ export function EnabledStateExample() {
   const [count, setCount] = useState(0)
   const checkboxId = useId()
 
+  const scope = useExampleScope()
+
   useOnStartTyping(
     (event) => {
       setLastKey(event.key)
       setCount((value) => value + 1)
     },
-    { enabled },
+    { enabled: enabled && scope.active },
   )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnStartTyping"
       title="Enabled state"
       description="Toggle detection on and off. While disabled, no document listener is registered."
@@ -652,12 +689,18 @@ export function EnabledStateExample() {
 export function ContenteditableExample() {
   const [status, setStatus] = useState('Type from the non-editable area')
 
-  useOnStartTyping((event) => {
-    setStatus(`Accepted “${event.key}” from non-editable focus`)
-  })
+  const scope = useExampleScope()
+
+  useOnStartTyping(
+    (event) => {
+      setStatus(`Accepted “${event.key}” from non-editable focus`)
+    },
+    { enabled: scope.active },
+  )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnStartTyping"
       title="Contenteditable composer"
       description="A notes-style editor blocks detection while focused. A sibling non-editable control still allows typing intent."
@@ -710,7 +753,8 @@ export function PlaygroundExample({
 }) {
   const [log, setLog] = useState<string[]>([])
 
-  const options = optionsFor(enabled, mode)
+  const scope = useExampleScope()
+  const options = optionsFor(enabled && scope.active, mode)
 
   useOnStartTyping((event) => {
     setLog((entries) => [`${event.key}`, ...entries].slice(0, 8))
@@ -719,6 +763,7 @@ export function PlaygroundExample({
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnStartTyping"
       title="Playground"
       description="Use Storybook controls to toggle enabled state and character-validation mode. Accepted keys appear in the live log."

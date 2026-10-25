@@ -5,14 +5,19 @@ import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
 /**
- * Packed-consumer SSR check against React 18.
+ * Packed-consumer SSR check against React 18 (default) or another React
+ * version passed as `--react=<version>` (for example `--react=19`).
  *
- * Kept out of the default unit-test run because it installs React 18 into a
+ * Kept out of the default unit-test run because it installs React into a
  * temporary directory. Integrated into `verify:ci` after the library build.
  */
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const reactVersion = '18.3.1'
-const reactDomVersion = '18.3.1'
+const reactArgument = process.argv
+  .slice(2)
+  .find((argument) => argument.startsWith('--react='))
+const reactVersion = reactArgument?.slice('--react='.length) || '18.3.1'
+const reactDomVersion = reactVersion
+const expectedReactMajor = reactVersion.replace(/^[^\d]*/, '').split('.')[0]
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
@@ -77,7 +82,9 @@ let tarballPath = null
 let consumerDir = null
 
 try {
-  console.log('Building library for React 18 SSR consumer check...')
+  console.log(
+    `Building library for React ${expectedReactMajor} SSR consumer check...`,
+  )
   const build = runNpm(['run', 'build'], { cwd: repoRoot })
   if (build.error || build.status !== 0) {
     if (build.error) {
@@ -2097,29 +2104,31 @@ console.log(
     )
   }
 
-  if (!String(payload.reactVersion).startsWith('18.')) {
+  if (!String(payload.reactVersion).startsWith(`${expectedReactMajor}.`)) {
     throw new Error(
-      `Expected React 18.x in consumer, got ${payload.reactVersion}`,
+      `Expected React ${expectedReactMajor}.x in consumer, got ${payload.reactVersion}`,
     )
   }
 
-  if (!String(payload.reactDomVersion).startsWith('18.')) {
+  if (!String(payload.reactDomVersion).startsWith(`${expectedReactMajor}.`)) {
     throw new Error(
-      `Expected ReactDOM 18.x in consumer, got ${payload.reactDomVersion}`,
+      `Expected ReactDOM ${expectedReactMajor}.x in consumer, got ${payload.reactDomVersion}`,
     )
   }
 
-  const unexpected = [...payload.warnings, ...payload.errors].filter(
-    isUnexpectedSsrMessage,
-  )
+  // React 19 dropped the `Warning:` prefix, so any console.error is unexpected.
+  const unexpected = [
+    ...payload.warnings.filter(isUnexpectedSsrMessage),
+    ...payload.errors,
+  ]
 
   if (unexpected.length > 0) {
     throw new Error(
-      `Unexpected React 18 SSR console output:\\n${unexpected.join('\\n')}`,
+      `Unexpected React ${expectedReactMajor} SSR console output:\\n${unexpected.join('\\n')}`,
     )
   }
 
-  console.log('React 18 packed SSR consumer check passed.')
+  console.log(`React ${expectedReactMajor} packed SSR consumer check passed.`)
 } catch (error) {
   console.error(error instanceof Error ? error.message : error)
   process.exitCode = 1

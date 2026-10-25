@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-10-25
+
+Patch release with lifecycle bug fixes from a production audit. Public API and types are unchanged.
+
+### Fixed
+
+- `useScroll`: unmount now removes the `scroll` listener, disconnects the `observe: true` `MutationObserver`, and clears pending throttle/`onStop` timers. Previously the listener effect's cleanup skipped detaching on every unmount (with or without Strict Mode), leaking listeners and observers on the target across remounts
+- `useElementHover`: unmount now cancels a pending `delayEnter` / `delayLeave` transition timer instead of leaving it queued until it fires
+- `useCookies`: passing a new `dependencies` array identity on each render (for example `useCookies(['name'])`) no longer rebinds the document subscription on every render, re-reads `document.cookie`, restarts polling, or clears `addChangeListener` registrations
+
+### Changed
+
+- `docs/public-api.md` per-hook stability notes now state the stable `1.0.0` SemVer contract instead of the stale pre-release wording
+- Storybook manager config uses the current `layout` / `ui` options instead of deprecated top-level keys
+- Storybook docs (not shipped in the package): examples on a shared docs page no longer steal focus or intercept each other's keyboard input (`useFocus` "Already focused", `useOnKeyStroke`, `useOnStartTyping`), the `useUrlSearchParams` editor no longer navigates the top-level tab, copy buttons report failures instead of throwing, and several examples were fixed for 320 px viewports
+- Dev dependency security updates within existing majors: `storybook` / `@storybook/*` `^10.6.3`, `vitest` / `@vitest/*` `^4.1.12`, plus transitive lockfile fixes
+
+### Added
+
+- `npm run test:consumer`: packs the library and type-checks plus runtime-imports it from a clean React 19 consumer (`Bundler` and `NodeNext` resolution, export-surface and deep-import checks)
+- `npm run test:ssr:react19`: packed SSR consumer check against React 19 alongside the existing React 18 check
+- CI `consumer` job running the packed consumer and React 18/19 SSR checks on Node 20.19 and 22; both scripts are also part of `npm run verify:ci`
+
 ## [1.0.2] - 2026-09-17
 
 Patch release after the GitHub account rename `muradyanvano1995` → `muradyanvano`.

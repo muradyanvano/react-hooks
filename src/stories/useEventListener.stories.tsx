@@ -437,6 +437,7 @@ export const Playground: Story = {
 
 export const PlaygroundPaused: Story = {
   name: 'Playground paused',
+  tags: ['!autodocs', '!dev'],
   ...storyDescription(
     'Docs-safe playground for useEventListener: mount when ready, tune controls, and observe live status without auto-starting privileged work. Copy the curated snippet from Show code when the behavior matches your app.',
   ),

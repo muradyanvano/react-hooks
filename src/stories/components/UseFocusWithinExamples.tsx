@@ -574,40 +574,44 @@ export function SvgGroupExample() {
         />
       }
     >
-      <svg
-        ref={svgRef}
-        role="group"
-        aria-label="Icon toolbar"
-        viewBox="0 0 220 70"
-        className={`h-auto w-full max-w-md outline-none ${focused ? 'rounded-xl ring-2 ring-indigo-500' : 'rounded-xl ring-1 ring-slate-300'}`}
-        data-testid="svg-toolbar"
-      >
-        <title>Icon toolbar</title>
-        <rect width="220" height="70" fill="transparent" />
-        <circle
-          cx="35"
-          cy="35"
-          r="16"
-          role="button"
-          tabIndex={0}
-          aria-label="Circle tool"
-          data-testid="svg-circle"
-          className="fill-indigo-100 stroke-indigo-600 stroke-2 focus:outline-none focus-visible:stroke-[4]"
-        />
-        <circle
-          cx="95"
-          cy="35"
-          r="16"
-          role="button"
-          tabIndex={0}
-          aria-label="Square tool"
-          data-testid="svg-square"
-          className="fill-indigo-100 stroke-indigo-600 stroke-2 focus:outline-none focus-visible:stroke-[4]"
-        />
-        <text x="130" y="40" className="fill-slate-800 text-sm">
-          {`Focus within: ${String(focused)}`}
-        </text>
-      </svg>
+      <div className="space-y-2">
+        <svg
+          ref={svgRef}
+          role="group"
+          aria-label="Icon toolbar"
+          viewBox="0 0 120 60"
+          className={`h-auto w-full max-w-[240px] outline-none ${focused ? 'rounded-xl ring-2 ring-indigo-500' : 'rounded-xl ring-1 ring-slate-300'}`}
+          data-testid="svg-toolbar"
+        >
+          <title>Icon toolbar</title>
+          <rect width="120" height="60" fill="transparent" />
+          <circle
+            cx="32"
+            cy="30"
+            r="18"
+            role="button"
+            tabIndex={0}
+            aria-label="Circle tool"
+            data-testid="svg-circle"
+            className="fill-indigo-100 stroke-indigo-600 stroke-2 focus:outline-none focus-visible:stroke-[4]"
+          />
+          <rect
+            x="70"
+            y="12"
+            width="36"
+            height="36"
+            rx="4"
+            role="button"
+            tabIndex={0}
+            aria-label="Square tool"
+            data-testid="svg-square"
+            className="fill-indigo-100 stroke-indigo-600 stroke-2 focus:outline-none focus-visible:stroke-[4]"
+          />
+        </svg>
+        <p className="text-sm text-slate-700" aria-live="polite">
+          Focus within: <span className="font-mono">{String(focused)}</span>
+        </p>
+      </div>
     </ExampleShowcase>
   )
 }

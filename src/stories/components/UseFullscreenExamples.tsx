@@ -124,10 +124,14 @@ function MediaViewerInner() {
   const { isSupported, isFullscreen, fullscreenElement, error, enter, exit } =
     useFullscreen(ref, { navigationUI: 'hide' })
 
+  const wasFullscreenRef = useRef(false)
+
   useEffect(() => {
-    if (!isFullscreen) {
+    // Return focus to the trigger only after leaving fullscreen, never on mount.
+    if (wasFullscreenRef.current && !isFullscreen) {
       enterButtonRef.current?.focus()
     }
+    wasFullscreenRef.current = isFullscreen
   }, [isFullscreen])
 
   return (

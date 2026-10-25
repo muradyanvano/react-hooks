@@ -33,6 +33,21 @@ body {
   outline-offset: 2px;
 }
 
+/* Storybook's 40px docs gutter leaves too little room for examples on phones. */
+@media (max-width: 480px) {
+  .sbdocs.sbdocs-wrapper {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* Single-word hook and package names must wrap on 320px viewports. */
+.sbdocs h1,
+.sbdocs h2,
+.sbdocs h3 {
+  overflow-wrap: anywhere;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

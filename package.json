@@ -1,6 +1,6 @@
 {
   "name": "@muradyanvano/react-hooks",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Production-oriented React hooks library for React 18 and 19.",
   "type": "module",
   "author": "Vano Muradyan",
@@ -71,10 +71,12 @@
     "test:layout": "node scripts/storybook-layout-audit.mjs",
     "test:reset": "node scripts/storybook-reset-audit.mjs",
     "test:ssr:react18": "node scripts/test-ssr-react18.mjs",
+    "test:ssr:react19": "node scripts/test-ssr-react18.mjs --react=19",
+    "test:consumer": "node scripts/test-consumer.mjs",
     "pack:dry-run": "npm pack --dry-run",
     "validate:release": "node scripts/validate-release.mjs",
     "verify": "npm run format:check && npm run typecheck && npm run lint && npm run test && npm run build && npm run build:storybook",
-    "verify:ci": "npm run verify && npm run test:storybook && npm run test:ssr:react18"
+    "verify:ci": "npm run verify && npm run test:storybook && npm run test:ssr:react18 && npm run test:ssr:react19 && npm run test:consumer"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0"
@@ -83,10 +85,10 @@
     "@eslint/js": "^10.0.1",
     "@fontsource-variable/source-sans-3": "^5.3.0",
     "@microsoft/api-extractor": "^7.59.0",
-    "@storybook/addon-a11y": "^10.6.0",
-    "@storybook/addon-docs": "^10.6.0",
-    "@storybook/addon-vitest": "^10.6.0",
-    "@storybook/react-vite": "^10.6.0",
+    "@storybook/addon-a11y": "^10.6.3",
+    "@storybook/addon-docs": "^10.6.3",
+    "@storybook/addon-vitest": "^10.6.3",
+    "@storybook/react-vite": "^10.6.3",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.0",
@@ -96,9 +98,9 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
-    "@vitest/browser": "^4.1.11",
-    "@vitest/browser-playwright": "^4.1.11",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/browser": "^4.1.12",
+    "@vitest/browser-playwright": "^4.1.12",
+    "@vitest/coverage-v8": "^4.1.12",
     "eslint": "^10.9.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
@@ -109,13 +111,13 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "shiki": "^4.4.3",
-    "storybook": "^10.5.10",
+    "storybook": "^10.6.3",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.69.0",
     "vite": "^8.2.2",
     "vite-plugin-dts": "^5.1.0",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "dependencies": {
     "qrcode": "^1.5.4"

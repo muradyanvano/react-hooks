@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useEyeDropper } from '@muradyanvano/react-hooks'
 
+import { writeClipboard } from './clipboard'
 import { ExampleShowcase, StatusPanel } from './ExampleShowcase'
 import {
   installEyeDropperMock,
@@ -142,8 +143,14 @@ function DashboardInner() {
   )
   const [history, setHistory] = useState<string[]>([])
   const [notice, setNotice] = useState('')
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState<string | null>(null)
+  const [copyFailed, setCopyFailed] = useState(false)
   const rgb = useMemo(() => hexToRgb(sRGBHex), [sRGBHex])
+  const copyColor = async (color: string) => {
+    const ok = await writeClipboard(color)
+    setCopied(ok ? color : null)
+    setCopyFailed(!ok)
+  }
 
   return (
     <ExampleShowcase
@@ -215,7 +222,8 @@ function DashboardInner() {
               data-testid="dash-open"
               disabled={!isSupported || isPicking}
               onClick={async () => {
-                setCopied(false)
+                setCopied(null)
+                setCopyFailed(false)
                 const color = await open()
                 if (color == null) {
                   setNotice('Selection cancelled.')
@@ -234,10 +242,9 @@ function DashboardInner() {
               className={secondaryButtonClass}
               data-testid="dash-copy"
               disabled={!sRGBHex}
-              onClick={async () => {
+              onClick={() => {
                 if (!sRGBHex) return
-                await navigator.clipboard?.writeText(sRGBHex)
-                setCopied(true)
+                void copyColor(sRGBHex)
               }}
             >
               Copy color
@@ -249,7 +256,8 @@ function DashboardInner() {
               onClick={() => {
                 reset()
                 setNotice('')
-                setCopied(false)
+                setCopied(null)
+                setCopyFailed(false)
               }}
             >
               Reset
@@ -260,7 +268,12 @@ function DashboardInner() {
               <p data-testid="dash-picking-msg">Picking color…</p>
             ) : null}
             {notice ? <p data-testid="dash-notice">{notice}</p> : null}
-            {copied ? <p data-testid="dash-copied">Copied {sRGBHex}</p> : null}
+            {copied ? <p data-testid="dash-copied">Copied {copied}</p> : null}
+            {copyFailed ? (
+              <p data-testid="dash-copy-failed">
+                Copy failed — clipboard access was blocked.
+              </p>
+            ) : null}
             {error ? (
               <p role="alert" data-testid="dash-error-msg">
                 {error.message}
@@ -286,7 +299,7 @@ function DashboardInner() {
                   type="button"
                   className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                   aria-label={`History color ${color}`}
-                  onClick={() => void navigator.clipboard?.writeText(color)}
+                  onClick={() => void copyColor(color)}
                 >
                   <span
                     className="inline-block size-4 rounded border border-slate-200"

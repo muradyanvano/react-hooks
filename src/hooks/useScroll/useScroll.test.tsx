@@ -816,6 +816,99 @@ describe('useScroll', () => {
     })
   })
 
+  describe('unmount cleanup', () => {
+    it.each([
+      ['without Strict Mode', undefined],
+      ['with Strict Mode', StrictMode],
+    ] as const)(
+      'removes the scroll listener and disconnects the observer %s',
+      async (_label, wrapper) => {
+        const disconnect = vi.fn()
+        class TrackingMutationObserver {
+          observe = vi.fn()
+          disconnect = disconnect
+        }
+        vi.stubGlobal('MutationObserver', TrackingMutationObserver)
+
+        const element = document.createElement('div')
+        document.body.appendChild(element)
+        applyMetrics(element, createMetricsState())
+        const ref = { current: element }
+        const addSpy = vi.spyOn(element, 'addEventListener')
+        const removeSpy = vi.spyOn(element, 'removeEventListener')
+
+        const view = renderHook(
+          () => useScroll(ref, { throttle: 0, observe: true }),
+          wrapper == null ? undefined : { wrapper },
+        )
+        await flushMicrotasks()
+        const disconnectsBeforeUnmount = disconnect.mock.calls.length
+
+        view.unmount()
+
+        const scrollAdds = addSpy.mock.calls.filter(
+          ([eventName]) => eventName === 'scroll',
+        ).length
+        const scrollRemoves = removeSpy.mock.calls.filter(
+          ([eventName]) => eventName === 'scroll',
+        ).length
+        expect(scrollAdds).toBeGreaterThan(0)
+        expect(scrollAdds - scrollRemoves).toBe(0)
+        expect(disconnect.mock.calls.length).toBe(disconnectsBeforeUnmount + 1)
+        element.remove()
+      },
+    )
+
+    it('removes the window scroll listener on unmount', async () => {
+      const addSpy = vi.spyOn(window, 'addEventListener')
+      const removeSpy = vi.spyOn(window, 'removeEventListener')
+      const ref = { current: window }
+
+      const view = renderHook(() => useScroll(ref, { throttle: 0 }))
+      await flushMicrotasks()
+      view.unmount()
+
+      const scrollAdds = addSpy.mock.calls.filter(
+        ([eventName]) => eventName === 'scroll',
+      ).length
+      const scrollRemoves = removeSpy.mock.calls.filter(
+        ([eventName]) => eventName === 'scroll',
+      ).length
+      expect(scrollAdds).toBeGreaterThan(0)
+      expect(scrollAdds - scrollRemoves).toBe(0)
+    })
+
+    it('clears a pending onStop timer on unmount', async () => {
+      vi.useFakeTimers()
+      const onStop = vi.fn()
+      const ref = createRef<HTMLDivElement>()
+      const metricsState = createMetricsState()
+
+      const view = render(
+        <Harness
+          elementRef={ref}
+          metrics={metricsState}
+          options={{ throttle: 0, idle: 200, onStop }}
+        />,
+      )
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0)
+      })
+
+      const element = ref.current
+      if (element == null) {
+        throw new Error('missing scroll target')
+      }
+      act(() => {
+        element.scrollTop = 50
+        element.dispatchEvent(new Event('scroll'))
+      })
+
+      view.unmount()
+      expect(vi.getTimerCount()).toBe(0)
+    })
+  })
+
   describe('listener option changes', () => {
     beforeEach(() => {
       vi.useFakeTimers()

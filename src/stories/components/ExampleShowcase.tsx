@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { CodeDisclosure } from './CodeDisclosure'
+import type { ExampleScope } from './exampleScope'
 import { Callout } from './ui/Callout'
 import { DemoSurface } from './ui/DemoSurface'
 import { PreviewCard } from './ui/PreviewCard'
@@ -42,6 +43,7 @@ export function ExampleShowcase({
   notes,
   hookName = 'useOnClickOutside',
   layout = 'split',
+  scope,
 }: {
   title: string
   description: string
@@ -53,6 +55,8 @@ export function ExampleShowcase({
   notes?: string | undefined
   hookName?: string | undefined
   layout?: ExampleShowcaseLayout
+  /** Storybook-only: limits document/window keyboard demos on shared Docs pages. */
+  scope?: ExampleScope | undefined
 }) {
   const showAsideColumn =
     aside != null &&
@@ -87,8 +91,18 @@ export function ExampleShowcase({
 
   return (
     <section
+      ref={scope?.ref}
       className="mx-auto w-full max-w-5xl p-3 sm:p-5"
       data-showcase="example"
+      data-example-scope={
+        scope == null
+          ? undefined
+          : scope.active
+            ? scope.shared
+              ? 'active'
+              : 'solo'
+            : 'idle'
+      }
     >
       <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <header className="space-y-3 border-b border-slate-200 px-4 py-4 sm:px-5">
@@ -114,6 +128,20 @@ export function ExampleShowcase({
             <span className="font-semibold text-slate-900">Try it: </span>
             {instruction}
           </p>
+          {scope?.shared ? (
+            <p
+              className={`flex items-center gap-2 text-xs font-medium ${scope.active ? 'text-emerald-700' : 'text-slate-500'}`}
+              data-testid="example-scope-hint"
+            >
+              <span
+                aria-hidden="true"
+                className={`inline-block h-2 w-2 shrink-0 rounded-full ${scope.active ? 'bg-emerald-500' : 'bg-slate-300'}`}
+              />
+              {scope.active
+                ? 'Keyboard listening is active for this example.'
+                : 'Click or Tab into this example to activate its page-wide keyboard listeners. Only one example on this page listens at a time.'}
+            </p>
+          ) : null}
         </header>
 
         <div className="min-w-0 max-w-full p-4 sm:p-5">{body}</div>

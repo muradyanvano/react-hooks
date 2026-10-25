@@ -1198,7 +1198,6 @@ export function SvgTargetExample(): ReactElement {
       </div>
       <svg
         ref={svgRef}
-        viewBox="0 0 320 160"
         width="100%"
         height="160"
         role="img"
@@ -1207,7 +1206,7 @@ export function SvgTargetExample(): ReactElement {
         className={`${surfaceClass} bg-white`}
         style={{ overflow: 'auto' }}
       >
-        <rect x="0" y="0" width="640" height="320" fill="#eef2ff" />
+        <rect x="0" y="0" width="100%" height="100%" fill="#eef2ff" />
         <circle cx="80" cy="80" r="28" fill="#6366f1" />
         <text x="16" y="28" fill="#312e81" fontSize="14" fontFamily="system-ui">
           SVG scroll lock target

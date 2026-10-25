@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useBase64 } from '@muradyanvano/react-hooks'
+import { writeClipboard } from './clipboard'
 import { ExampleShowcase, StatusPanel } from './ExampleShowcase'
 import {
   Callout,
@@ -54,7 +55,7 @@ function CopyButton({
   value: string
   label?: string
 }) {
-  const [copied, setCopied] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle')
 
   return (
     <button
@@ -62,12 +63,16 @@ function CopyButton({
       className={secondaryButtonClass}
       disabled={!value}
       onClick={async () => {
-        await navigator.clipboard.writeText(value)
-        setCopied(true)
-        window.setTimeout(() => setCopied(false), 1500)
+        const ok = await writeClipboard(value)
+        setStatus(ok ? 'copied' : 'failed')
+        window.setTimeout(() => setStatus('idle'), 1500)
       }}
     >
-      {copied ? 'Copied' : label}
+      {status === 'copied'
+        ? 'Copied'
+        : status === 'failed'
+          ? 'Copy failed'
+          : label}
     </button>
   )
 }

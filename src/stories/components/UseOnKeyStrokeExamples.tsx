@@ -5,6 +5,7 @@ import {
 } from '@muradyanvano/react-hooks'
 
 import { ExampleShowcase, StatusPanel } from './ExampleShowcase'
+import { isInteractiveTarget, useExampleScope } from './exampleScope'
 import {
   commandSnippet,
   customTargetSnippet,
@@ -44,7 +45,9 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 function dispatchArrowRight(repeat: boolean) {
-  window.dispatchEvent(
+  // Dispatch from an element so listeners reading event.target as an Element
+  // keep working; the event still bubbles to the window listener.
+  document.body.dispatchEvent(
     new KeyboardEvent('keydown', {
       key: 'ArrowRight',
       code: 'ArrowRight',
@@ -64,38 +67,47 @@ export function OverviewExample() {
   const [col, setCol] = useState(1)
   const [lastKey, setLastKey] = useState('None yet')
   const [eventCount, setEventCount] = useState(0)
+  const scope = useExampleScope()
 
-  useOnKeyStroke([...ARROW_KEYS], (event) => {
-    event.preventDefault()
-    setLastKey(event.key)
-    setEventCount((count) => count + 1)
+  useOnKeyStroke(
+    [...ARROW_KEYS],
+    (event) => {
+      if (isEditableTarget(event.target)) {
+        return
+      }
+      event.preventDefault()
+      setLastKey(event.key)
+      setEventCount((count) => count + 1)
 
-    setRow((current) => {
-      if (event.key === 'ArrowUp') {
-        return Math.max(0, current - 1)
-      }
-      if (event.key === 'ArrowDown') {
-        return Math.min(GRID_SIZE - 1, current + 1)
-      }
-      return current
-    })
-    setCol((current) => {
-      if (event.key === 'ArrowLeft') {
-        return Math.max(0, current - 1)
-      }
-      if (event.key === 'ArrowRight') {
-        return Math.min(GRID_SIZE - 1, current + 1)
-      }
-      return current
-    })
-  })
+      setRow((current) => {
+        if (event.key === 'ArrowUp') {
+          return Math.max(0, current - 1)
+        }
+        if (event.key === 'ArrowDown') {
+          return Math.min(GRID_SIZE - 1, current + 1)
+        }
+        return current
+      })
+      setCol((current) => {
+        if (event.key === 'ArrowLeft') {
+          return Math.max(0, current - 1)
+        }
+        if (event.key === 'ArrowRight') {
+          return Math.min(GRID_SIZE - 1, current + 1)
+        }
+        return current
+      })
+    },
+    { enabled: scope.active },
+  )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnKeyStroke"
       title="Arrow grid navigation"
-      description="Listen for an array of arrow keys, call preventDefault, and move an active selection across a 3×3 grid."
-      instruction="Focus the page and press ArrowUp, ArrowDown, ArrowLeft, or ArrowRight. Use Reset to restore the center cell and counters."
+      description="Listen for an array of arrow keys, call preventDefault, and move an active selection across a 3×3 grid. Editable targets are skipped so text carets still move."
+      instruction="Click inside this example, then press ArrowUp, ArrowDown, ArrowLeft, or ArrowRight. Use Reset to restore the center cell and counters."
       badge={`Cell ${row},${col}`}
       code={overviewSnippet}
       aside={
@@ -175,6 +187,7 @@ export function CommandShortcutExample() {
   const [shortcutCount, setShortcutCount] = useState(0)
   const ignoreInputId = useId()
   const commandInputId = useId()
+  const scope = useExampleScope()
 
   useOnKeyStroke(
     (event) =>
@@ -188,18 +201,24 @@ export function CommandShortcutExample() {
       setOpen(true)
       setShortcutCount((count) => count + 1)
     },
+    { enabled: scope.active },
   )
 
-  useOnKeyStroke('Escape', () => {
-    setOpen(false)
-  })
+  useOnKeyStroke(
+    'Escape',
+    () => {
+      setOpen(false)
+    },
+    { enabled: scope.active },
+  )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnKeyStroke"
       title="Command palette shortcut"
       description="Open a command panel with Ctrl/Meta+K. Escape closes it. Shortcuts are ignored while focus is inside an editable field."
-      instruction="Press Ctrl+K or Cmd+K to open. Type in the ignore input first to confirm the shortcut stays quiet, then Escape to close the panel."
+      instruction="Click inside this example, then press Ctrl+K or Cmd+K to open. Type in the ignore input first to confirm the shortcut stays quiet, then Escape to close the panel."
       badge={open ? 'Open' : 'Closed'}
       code={commandSnippet}
       aside={
@@ -273,26 +292,40 @@ export function CommandShortcutExample() {
 export function MultipleKeysExample() {
   const [last, setLast] = useState('None yet')
   const [count, setCount] = useState(0)
+  const scope = useExampleScope()
 
-  useOnKeyStroke([...MEDIA_KEYS], (event) => {
-    event.preventDefault()
-    setLast(`Matched: ${formatKeyLabel(event.key)}`)
-    setCount((value) => value + 1)
-  })
+  useOnKeyStroke(
+    [...MEDIA_KEYS],
+    (event) => {
+      // Space/Enter on buttons, links, and fields keep their native behavior.
+      if (isInteractiveTarget(event.target)) {
+        return
+      }
+      event.preventDefault()
+      setLast(`Matched: ${formatKeyLabel(event.key)}`)
+      setCount((value) => value + 1)
+    },
+    { enabled: scope.active },
+  )
 
-  useOnKeyStroke(true, (event) => {
-    if (event.key === ' ' || event.key === 'Enter') {
-      return
-    }
-    setLast(`Ignored: ${formatKeyLabel(event.key)}`)
-  })
+  useOnKeyStroke(
+    true,
+    (event) => {
+      if (event.key === ' ' || event.key === 'Enter') {
+        return
+      }
+      setLast(`Ignored: ${formatKeyLabel(event.key)}`)
+    },
+    { enabled: scope.active },
+  )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnKeyStroke"
       title="Multiple keys"
-      description="Accept Space and Enter as media-like controls. Other keys are tracked as ignored."
-      instruction="Press Space or Enter to count a match. Press another letter to see it listed as ignored."
+      description="Accept Space and Enter as media-like controls. Other keys are tracked as ignored. Keys pressed on buttons, links, or fields are left alone so they still activate natively."
+      instruction="Click or Tab to the media panel, then press Space or Enter to count a match. Press another letter to see it listed as ignored."
       badge={`${count} matched`}
       code={multipleKeysSnippet}
       aside={
@@ -313,7 +346,13 @@ export function MultipleKeysExample() {
       }
     >
       <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex items-center gap-3 rounded-xl border border-indigo-100 bg-indigo-50/50 px-4 py-3">
+        <div
+          tabIndex={0}
+          role="group"
+          aria-label="Media control panel"
+          data-testid="multi-media-panel"
+          className="flex items-center gap-3 rounded-xl border border-indigo-100 bg-indigo-50/50 px-4 py-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        >
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
             ▶
           </span>
@@ -337,21 +376,27 @@ export function MultipleKeysExample() {
 export function RepeatedEventsExample() {
   const [offCount, setOffCount] = useState(0)
   const [onCount, setOnCount] = useState(0)
+  const scope = useExampleScope()
 
-  useOnKeyStroke('ArrowRight', () => {
-    setOffCount((count) => count + 1)
-  })
+  useOnKeyStroke(
+    'ArrowRight',
+    () => {
+      setOffCount((count) => count + 1)
+    },
+    { enabled: scope.active },
+  )
 
   useOnKeyStroke(
     'ArrowRight',
     () => {
       setOnCount((count) => count + 1)
     },
-    { dedupe: true },
+    { dedupe: true, enabled: scope.active },
   )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnKeyStroke"
       title="Repeated events"
       description="By default, keydown repeats call the handler. With dedupe: true, events where event.repeat is true are ignored."
@@ -482,6 +527,7 @@ export function CustomTargetExample() {
 export function KeyupExample() {
   const [count, setCount] = useState(0)
   const [last, setLast] = useState('None yet')
+  const scope = useExampleScope()
 
   useOnKeyStroke(
     true,
@@ -489,15 +535,16 @@ export function KeyupExample() {
       setCount((value) => value + 1)
       setLast(event.key)
     },
-    { eventType: 'keyup' },
+    { eventType: 'keyup', enabled: scope.active },
   )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnKeyStroke"
       title="Keyup only"
       description="With eventType: 'keyup', keydown strokes do not invoke the handler — only release events count."
-      instruction="Hold a key down briefly, then release. The counter should update on keyup, not while the key is held from keydown alone."
+      instruction="Click inside this example, hold a key down briefly, then release. The counter should update on keyup, not while the key is held from keydown alone."
       badge="keyup"
       code={keyupSnippet}
       aside={
@@ -534,17 +581,19 @@ export function EnabledStateExample() {
   const [enabled, setEnabled] = useState(true)
   const [count, setCount] = useState(0)
   const enabledId = useId()
+  const scope = useExampleScope()
 
   useOnKeyStroke(
     true,
     () => {
       setCount((value) => value + 1)
     },
-    { enabled },
+    { enabled: enabled && scope.active },
   )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnKeyStroke"
       title="Enabled and paused"
       description="When enabled is false, no listener is registered and key strokes are ignored until listening resumes."
@@ -613,6 +662,7 @@ export function PlaygroundExample({
   const [lastKey, setLastKey] = useState('None yet')
   const [modifiers, setModifiers] = useState('—')
   const [repeat, setRepeat] = useState('false')
+  const scope = useExampleScope()
 
   useOnKeyStroke(
     true,
@@ -631,11 +681,18 @@ export function PlaygroundExample({
       )
       setRepeat(String(event.repeat))
     },
-    { enabled, eventType, dedupe, capture, passive },
+    {
+      enabled: enabled && scope.active,
+      eventType,
+      dedupe,
+      capture,
+      passive,
+    },
   )
 
   return (
     <ExampleShowcase
+      scope={scope}
       hookName="useOnKeyStroke"
       title="Playground"
       description="Tune enabled, eventType, dedupe, capture, and passive from Controls. Filter is true so every matching event is reported."
